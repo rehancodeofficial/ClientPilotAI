@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabaseClient'
 import { useAppStore } from '@/store/useAppStore'
 import { Button, Input, Label, Card, Separator } from '@/components/ui'
@@ -8,9 +9,9 @@ export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [isSignUp, setIsSignUp] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const setUserRole = useAppStore(s => s.setUserRole)
+  const setUserEmail = useAppStore(s => s.setUserEmail)
   
   const navigate = useNavigate()
 
@@ -20,23 +21,15 @@ export function LoginPage() {
     setError(null)
 
     try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        })
-        if (error) throw error
-        setError('Check your email for the confirmation link.')
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-        if (error) throw error
-        // Set role based on email for demo purposes, normally this would come from the profiles table
-        setUserRole(email.includes('admin') ? 'admin' : 'user')
-        navigate('/')
-      }
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (error) throw error
+      // Set role based on email for demo purposes
+      setUserRole(email.includes('admin') ? 'admin' : 'user')
+      setUserEmail(email)
+      navigate('/app')
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -47,21 +40,27 @@ export function LoginPage() {
   const handleDemoLogin = (role: 'admin' | 'user') => {
     // For demo purposes, we bypass real auth and just set the role
     setUserRole(role)
-    navigate('/')
+    setUserEmail(role === 'admin' ? 'admin@clientpilot.ai' : 'user@clientpilot.ai')
+    navigate('/app')
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-4">
+      <Link to="/" className="absolute top-8 left-8 flex items-center gap-2">
+        <img src="/logo.png" alt="" className="h-6 w-6 rounded" />
+        <span className="font-bold text-zinc-900 dark:text-zinc-100">ClientPilot AI</span>
+      </Link>
+
       <Card className="w-full max-w-sm p-6 space-y-6">
         <div className="flex flex-col items-center text-center space-y-2">
           <div className="h-10 w-10 rounded-xl bg-teal-600 flex items-center justify-center">
             <Zap className="h-5 w-5 text-white" />
           </div>
           <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-            {isSignUp ? 'Create an account' : 'Welcome back'}
+            Welcome back
           </h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            {isSignUp ? 'Enter your details to sign up.' : 'Enter your credentials to access your account.'}
+            Enter your credentials to access your account.
           </p>
         </div>
 
@@ -96,24 +95,17 @@ export function LoginPage() {
 
           <Button type="submit" className="w-full" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSignUp ? 'Sign Up' : 'Sign In'}
+            Sign In
           </Button>
         </form>
 
         <div className="text-center text-sm">
           <span className="text-zinc-500 dark:text-zinc-400">
-            {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+            Don't have an account?
           </span>{' '}
-          <button
-            type="button"
-            onClick={() => {
-              setIsSignUp(!isSignUp)
-              setError(null)
-            }}
-            className="font-medium text-teal-600 hover:text-teal-500 dark:text-teal-400 dark:hover:text-teal-300"
-          >
-            {isSignUp ? 'Sign in' : 'Sign up'}
-          </button>
+          <Link to="/signup" className="font-medium text-teal-600 hover:text-teal-500 dark:text-teal-400 dark:hover:text-teal-300">
+            Sign up
+          </Link>
         </div>
 
         <Separator className="my-4" />
