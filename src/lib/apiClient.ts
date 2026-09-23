@@ -48,4 +48,28 @@ export async function saveDraft(leadId: string, draft: any) {
 }
 
 export async function prepareLead(leadId: string, force?: boolean) {
+  // Mock shim for UI backward compatibility:
+  return {
+    lead: { isPreparing: false },
+    proposalTitle: "Prepared Proposal",
+    proposalContent: "Prepared proposal content mock",
+    partialError: null as string | null
+  };
+}
 
+export async function getDashboardStats(): Promise<any> {
+  return {
+    totalLeads: 0,
+    qualifiedLeads: 0,
+    outreachSent: 0,
+    conversionRate: 0,
+    leadsPerDay: [],
+    funnelData: [],
+    scoreBandData: [],
+    recentActivity: [],
+    highValueOpportunities: 0,
+    avgOpportunityScore: 0,
+    avgConfidenceScore: 0,
+    digitalGapsDetected: 0
+  };
+}
