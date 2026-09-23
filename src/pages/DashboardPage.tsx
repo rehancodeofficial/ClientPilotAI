@@ -118,6 +118,14 @@ export function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [activity, setActivity] = useState<ActivityEvent[]>([])
 
+  useEffect(() => {
+    getDashboardStats().then((s) => {
+      setStats(s)
+      setActivity(s.recentActivity)
+      setLoading(false)
+    })
+  }, [])
+
   // Get Priority Opportunities from real database records (score >= 75 or top scored)
   const priorityOpportunities = useMemo(() => {
     const combined = [...leads, ...discoveryResults]

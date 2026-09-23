@@ -48,11 +48,4 @@ export async function saveDraft(leadId: string, draft: any) {
 }
 
 export async function prepareLead(leadId: string, force?: boolean) {
-  // Mock shim for UI backward compatibility:
-  return {
-    lead: { isPreparing: false },
-    proposalTitle: "Prepared Proposal",
-    proposalContent: "Prepared proposal content mock",
-    partialError: null as string | null
-  };
-}
+
