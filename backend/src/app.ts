@@ -12,6 +12,7 @@ import opportunitiesRouter from './routes/opportunities';
 import competitorsRouter from './routes/competitors';
 import outcomesRouter from './routes/outcomes';
 import intelligenceRouter from './routes/intelligence';
+import authRouter from './routes/auth';
 import { authMiddleware, adminMiddleware } from './middleware/auth';
 import { supabaseAdmin } from './lib/supabase';
 
@@ -68,8 +69,9 @@ app.get('/health', (_req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Public AI diagnostics (no auth — test Gemini independently)
+// Public routes (no auth required)
 app.use('/api/ai', aiRouter);
+app.use('/api/auth', authRouter); // Demo token endpoint
 
 // Protected API Routes
 app.use('/api/leads', authMiddleware, leadsRouter);

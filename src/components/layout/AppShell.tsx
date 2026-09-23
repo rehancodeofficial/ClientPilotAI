@@ -4,7 +4,7 @@ import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { LeadDetailPanel } from '../leads/LeadDetailPanel'
 import { useAppStore } from '@/store/useAppStore'
-import { getProposals, getAllLeads } from '@/lib/mockApi'
+import { getProposals, getAllLeads } from '@/lib/apiClient'
 
 export function AppShell() {
   const initRealtime = useAppStore(s => s.initRealtime)

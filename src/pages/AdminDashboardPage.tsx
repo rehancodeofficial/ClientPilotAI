@@ -10,7 +10,7 @@ import {
   Card, CardContent, CardHeader, CardTitle, Button, Input,
   Badge, Skeleton, Separator, Sheet, Select
 } from '@/components/ui'
-import { getAdminUsers, updateUserRole } from '@/lib/mockApi'
+import { getAdminUsers, updateUserRole } from '@/lib/apiClient'
 import { cn, getScoreColor, getScoreBg, getPipelineLabel, formatDate } from '@/lib/utils'
 
 interface AdminLeadMessage {

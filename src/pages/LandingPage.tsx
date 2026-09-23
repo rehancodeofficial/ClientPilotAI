@@ -184,7 +184,7 @@ export function LandingPage() {
       `}</style>
 
       {/* NAVBAR */}
-      <nav className={`fixed top-0 left-0 right-0 h-20 z-50 transition-all duration-300 flex items-center ${scrolled ? 'bg-[#f8fafc]/70 backdrop-blur-md shadow-md h-[70px]' : 'bg-transparent'}`}>
+      <nav className={`fixed top-0 left-0 right-0 h-20 z-50 transition-all duration-300 flex items-center ${scrolled ? 'bg-[#f8fafc]/70 backdrop-blur-md shadow-md h-17.5' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-6 w-full flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2.5 text-lg font-extrabold text-[#0f172a] no-underline">
             <img
@@ -223,7 +223,7 @@ export function LandingPage() {
               Acquire High-Value<br />Clients on <span className="bg-linear-to-r from-[#10b981] to-[#059669] bg-clip-text text-transparent">Autopilot.</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-[#1e293b] mb-10 max-w-[580px] leading-relaxed">
+            <p className="text-lg md:text-xl text-[#1e293b] mb-10 max-w-145 leading-relaxed">
               The ultimate client acquisition engine for modern software agencies. We scan local markets, analyze digital presence, and generate hyper-personalized outreach in seconds.
             </p>
 
@@ -242,7 +242,7 @@ export function LandingPage() {
             <motion.div
               animate={{ translateY: [0, -12, 0] }}
               transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-              className="w-full max-w-[340px]"
+              className="w-full max-w-85"
             >
               <svg viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <ellipse cx="160" cy="290" rx="75" ry="14" fill="#000" fill-opacity="0.08" />
@@ -283,14 +283,14 @@ export function LandingPage() {
       {/* FEATURES SECTION */}
       <section className="py-28" id="features">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-[650px] mx-auto mb-16">
+          <div className="text-center max-w-162.5 mx-auto mb-16">
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">Everything you need to close more deals</h2>
             <p className="text-[#1e293b] text-base">Stop scraping Google Maps manually. ClientPilot AI automates the entire pipeline from discovery to first contact.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* CARD 1 */}
-            <div className="bg-white border-2 border-white rounded-[32px] p-10 clay-shadow-white hover:-translate-y-2 transition-all duration-300">
+            <div className="bg-white border-2 border-white rounded-4xl p-10 clay-shadow-white hover:-translate-y-2 transition-all duration-300">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-linear-to-br from-[#d1fae5] to-[#a7f3d0] clay-shadow-mint mb-6 text-[#059669]">
                 <Target className="w-7 h-7" />
               </div>
@@ -299,7 +299,7 @@ export function LandingPage() {
             </div>
 
             {/* CARD 2 */}
-            <div className="bg-white border-2 border-white rounded-[32px] p-10 clay-shadow-white hover:-translate-y-2 transition-all duration-300">
+            <div className="bg-white border-2 border-white rounded-4xl p-10 clay-shadow-white hover:-translate-y-2 transition-all duration-300">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-linear-to-br from-[#ede9fe] to-[#ddd6fe] clay-shadow-lavender mb-6 text-[#8b5cf6]">
                 <Sparkles className="w-7 h-7" />
               </div>
@@ -308,7 +308,7 @@ export function LandingPage() {
             </div>
 
             {/* CARD 3 */}
-            <div className="bg-white border-2 border-white rounded-[32px] p-10 clay-shadow-white hover:-translate-y-2 transition-all duration-300">
+            <div className="bg-white border-2 border-white rounded-4xl p-10 clay-shadow-white hover:-translate-y-2 transition-all duration-300">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-linear-to-br from-[#ffedd5] to-[#fed7aa] clay-shadow-peach mb-6 text-[#ea580c]">
                 <Send className="w-7 h-7" />
               </div>
@@ -323,7 +323,7 @@ export function LandingPage() {
               whileInView={{ scale: [1, 1.15, 1] }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="max-w-[160px]"
+              className="max-w-40"
             >
               <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <ellipse cx="100" cy="180" rx="45" ry="8" fill="#000" fill-opacity="0.06" />
@@ -347,16 +347,16 @@ export function LandingPage() {
       {/* HOW IT WORKS */}
       <section className="py-28 bg-[#f1f5f9] relative" id="how-it-works">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-[650px] mx-auto mb-16">
+          <div className="text-center max-w-162.5 mx-auto mb-16">
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">3 Steps to Your Next Client</h2>
             <p className="text-[#1e293b] text-base">Get set up in less than 5 minutes and let our AI agents begin sourcing opportunities.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 relative">
-            <div className="hidden md:block absolute top-[52px] left-[10%] right-[10%] h-[4px] border-t-4 border-dashed border-[#059669] opacity-35 z-0"></div>
+            <div className="hidden md:block absolute top-13 left-[10%] right-[10%] h-1 border-t-4 border-dashed border-[#059669] opacity-35 z-0"></div>
             
             <div className="flex flex-col items-center text-center z-10">
-              <div className="w-[52px] h-[52px] rounded-full bg-linear-to-br from-[#10b981] to-[#059669] text-white font-extrabold text-xl flex items-center justify-center clay-shadow-teal mb-6">1</div>
+              <div className="w-13 h-13 rounded-full bg-linear-to-br from-[#10b981] to-[#059669] text-white font-extrabold text-xl flex items-center justify-center clay-shadow-teal mb-6">1</div>
               <div className="bg-white border-2 border-white rounded-[28px] p-8 clay-shadow-white w-full">
                 <h3 className="text-lg font-bold mb-2">Define Your Market</h3>
                 <p className="text-sm text-[#1e293b]">Tell us your niche and city. We handle the rest.</p>
@@ -364,7 +364,7 @@ export function LandingPage() {
             </div>
 
             <div className="flex flex-col items-center text-center z-10">
-              <div className="w-[52px] h-[52px] rounded-full bg-linear-to-br from-[#10b981] to-[#059669] text-white font-extrabold text-xl flex items-center justify-center clay-shadow-teal mb-6">2</div>
+              <div className="w-13 h-13 rounded-full bg-linear-to-br from-[#10b981] to-[#059669] text-white font-extrabold text-xl flex items-center justify-center clay-shadow-teal mb-6">2</div>
               <div className="bg-white border-2 border-white rounded-[28px] p-8 clay-shadow-white w-full">
                 <h3 className="text-lg font-bold mb-2">AI Does the Work</h3>
                 <p className="text-sm text-[#1e293b]">We find, score, and write outreach for every lead.</p>
@@ -372,7 +372,7 @@ export function LandingPage() {
             </div>
 
             <div className="flex flex-col items-center text-center z-10">
-              <div className="w-[52px] h-[52px] rounded-full bg-linear-to-br from-[#10b981] to-[#059669] text-white font-extrabold text-xl flex items-center justify-center clay-shadow-teal mb-6">3</div>
+              <div className="w-13 h-13 rounded-full bg-linear-to-br from-[#10b981] to-[#059669] text-white font-extrabold text-xl flex items-center justify-center clay-shadow-teal mb-6">3</div>
               <div className="bg-white border-2 border-white rounded-[28px] p-8 clay-shadow-white w-full">
                 <h3 className="text-lg font-bold mb-2">Watch Replies Roll In</h3>
                 <p className="text-sm text-[#1e293b]">Sit back while qualified prospects land in your inbox.</p>
@@ -383,7 +383,7 @@ export function LandingPage() {
       </section>
 
       {/* STATS BANNER */}
-      <section className="max-w-7xl mx-auto px-6 mt-[-40px] relative z-20">
+      <section className="max-w-7xl mx-auto px-6 -mt-10 relative z-20">
         <div className="bg-linear-to-br from-[#0f172a] to-[#1e293b] py-14 px-6 rounded-[40px] border-3 border-white/5 shadow-2xl">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div>
@@ -411,7 +411,7 @@ export function LandingPage() {
       {/* CLAYMEN SQUAD SECTION */}
       <section className="py-20 bg-linear-to-br from-[#d1fae5] to-[#f0fdf4]" id="squad">
         <div className="max-w-7xl mx-auto px-6 text-center">
-          <div className="max-w-[700px] mx-auto mb-12">
+          <div className="max-w-175 mx-auto mb-12">
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">Meet Your AI Growth Squad</h2>
             <p className="text-[#1e293b] text-base">
               Your autonomous agents work 24/7 to source leads, qualify metrics, and draft bespoke outreach for your agency.
@@ -430,7 +430,7 @@ export function LandingPage() {
       {/* TESTIMONIALS */}
       <section className="py-28">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-[650px] mx-auto mb-16">
+          <div className="text-center max-w-162.5 mx-auto mb-16">
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">Endorsed by Fast-Growing Agencies</h2>
             <p className="text-[#1e293b] text-base">Client acquisition doesn't have to be a manual grind. Here's what founders say.</p>
           </div>
@@ -439,7 +439,7 @@ export function LandingPage() {
             {TESTIMONIALS.map((t, idx) => (
               <div 
                 key={idx}
-                className={`p-10 rounded-[32px] border-2 border-white flex flex-col justify-between ${
+                className={`p-10 rounded-4xl border-2 border-white flex flex-col justify-between ${
                   t.tone === 'mint' ? 'bg-linear-to-br from-[#d1fae5] to-[#f0fdf4] clay-shadow-mint' :
                   t.tone === 'lavender' ? 'bg-linear-to-br from-[#ede9fe] to-[#faf5ff] clay-shadow-lavender' :
                   'bg-linear-to-br from-[#ffedd5] to-[#fffbef] clay-shadow-peach'
@@ -456,7 +456,7 @@ export function LandingPage() {
       {/* PRICING */}
       <section className="py-28 bg-[#f1f5f9]" id="pricing">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-[650px] mx-auto mb-16">
+          <div className="text-center max-w-162.5 mx-auto mb-16">
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">Simple, Transparent Pricing</h2>
             <p className="text-[#1e293b] text-base">Choose a plan that fits your agency's scale. All plans include 14-day free trials.</p>
           </div>
@@ -484,7 +484,7 @@ export function LandingPage() {
 
             {/* Plan 2 */}
             <div className="bg-white rounded-[36px] p-12 border-3 border-[#10b981] clay-shadow-teal flex flex-col relative h-[105%] popular-glow">
-              <div className="absolute top-[-18px] right-[28px] bg-linear-to-br from-[#10b981] to-[#059669] text-white px-4 py-2 rounded-full text-xs font-extrabold clay-shadow-teal">Most Popular</div>
+              <div className="absolute -top-4.5 right-7 bg-linear-to-br from-[#10b981] to-[#059669] text-white px-4 py-2 rounded-full text-xs font-extrabold clay-shadow-teal">Most Popular</div>
               <span className="text-sm uppercase tracking-wider text-[#1e293b] font-bold mb-2">Growth</span>
               <div className="text-4xl font-extrabold text-[#0f172a] mb-6">$149<span className="text-sm font-medium text-[#1e293b]">/mo</span></div>
               <ul className="space-y-4 mb-8">
@@ -542,7 +542,7 @@ export function LandingPage() {
 
           <div className="space-y-4">
             {FAQ_ITEMS.map((item, idx) => (
-              <div key={idx} className="bg-white border-2 border-white rounded-[24px] clay-shadow-white overflow-hidden">
+              <div key={idx} className="bg-white border-2 border-white rounded-3xl clay-shadow-white overflow-hidden">
                 <div 
                   onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
                   className="p-6 flex justify-between items-center cursor-pointer select-none"
@@ -605,7 +605,7 @@ export function LandingPage() {
               </svg>
             </div>
 
-            <div className="relative z-10 max-w-[650px] mx-auto text-white">
+            <div className="relative z-10 max-w-162.5 mx-auto text-white">
               <h2 className="text-3xl md:text-5xl font-extrabold mb-4">Ready to Fill Your Pipeline?</h2>
               <p className="text-white/90 text-base md:text-lg mb-10">Join 2,000+ agencies acquiring clients on autopilot.</p>
               <Link to="/signup" className="inline-block px-10 py-4 rounded-full text-base font-bold bg-white text-[#0f172a] clay-shadow-white hover:scale-[1.03] active:scale-[0.97] transition-all">

@@ -6,7 +6,7 @@ import {
   Sparkles, Database
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Skeleton } from '@/components/ui';
-import { getModelEvaluation } from '@/lib/mockApi';
+import { getModelEvaluation } from '@/lib/apiClient';
 import type { ModelEvaluationStats } from '@/types';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';

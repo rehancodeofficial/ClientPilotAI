@@ -10,7 +10,7 @@ import {
   ResponsiveContainer, Cell, PieChart, Pie, Legend
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Skeleton } from '@/components/ui';
-import { getMarketIntelligence } from '@/lib/mockApi';
+import { getMarketIntelligence } from '@/lib/apiClient';
 import type { MarketIntelligenceStats } from '@/types';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';

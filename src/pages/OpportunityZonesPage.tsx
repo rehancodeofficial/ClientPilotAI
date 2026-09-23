@@ -6,7 +6,7 @@ import {
   CheckCircle2, ArrowUpRight, Target, Sparkles
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Select, Slider } from '@/components/ui';
-import { getOpportunityZones, getAllLeads } from '@/lib/mockApi';
+import { getOpportunityZones, getAllLeads } from '@/lib/apiClient';
 import type { OpportunityZone, Lead, BusinessCategory } from '@/types';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -128,8 +128,8 @@ export function OpportunityZonesPage() {
       }).slice(0, 10);
 
       zoneLeads.forEach((l) => {
-        const lat = l.lat || selectedZone.centerLat + (Math.random() - 0.5) * 0.015;
-        const lng = l.lng || selectedZone.centerLng + (Math.random() - 0.5) * 0.015;
+        const lat = l.lat || selectedZone.centerLat;
+        const lng = l.lng || selectedZone.centerLng;
         const bizMarker = L.circleMarker([lat, lng], {
           radius: 7,
           fillColor: l.score >= 80 ? '#10b981' : '#3b82f6',

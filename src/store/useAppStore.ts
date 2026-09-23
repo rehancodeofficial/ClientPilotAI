@@ -12,6 +12,9 @@ const defaultFilters: FilterState = {
 }
 
 export const useAppStore = create<AppState & {
+  /** Demo JWT — set after calling /api/auth/demo. Used by apiFetch instead of Supabase session. */
+  demoToken: string | null;
+  setDemoToken: (token: string | null) => void;
   updateLeadScore: (id: string, scoreData: Record<string, unknown>) => void;
   initRealtime: () => () => void;
 }>((set, get) => ({
@@ -27,49 +30,12 @@ export const useAppStore = create<AppState & {
   proposals: [],
   isDemoMode: false,
   selectedDemoScenario: null,
-  notifications: [
-    {
-      id: 'n1',
-      type: 'lead',
-      title: 'New High-Score Lead',
-      message: 'Al Noor Restaurant scored 91/100 and is ready for outreach.',
-      timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-      read: false,
-    },
-    {
-      id: 'n2',
-      type: 'pipeline',
-      title: 'Stage Updated',
-      message: 'City Pharmacy moved from Qualified → Contacted.',
-      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      read: false,
-    },
-    {
-      id: 'n3',
-      type: 'outreach',
-      title: 'Outreach Email Sent',
-      message: 'Personalised email delivered to Green Gym successfully.',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      read: false,
-    },
-    {
-      id: 'n4',
-      type: 'proposal',
-      title: 'Proposal Viewed',
-      message: 'Your proposal for Metro Salon was opened by the client.',
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-      read: true,
-    },
-    {
-      id: 'n5',
-      type: 'system',
-      title: 'AI Scoring Complete',
-      message: 'Batch scoring finished — 24 new leads evaluated.',
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      read: true,
-    },
-  ],
+  /** Real-data only: notifications start empty and are populated from DB */
+  notifications: [],
 
+  /** Demo JWT issued by /api/auth/demo — null for real Supabase sessions */
+  demoToken: null,
+  setDemoToken: (token) => set({ demoToken: token }),
 
   setLeads: (leads: Lead[]) => set({ leads }),
   setSelectedLeadId: (id: string | null) => set({ selectedLeadId: id }),
@@ -120,7 +86,6 @@ export const useAppStore = create<AppState & {
       };
     }),
 
-    
   updateLeadScore: (id: string, scoreData: Record<string, unknown>) =>
     set((state) => {
       const score = scoreData as {

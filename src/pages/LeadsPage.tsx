@@ -4,7 +4,7 @@ import {
   Search, Star, Globe, Clock, ChevronUp, ChevronDown, Filter, ArrowUpDown,
 } from 'lucide-react'
 import { Input, Badge, Skeleton, Select } from '@/components/ui'
-import { getAllLeads } from '@/lib/mockApi'
+import { getAllLeads } from '@/lib/apiClient'
 import { useAppStore } from '@/store/useAppStore'
 import type { Lead, PipelineStage } from '@/types'
 import { cn, getCategoryLabel, getScoreColor, getScoreBg, getPipelineLabel, formatDate } from '@/lib/utils'

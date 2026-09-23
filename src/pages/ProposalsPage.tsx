@@ -7,7 +7,7 @@ import {
 import {
   Button, Badge, Input, Textarea, Select, Separator, Sheet, Skeleton
 } from '@/components/ui'
-import { getProposals, updateProposalStatusApi, deleteProposalApi, saveProposalApi } from '@/lib/mockApi'
+import { getProposals, updateProposalStatusApi, deleteProposalApi, saveProposalApi } from '@/lib/apiClient'
 import { useAppStore } from '@/store/useAppStore'
 import type { Proposal } from '@/types'
 import { cn } from '@/lib/utils'

@@ -1,10 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
 import { supabaseAdmin } from '../lib/supabase';
 
 export interface SupabaseUserPayload {
   sub: string;
   email?: string;
   role?: string;
+  is_demo?: boolean;
+  demo_workspace_id?: string;
   [key: string]: unknown;
 }
 
@@ -26,6 +29,29 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
   const token = authHeader.split(' ')[1];
 
+  // ── Try demo JWT first (fast path, no network call) ───────────────
+  const jwtSecret = process.env.SUPABASE_JWT_SECRET;
+  if (jwtSecret) {
+    try {
+      const decoded = jwt.verify(token, jwtSecret) as Record<string, unknown>;
+
+      // Accept tokens issued by our demo endpoint
+      if (decoded.is_demo === true && decoded.sub && decoded.demo_workspace_id) {
+        req.user = {
+          sub: decoded.sub as string,
+          email: decoded.email as string | undefined,
+          role: decoded.role as string | undefined,
+          is_demo: true,
+          demo_workspace_id: decoded.demo_workspace_id as string,
+        };
+        return next();
+      }
+    } catch {
+      // Not a demo token — fall through to Supabase verification
+    }
+  }
+
+  // ── Verify real Supabase token ────────────────────────────────────
   try {
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     if (error || !user) {
@@ -52,6 +78,19 @@ export const adminMiddleware = async (req: Request, res: Response, next: NextFun
     const user = req.user;
     if (!user || !user.sub) {
       return res.status(401).json({ error: 'Unauthorized: User session missing' });
+    }
+
+    // Demo admin bypass
+    if (user.is_demo) {
+      const { data: profile } = await supabaseAdmin
+        .from('profiles')
+        .select('role')
+        .eq('id', user.sub)
+        .single();
+      if (profile?.role !== 'admin') {
+        return res.status(403).json({ error: 'Access denied: Admin role required' });
+      }
+      return next();
     }
 
     const { data: profile, error } = await supabaseAdmin

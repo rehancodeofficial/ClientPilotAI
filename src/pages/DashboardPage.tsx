@@ -11,8 +11,7 @@ import {
   Building2, ArrowRight
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, Skeleton, Button, Badge } from '@/components/ui'
-import { getDashboardStats } from '@/lib/mockApi'
-import { streamingActivityEvents } from '@/data/mockLeads'
+import { getDashboardStats } from '@/lib/apiClient'
 import type { DashboardStats, ActivityEvent, Lead } from '@/types'
 import { formatRelativeTime, cn, getCategoryLabel, getScoreColor } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
@@ -60,7 +59,7 @@ function StatCard({ label, value, trend, sparkline, icon, accent, delay = 0 }: S
       className="clay-raised p-5"
     >
       <div className="flex items-start justify-between mb-3">
-        <div className={cn('h-11 w-11 rounded-[16px] clay-raised flex items-center justify-center text-white', accent)}>
+        <div className={cn('h-11 w-11 rounded-2xl clay-raised flex items-center justify-center text-white', accent)}>
           {icon}
         </div>
         <div className="clay-inset px-2 py-1 rounded-xl border border-transparent">
@@ -118,7 +117,6 @@ export function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [activity, setActivity] = useState<ActivityEvent[]>([])
-  const [streamIdx, setStreamIdx] = useState(0)
 
   useEffect(() => {
     getDashboardStats().then((s) => {
@@ -128,16 +126,6 @@ export function DashboardPage() {
     })
   }, [])
 
-  // Stream new activity items every 4s
-  useEffect(() => {
-    if (!stats) return
-    if (streamIdx >= streamingActivityEvents.length) return
-    const t = setTimeout(() => {
-      const newEvent = { ...streamingActivityEvents[streamIdx], timestamp: new Date().toISOString(), id: `stream-${streamIdx}` }
-      setActivity((prev) => [newEvent, ...prev].slice(0, 12))
-      setStreamIdx((i) => i + 1)
-    }, 4000 + streamIdx * 500)
-    return () => clearTimeout(t)
   }, [stats, streamIdx])
 
   // Get Priority Opportunities from real database records (score >= 75 or top scored)
@@ -473,7 +461,7 @@ export function DashboardPage() {
             </div>
             <h2 className="clay-card-title">Recent Activity</h2>
           </div>
-          <div className="flex-1 max-h-[250px] overflow-y-auto space-y-3 pr-1">
+          <div className="flex-1 max-h-62.5 overflow-y-auto space-y-3 pr-1">
             <AnimatePresence initial={false}>
               {activity.map((event) => (
                 <motion.div
@@ -520,8 +508,8 @@ function DashboardSkeleton() {
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 clay-raised p-6 h-[260px]"><Skeleton className="h-full w-full" /></div>
-        <div className="clay-raised p-6 h-[260px]"><Skeleton className="h-full w-full" /></div>
+        <div className="lg:col-span-2 clay-raised p-6 h-65"><Skeleton className="h-full w-full" /></div>
+        <div className="clay-raised p-6 h-65"><Skeleton className="h-full w-full" /></div>
       </div>
     </div>
   )

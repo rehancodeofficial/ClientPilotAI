@@ -46,6 +46,8 @@ router.get('/market', async (req, res) => {
 
     let scoreSum = 0;
     let confidenceSum = 0;
+    let scoreCount = 0;
+    let confidenceCount = 0;
     const maturityCount = [0, 0, 0, 0, 0]; // levels 0 - 4
     const categoryMap = new Map<string, { count: number; scoreSum: number }>();
     let noWebsiteCount = 0;
@@ -57,10 +59,15 @@ router.get('/market', async (req, res) => {
       const opp = Array.isArray(l.opportunity_analysis) ? l.opportunity_analysis[0] : (l.opportunity_analysis as any);
       const audit = Array.isArray(l.business_audits) ? l.business_audits[0] : (l.business_audits as any);
 
-      const oppScore = opp?.opportunity_score ?? 78;
-      const confScore = opp?.confidence_score ?? 75;
-      scoreSum += oppScore;
-      confidenceSum += confScore;
+      // Only include real scores — skip leads that haven't been analyzed yet
+      if (opp?.opportunity_score != null) {
+        scoreSum += opp.opportunity_score;
+        scoreCount += 1;
+      }
+      if (opp?.confidence_score != null) {
+        confidenceSum += opp.confidence_score;
+        confidenceCount += 1;
+      }
 
       const matLevel = audit?.digital_maturity_level ?? (l.has_website || l.website_url ? 2 : 1);
       const safeLevel = Math.min(4, Math.max(0, matLevel));
@@ -70,18 +77,18 @@ router.get('/market', async (req, res) => {
       const cat = l.category || 'other';
       const catData = categoryMap.get(cat) || { count: 0, scoreSum: 0 };
       catData.count += 1;
-      catData.scoreSum += oppScore;
+      catData.scoreSum += opp?.opportunity_score ?? 0;
       categoryMap.set(cat, catData);
 
-      // Digital Gap counts
+      // Digital Gap counts — only from real audit data
       if (!l.has_website && !l.website_url) noWebsiteCount += 1;
-      if (audit?.booking_detected === 'not_detected' || (!audit && (l.has_website || l.website_url))) noBookingCount += 1;
+      if (audit?.booking_detected === 'not_detected') noBookingCount += 1;
       if (audit?.ordering_detected === 'not_detected') noOrderingCount += 1;
       if (audit?.mobile_indicator === 'not_detected') weakMobileCount += 1;
     });
 
-    const avgOpportunityScore = totalOpportunities > 0 ? Math.round(scoreSum / totalOpportunities) : 0;
-    const avgConfidenceScore = totalOpportunities > 0 ? Math.round(confidenceSum / totalOpportunities) : 0;
+    const avgOpportunityScore = scoreCount > 0 ? Math.round(scoreSum / scoreCount) : 0;
+    const avgConfidenceScore = confidenceCount > 0 ? Math.round(confidenceSum / confidenceCount) : 0;
 
     const maturityLabels = [
       'Level 0 — Digitally Invisible',
@@ -101,7 +108,7 @@ router.get('/market', async (req, res) => {
       .map(([category, val]) => ({
         category,
         count: val.count,
-        avgScore: Math.round(val.scoreSum / val.count),
+        avgScore: val.count > 0 ? Math.round(val.scoreSum / val.count) : 0,
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 6);
@@ -140,14 +147,18 @@ router.get('/evaluation', async (req, res) => {
 
     if (!profile?.workspace_id) return res.status(403).json({ error: 'No workspace found' });
 
-    // 1. Fetch leads and their opportunity analyses
+    // 1. Fetch leads and their opportunity analyses + enrichment/audit data
     const { data: leads, error: leadErr } = await supabaseAdmin
       .from('leads')
       .select(`
         id,
+        contact_email,
         opportunity_analysis (
           opportunity_score,
           confidence_score
+        ),
+        business_audits (
+          audit_data
         )
       `)
       .eq('workspace_id', profile.workspace_id);
@@ -180,13 +191,29 @@ router.get('/evaluation', async (req, res) => {
     let totalConfidence = 0;
     let confidenceCount = 0;
 
+    // Real evidence quality counters derived from DB
+    let leadsWithVerifiedContact = 0;
+    let leadsWithSuccessfulCrawl = 0;
+
     (leads || []).forEach((l) => {
       const opp = Array.isArray(l.opportunity_analysis) ? l.opportunity_analysis[0] : (l.opportunity_analysis as any);
-      const score = opp?.opportunity_score ?? 70;
-      const conf = opp?.confidence_score ?? 70;
+      const audit = Array.isArray(l.business_audits) ? l.business_audits[0] : (l.business_audits as any);
+      const score = opp?.opportunity_score ?? 0;
+      const conf = opp?.confidence_score ?? 0;
 
-      totalConfidence += conf;
-      confidenceCount += 1;
+      if (opp) {
+        totalConfidence += conf;
+        confidenceCount += 1;
+      }
+
+      // Real verified contacts: only count rows with actual contact_email in DB
+      if (l.contact_email) leadsWithVerifiedContact += 1;
+
+      // Real crawl coverage: only count audits where crawler actually reached the website
+      const crawlStatus = (audit?.audit_data as any)?.technicalDetails?.crawlStatus;
+      if (typeof crawlStatus === 'string' && crawlStatus.startsWith('http')) {
+        leadsWithSuccessfulCrawl += 1;
+      }
 
       let bandKey: 'high' | 'medium' | 'low' = 'low';
       if (score >= 80) bandKey = 'high';
@@ -225,15 +252,24 @@ router.get('/evaluation', async (req, res) => {
 
     const totalWithOutcomes = eventsByLead.size;
     const hasSufficientData = totalWithOutcomes >= 15;
+    const totalLeads = leads?.length || 0;
+
+    // All percentages derived from real DB records — never hardcoded
+    const verifiedContactsPct = totalLeads > 0
+      ? Math.round((leadsWithVerifiedContact / totalLeads) * 100)
+      : 0;
+    const directCrawlCoveragePct = totalLeads > 0
+      ? Math.round((leadsWithSuccessfulCrawl / totalLeads) * 100)
+      : 0;
 
     res.json({
-      totalAnalyzed: leads?.length || 0,
+      totalAnalyzed: totalLeads,
       totalWithOutcomes,
       scoreBands,
       evidenceQualityStats: {
         avgConfidencePct: confidenceCount > 0 ? Math.round(totalConfidence / confidenceCount) : 0,
-        verifiedContactsPct: 84,
-        directCrawlCoveragePct: 76,
+        verifiedContactsPct,
+        directCrawlCoveragePct,
       },
       researchMetrics: {
         correlationDescription: hasSufficientData

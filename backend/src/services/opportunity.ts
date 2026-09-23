@@ -111,7 +111,9 @@ export async function analyzeBusinessOpportunity(
     reviewCount?: number | null;
     websiteUrl?: string | null;
   },
-  audit: BusinessAuditResult
+  audit: BusinessAuditResult,
+  /** Optional: number of real competitors found in the same area (from competitors service) */
+  nearbyCompetitorCount?: number | null
 ): Promise<OpportunityAnalysisResult> {
   const timestamp = new Date().toISOString();
   const evidenceList: EvidenceItem[] = [...audit.evidence];
@@ -135,9 +137,19 @@ export async function analyzeBusinessOpportunity(
   const reviews = lead.reviewCount ?? 0;
   const reviewActivity = reviews >= 100 ? 10 : reviews >= 50 ? 8 : reviews >= 15 ? 6 : reviews > 0 ? 4 : 2;
 
-  // Market Density (0-10) - based on major commercial centers
-  const marketDensity = 8;
-  const competitorPresence = 8;
+  // Market Density (0-10)
+  // Derived from actual nearby competitor count when available.
+  // If no competitor data was provided, we use 5 (neutral) to avoid inflating scores.
+  const marketDensity: number = nearbyCompetitorCount != null
+    ? Math.min(10, Math.round(1 + (nearbyCompetitorCount / 5))) // 0 competitors → 1, 20+ → 5
+    : 5; // neutral — unknown, not inflated
+
+  // Competitor Presence (0-10)
+  // High competitor density = high demand = higher opportunity for the service agency.
+  // Derived from same count as market density.
+  const competitorPresence: number = nearbyCompetitorCount != null
+    ? Math.min(10, Math.round(2 + (nearbyCompetitorCount / 4)))
+    : 5; // neutral — unknown
 
   // Business Need Score (0-10)
   const businessNeed = Math.min(10, Math.round(digitalGap * 0.6 + maturityGap * 2.0));

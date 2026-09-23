@@ -15,7 +15,7 @@ import {
 import {
   prepareLead, generateOutreach, sendOutreach, saveDraft,
   saveProposalApi, updateProposalStatusApi,
-} from '@/lib/mockApi'
+} from '@/lib/apiClient'
 import { useAppStore } from '@/store/useAppStore'
 import type {
   Lead, PipelineStage, Proposal,
@@ -400,7 +400,7 @@ function OverviewTab({ lead }: { lead: Lead }) {
               href={lead.websiteUrl || lead.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-indigo-500 hover:underline flex items-center gap-0.5 truncate max-w-[140px]"
+              className="text-xs text-indigo-500 hover:underline flex items-center gap-0.5 truncate max-w-35"
             >
               Visit <ExternalLink className="h-3 w-3 shrink-0" />
             </a>
@@ -721,7 +721,7 @@ function CompetitorsTab({ lead }: { lead: Lead }) {
                 <th className="py-2.5 px-3 font-semibold">Capability</th>
                 <th className="py-2.5 px-3 font-bold text-(--primary) bg-(--primary-soft)/30">Target ({lead.name})</th>
                 {analysis.competitors.slice(0, 2).map((c, i) => (
-                  <th key={c.id} className="py-2.5 px-3 font-semibold text-(--text-secondary) truncate max-w-[120px]">
+                  <th key={c.id} className="py-2.5 px-3 font-semibold text-(--text-secondary) truncate max-w-30">
                     Peer {i + 1}: {c.name}
                   </th>
                 ))}
@@ -932,7 +932,7 @@ function OutreachTab({ lead }: { lead: Lead }) {
           {/* Body */}
           <Textarea
             value={body} onChange={(e) => setBody(e.target.value)}
-            className="text-sm min-h-[160px]" placeholder="Outreach message body…"
+            className="text-sm min-h-40" placeholder="Outreach message body…"
           />
           {/* WhatsApp variant */}
           {firstMsg?.whatsappBody && (
@@ -1045,7 +1045,7 @@ function ProposalTab({ lead }: { lead: Lead }) {
           />
           {/* Content */}
           <Textarea value={proposalContent} onChange={(e) => setProposalContent(e.target.value)}
-            className="text-sm font-mono min-h-[240px]" placeholder="Proposal content…"
+            className="text-sm font-mono min-h-60" placeholder="Proposal content…"
           />
           <Button onClick={handleSave} isLoading={isSaving} size="sm" className="gap-1.5 w-full">
             {savedOk ? <><CheckCircle2 className="h-4 w-4 text-emerald-400" />Saved!</> : <><Save className="h-4 w-4" />Save Proposal</>}
