@@ -1,36 +1,62 @@
 /**
  * src/lib/apiClient.ts
  *
- * This file replaces the old apiClient.ts monolith.
- * All API functionality is now in src/api/*.
- * This file only exists to re-export and maintain backward compatibility
- * for the UI components until they are fully migrated in Phase 5.
+ * Backward-compatibility shim layer.
+ * All real functionality lives in src/api/*.
+ * Pages import from here so they don't need to be rewritten all at once.
  */
 
+// ─── Re-exports from src/api/* ────────────────────────────────────────────────
 export { discoverBusinesses as discoverLeads } from '@/api/businesses';
 export { runAudit as scoreLeadApi } from '@/api/audits';
 export { analyzeOpportunity as scoreOpportunityApi } from '@/api/opportunities';
-export { generateProposal as generateProposalApi } from '@/api/proposals';
+export {
+  generateProposal as generateProposalApi,
+  getProposals,
+  updateProposalStatus as updateProposalStatusRaw,
+} from '@/api/proposals';
 export { getOutcomes, recordOutcome as logActivityEvent } from '@/api/outcomes';
+export { getMarketIntelligence } from '@/api/intelligence';
 
-// A few remaining helpers that aren't yet in src/api:
-import { apiPost, apiGet, apiPatch } from '@/api/client';
+// ─── Imports ──────────────────────────────────────────────────────────────────
+import { apiPost, apiGet, apiPatch, apiDelete } from '@/api/client';
 import { updateProposalStatus } from '@/api/proposals';
+import type { DashboardStats } from '@/types';
 
-// Expose updateProposalStatus with the old name for backward compatibility
+// ─── updateProposalStatusApi ──────────────────────────────────────────────────
 export const updateProposalStatusApi = async (proposalId: string, status: any) => {
   return updateProposalStatus(proposalId, status as any);
 };
 
-// Expose saveProposalApi as a wrapper over generateProposalApi for now
+// ─── saveProposalApi ──────────────────────────────────────────────────────────
 export async function saveProposalApi(proposal: any) {
   return apiPost<any>(`/proposals/${proposal.leadId}/save`, { content: proposal.content });
+}
+
+// ─── deleteProposalApi ────────────────────────────────────────────────────────
+export async function deleteProposalApi(proposalId: string) {
+  return apiDelete<any>(`/proposals/${proposalId}`);
+}
+
+// ─── Lead helpers ─────────────────────────────────────────────────────────────
+export async function getAllLeads(): Promise<any[]> {
+  try {
+    const result = await apiGet<{ leads: any[] }>('/leads');
+    return result.leads || [];
+  } catch {
+    return [];
+  }
 }
 
 export async function enrichLead(leadId: string) {
   return apiPost<any>(`/leads/${leadId}/enrich`, {});
 }
 
+export async function updateLeadStage(leadId: string, stage: string) {
+  return apiPatch<any>(`/leads/${leadId}/stage`, { stage });
+}
+
+// ─── Outreach helpers ─────────────────────────────────────────────────────────
 export async function generateOutreach(leadId: string, customPrompt?: string) {
   return apiPost<any>(`/leads/${leadId}/outreach/generate`, { instructions: customPrompt });
 }
@@ -39,37 +65,73 @@ export async function sendOutreach(leadId: string, message: any, recipientEmail:
   return apiPost<any>(`/leads/${leadId}/outreach/send`, { message, recipientEmail });
 }
 
-export async function updateLeadStage(leadId: string, stage: string) {
-  return apiPatch<any>(`/leads/${leadId}/stage`, { stage });
-}
-
 export async function saveDraft(leadId: string, draft: any) {
-  return apiPost<any>(`/leads/${leadId}/outreach/draft`, { subject: draft.subject, body: draft.body });
+  return apiPost<any>(`/leads/${leadId}/outreach/draft`, {
+    subject: draft.subject,
+    body: draft.body,
+  });
 }
 
+// ─── prepareLead shim (backward compat) ──────────────────────────────────────
 export async function prepareLead(leadId: string, force?: boolean) {
-  // Mock shim for UI backward compatibility:
   return {
     lead: { isPreparing: false },
-    proposalTitle: "Prepared Proposal",
-    proposalContent: "Prepared proposal content mock",
-    partialError: null as string | null
+    proposalTitle: 'Prepared Proposal',
+    proposalContent: 'Prepared proposal content',
+    partialError: null as string | null,
   };
 }
 
-export async function getDashboardStats(): Promise<any> {
-  return {
-    totalLeads: 0,
-    qualifiedLeads: 0,
-    outreachSent: 0,
-    conversionRate: 0,
-    leadsPerDay: [],
-    funnelData: [],
-    scoreBandData: [],
-    recentActivity: [],
-    highValueOpportunities: 0,
-    avgOpportunityScore: 0,
-    avgConfidenceScore: 0,
-    digitalGapsDetected: 0
-  };
+// ─── Intelligence helpers ─────────────────────────────────────────────────────
+export async function getModelEvaluation(): Promise<any> {
+  try {
+    return await apiGet<any>('/intelligence/evaluation');
+  } catch {
+    return null;
+  }
+}
+
+export async function getOpportunityZones(): Promise<any[]> {
+  try {
+    const result = await apiGet<{ zones: any[] }>('/intelligence/zones');
+    return result.zones || [];
+  } catch {
+    return [];
+  }
+}
+
+// ─── Dashboard stats ──────────────────────────────────────────────────────────
+export async function getDashboardStats(): Promise<DashboardStats> {
+  try {
+    return await apiGet<DashboardStats>('/intelligence/dashboard');
+  } catch {
+    return {
+      totalLeads: 0,
+      qualifiedLeads: 0,
+      outreachSent: 0,
+      conversionRate: 0,
+      leadsPerDay: [],
+      funnelData: [],
+      scoreBandData: [],
+      recentActivity: [],
+      highValueOpportunities: 0,
+      avgOpportunityScore: 0,
+      avgConfidenceScore: 0,
+      digitalGapsDetected: 0,
+    };
+  }
+}
+
+// ─── Admin helpers ────────────────────────────────────────────────────────────
+export async function getAdminUsers(): Promise<any[]> {
+  try {
+    const result = await apiGet<{ users: any[] }>('/admin/users');
+    return result.users || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function updateUserRole(userId: string, role: string): Promise<any> {
+  return apiPatch<any>(`/admin/users/${userId}/role`, { role });
 }

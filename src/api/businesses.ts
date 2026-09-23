@@ -57,7 +57,7 @@ function mapDbLeadToLead(db: DbLead): Lead {
     businessName: db.business_name || 'Unknown Business',
     category: (db.category || 'business') as Lead['category'],
     address: db.address || '',
-    city: db.city || '',
+    city: (db.city || 'Karachi') as Lead['city'],
     phone: db.phone ?? undefined,
     rating: db.rating ?? undefined,
     reviewCount: db.review_count ?? undefined,
@@ -67,15 +67,14 @@ function mapDbLeadToLead(db: DbLead): Lead {
     pipelineStage: (db.pipeline_stage || 'discovery') as Lead['pipelineStage'],
     discoveredAt: db.created_at || new Date().toISOString(),
     distance: db.distance ?? undefined,
-    aiAnalysis: scores?.ai_reasoning || undefined,
+    aiAnalysis: scores?.ai_reasoning || '',
     outreachMessages: [],
     latitude: db.lat ?? undefined,
     longitude: db.lng ?? undefined,
     contactEmail: db.contact_email ?? undefined,
-    digitalMaturityLevel: audit?.digital_maturity_level as Lead['digitalMaturityLevel'],
     opportunityScore: opp?.opportunity_score ?? undefined,
     confidenceScore: opp?.confidence_score ?? undefined,
-  };
+  } as any;
 }
 
 /**

@@ -17,14 +17,27 @@ export async function generateProposal(leadId: string): Promise<ProposalResult> 
   return apiPost<ProposalResult>(`/proposals/generate`, { leadId });
 }
 
-export async function getProposals(): Promise<ProposalResult[]> {
+import type { Proposal } from '@/types';
+
+export async function getProposals(): Promise<Proposal[]> {
   try {
-    const result = await apiGet<{ proposals: ProposalResult[] }>('/proposals');
-    return result.proposals || [];
+    const result = await apiGet<{ proposals: any[] }>('/proposals');
+    return (result.proposals || []).map((p: any): Proposal => ({
+      id: p.id,
+      leadId: p.leadId ?? p.lead_id ?? '',
+      workspaceId: p.workspaceId ?? p.workspace_id ?? '',
+      title: p.title ?? 'Untitled Proposal',
+      content: p.content ?? '',
+      status: p.status ?? 'draft',
+      createdAt: p.createdAt ?? p.created_at ?? new Date().toISOString(),
+      updatedAt: p.updatedAt ?? p.updated_at ?? new Date().toISOString(),
+      leads: p.leads,
+    }));
   } catch {
     return [];
   }
 }
+
 
 export async function updateProposalStatus(
   proposalId: string,

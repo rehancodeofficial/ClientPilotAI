@@ -128,8 +128,8 @@ export function OpportunityZonesPage() {
       }).slice(0, 10);
 
       zoneLeads.forEach((l) => {
-        const lat = l.lat || selectedZone.centerLat;
-        const lng = l.lng || selectedZone.centerLng;
+        const lat = l.latitude || selectedZone.centerLat;
+        const lng = l.longitude || selectedZone.centerLng;
         const bizMarker = L.circleMarker([lat, lng], {
           radius: 7,
           fillColor: l.score >= 80 ? '#10b981' : '#3b82f6',

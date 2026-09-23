@@ -27,12 +27,12 @@ export const API_BASE = rawApiUrl;
 // ─── Error type ────────────────────────────────────────────────────────────────
 
 export class ApiError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly code: string,
-    message: string
-  ) {
+  status: number;
+  code: string;
+  constructor(status: number, code: string, message: string) {
     super(message);
+    this.status = status;
+    this.code = code;
     this.name = 'ApiError';
   }
 }
