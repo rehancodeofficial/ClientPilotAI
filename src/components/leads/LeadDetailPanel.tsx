@@ -6,7 +6,7 @@ import {
   Loader2, AtSign, Shield, Smartphone, ShoppingCart, Calendar,
   FileText, Activity, Users, Zap,
   Star, BarChart3, Target, MessageSquare, AlertTriangle,
-  LayoutDashboard, ChevronRight, Info, RefreshCw,
+  LayoutDashboard, ChevronRight, Info, RefreshCw, Award, TrendingUp,
 } from 'lucide-react'
 import { CAT_ICON } from '@/lib/icons'
 import {
@@ -861,7 +861,7 @@ function OutreachTab({ lead }: { lead: Lead }) {
     if (!recipientEmail.trim()) { setError('Add the recipient email address before sending.'); return }
     setIsSending(true); setError(null)
     try {
-      await sendOutreach(lead.id, recipientEmail, subject, body)
+      await sendOutreach(lead.id, { subject, body, status: 'sent' }, recipientEmail)
       setSentSuccess(true)
       updateLeadStore(lead.id, { outreachStatus: 'sent', outreachSentAt: new Date().toISOString() })
       setTimeout(() => setSentSuccess(false), 3000)
@@ -872,7 +872,7 @@ function OutreachTab({ lead }: { lead: Lead }) {
   const handleSaveDraft = async () => {
     setIsSaving(true); setError(null)
     try {
-      await saveDraft(lead.id, subject, body)
+      await saveDraft(lead.id, { subject, body, status: 'draft' })
       setSavedSuccess(true)
       updateLeadStore(lead.id, { outreachSubject: subject, outreachBody: body, outreachStatus: 'draft' })
       setTimeout(() => setSavedSuccess(false), 2000)

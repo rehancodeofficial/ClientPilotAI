@@ -139,6 +139,16 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
     navigate(targetMode === 'login' ? '/login' : '/signup')
   }
 
+  const handleDemoLogin = (role: 'admin' | 'user') => {
+    setLoading(true)
+    setTimeout(() => {
+      setUserEmail(role === 'admin' ? 'admin@clientpilotai.com' : 'demo@clientpilotai.com')
+      setUserRole(role)
+      navigate(role === 'admin' ? '/app/admin' : '/app')
+      setLoading(false)
+    }, 600)
+  }
+
   return (
     <div className="viewport-container" style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden', backgroundColor: '#1A4A32' }}>
       
@@ -583,6 +593,53 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
                     </button>
                   </>
                 )}
+              </div>
+
+              {/* ── DEMO QUICK ACCESS ─────────────────────── */}
+              <div style={{ marginTop: '24px', borderTop: '1.5px dashed #74C69D', paddingTop: '20px' }}>
+                <p style={{ textAlign: 'center', fontSize: '11px', fontWeight: 700, color: '#52B788', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
+                  ⚡ Demo Quick Access
+                </p>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('admin')}
+                    disabled={loading}
+                    style={{
+                      flex: 1,
+                      height: '44px',
+                      border: '2px solid #40916C',
+                      borderRadius: '12px',
+                      background: 'linear-gradient(135deg, #0D2B1F 0%, #1A4A32 100%)',
+                      color: '#74C69D',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      letterSpacing: '0.3px'
+                    }}
+                  >
+                    🛡️ Admin Demo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('user')}
+                    disabled={loading}
+                    style={{
+                      flex: 1,
+                      height: '44px',
+                      border: '2px solid #74C69D',
+                      borderRadius: '12px',
+                      background: 'linear-gradient(135deg, #2D6A4F 0%, #40916C 100%)',
+                      color: '#D8F3DC',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      letterSpacing: '0.3px'
+                    }}
+                  >
+                    👤 User Demo
+                  </button>
+                </div>
               </div>
             </motion.div>
           </AnimatePresence>
