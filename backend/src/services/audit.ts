@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { z } from 'zod';
+import { isSafePublicUrl } from '../lib/security';
 
 export type DetectionStatus = 'detected' | 'not_detected' | 'unknown';
 export type DigitalMaturityLevel = 0 | 1 | 2 | 3 | 4;
@@ -161,20 +162,34 @@ export async function performDigitalAudit(
       });
     }
 
-    // Attempt light crawl of homepage
-    try {
-      const resp = await axios.get(targetUrl, {
-        timeout: 4500,
-        headers: {
-          'User-Agent': 'ClientPilotAI-Bot/1.0 (+https://clientpilotai.internal/audit)',
-          'Accept': 'text/html,application/xhtml+xml',
-        },
-        maxRedirects: 3,
-        validateStatus: (status) => status < 400,
+    // Attempt light crawl of homepage if safe public URL
+    if (!isSafePublicUrl(targetUrl)) {
+      crawlStatus = 'blocked_private_or_invalid_host';
+      evidence.push({
+        id: `ev-${Date.now()}-crawl-ssrf`,
+        type: 'crawler_diagnostics',
+        description: 'Website address points to a private, restricted, or local network. Automated crawl skipped for security.',
+        source: 'website_crawl',
+        confidence: 100,
+        timestamp,
+        isAiInference: false,
       });
+    } else {
+      try {
+        const resp = await axios.get(targetUrl, {
+          timeout: 4500,
+          headers: {
+            'User-Agent': 'ClientPilotAI-Bot/1.0 (+https://clientpilotai.internal/audit)',
+            'Accept': 'text/html,application/xhtml+xml',
+          },
+          maxRedirects: 3,
+          maxContentLength: 1024 * 1024, // 1MB max
+          maxBodyLength: 1024 * 1024,
+          validateStatus: (status) => status < 400,
+        });
 
-      crawlStatus = `http_${resp.status}`;
-      const html = typeof resp.data === 'string' ? resp.data.toLowerCase() : '';
+        crawlStatus = `http_${resp.status}`;
+        const html = typeof resp.data === 'string' ? resp.data.toLowerCase() : '';
 
       // Check Mobile Responsiveness
       if (html.includes('name="viewport"') || html.includes("name='viewport'") || html.includes('tailwind') || html.includes('bootstrap')) {
@@ -297,7 +312,8 @@ export async function performDigitalAudit(
         isAiInference: false,
       });
     }
-  } else {
+  }
+} else {
     // No website provided
     evidence.push({
       id: `ev-${Date.now()}-nowebsite`,

@@ -284,4 +284,180 @@ router.get('/evaluation', async (req, res) => {
   }
 });
 
+// GET /api/intelligence/dashboard - Real workspace metrics for Dashboard view
+router.get('/dashboard', async (req, res) => {
+  const user = req.user!;
+  try {
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('workspace_id')
+      .eq('id', user.sub)
+      .single();
+
+    if (!profile?.workspace_id) return res.status(403).json({ error: 'No workspace found' });
+
+    // 1. Get all leads in workspace
+    const { data: leads, error: leadsErr } = await supabaseAdmin
+      .from('leads')
+      .select(`
+        id,
+        business_name,
+        created_at,
+        has_website,
+        website_url,
+        opportunity_analysis (
+          opportunity_score,
+          confidence_score
+        ),
+        lead_scores (
+          overall_score
+        ),
+        business_audits (
+          website_exists,
+          booking_detected,
+          ordering_detected
+        )
+      `)
+      .eq('workspace_id', profile.workspace_id)
+      .order('created_at', { ascending: false });
+
+    if (leadsErr) throw leadsErr;
+
+    const totalLeads = leads?.length || 0;
+
+    // 2. Get latest pipeline stages
+    const { data: stages } = await supabaseAdmin
+      .from('pipeline_stages')
+      .select('lead_id, stage, changed_at')
+      .eq('workspace_id', profile.workspace_id)
+      .order('changed_at', { ascending: false });
+
+    const currentStages = new Map<string, string>();
+    stages?.forEach((s) => {
+      if (!currentStages.has(s.lead_id)) {
+        currentStages.set(s.lead_id, s.stage);
+      }
+    });
+
+    const qualifiedLeads = Array.from(currentStages.values()).filter((st) => ['qualified', 'contacted', 'client'].includes(st)).length;
+    const clients = Array.from(currentStages.values()).filter((st) => st === 'client').length;
+    const conversionRate = totalLeads > 0 ? Number(((clients / totalLeads) * 100).toFixed(1)) : 0;
+
+    // 3. Get outreach messages
+    const { data: outreach } = await supabaseAdmin
+      .from('outreach_messages')
+      .select('id, status');
+
+    const outreachSent = outreach?.filter((o) => o.status === 'sent').length || 0;
+
+    // 4. Calculate Opportunity & Confidence averages
+    let highValueCount = 0;
+    let scoreSum = 0;
+    let scoreCount = 0;
+    let confSum = 0;
+    let confCount = 0;
+    let digitalGaps = 0;
+    let highBand = 0, medBand = 0, lowBand = 0;
+
+    (leads || []).forEach((l) => {
+      const opp = Array.isArray(l.opportunity_analysis) ? l.opportunity_analysis[0] : (l.opportunity_analysis as any);
+      const score = opp?.opportunity_score ?? l.lead_scores?.[0]?.overall_score ?? 0;
+      const conf = opp?.confidence_score ?? 0;
+      const audit = Array.isArray(l.business_audits) ? l.business_audits[0] : (l.business_audits as any);
+
+      if (score > 0) {
+        scoreSum += score;
+        scoreCount += 1;
+        if (score >= 80) highValueCount += 1;
+      }
+
+      if (conf > 0) {
+        confSum += conf;
+        confCount += 1;
+      }
+
+      if (score >= 80) highBand++;
+      else if (score >= 50) medBand++;
+      else lowBand++;
+
+      if (!l.has_website && !l.website_url) digitalGaps++;
+      if (audit?.booking_detected === 'not_detected') digitalGaps++;
+      if (audit?.ordering_detected === 'not_detected') digitalGaps++;
+    });
+
+    const avgOpportunityScore = scoreCount > 0 ? Math.round(scoreSum / scoreCount) : 0;
+    const avgConfidenceScore = confCount > 0 ? Math.round(confSum / confCount) : 0;
+
+    // 5. Group leads by day (last 14 days)
+    const leadsPerDay = [];
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const count = leads?.filter((l) => l.created_at?.startsWith(dateStr)).length || 0;
+      leadsPerDay.push({
+        date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        count,
+      });
+    }
+
+    // 6. Recent activity from outcome events
+    const { data: recentEvents } = await supabaseAdmin
+      .from('outcome_events')
+      .select(`
+        id,
+        event_type,
+        event_date,
+        notes,
+        leads (
+          business_name
+        )
+      `)
+      .eq('workspace_id', profile.workspace_id)
+      .order('event_date', { ascending: false })
+      .limit(10);
+
+    const recentActivity = (recentEvents || []).map((ev) => {
+      let type: 'scored' | 'outreach_sent' | 'stage_changed' | 'discovered' = 'discovered';
+      if (ev.event_type === 'audited' || ev.event_type === 'qualified') type = 'scored';
+      else if (ev.event_type === 'contacted' || ev.event_type === 'proposal_sent') type = 'outreach_sent';
+      else if (ev.event_type === 'won' || ev.event_type === 'accepted' || ev.event_type === 'replied') type = 'stage_changed';
+
+      return {
+        id: ev.id,
+        type,
+        leadName: (ev.leads as any)?.business_name || 'Business Lead',
+        detail: ev.notes || `Event: ${ev.event_type}`,
+        timestamp: ev.event_date,
+      };
+    });
+
+    res.json({
+      totalLeads,
+      qualifiedLeads,
+      outreachSent,
+      conversionRate,
+      leadsPerDay,
+      funnelData: [
+        { stage: 'Discovery', count: totalLeads },
+        { stage: 'Qualified', count: qualifiedLeads },
+        { stage: 'Contacted', count: Array.from(currentStages.values()).filter((s) => ['contacted', 'client'].includes(s)).length },
+        { stage: 'Client', count: clients },
+      ],
+      scoreBandData: [
+        { band: 'High (80-100)', count: highBand },
+        { band: 'Medium (50-79)', count: medBand },
+        { band: 'Low (<50)', count: lowBand },
+      ],
+      recentActivity,
+      highValueOpportunities: highValueCount,
+      avgOpportunityScore,
+      avgConfidenceScore,
+      digitalGapsDetected: digitalGaps,
+    });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+  }
+});
+
 export default router;

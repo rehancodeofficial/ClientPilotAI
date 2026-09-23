@@ -16,18 +16,29 @@ import authRouter from './routes/auth';
 import { authMiddleware, adminMiddleware } from './middleware/auth';
 import { supabaseAdmin } from './lib/supabase';
 
-
 dotenv.config();
 
 export const app = express();
 
 app.set('trust proxy', 1);
 
-// CORS: allow local dev + Vercel production frontend
-// Set FRONTEND_URL env var on Railway to your Vercel app URL e.g. https://clientpilotai.vercel.app
+// Production safe request logging middleware (never logs auth headers or body secrets)
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    // Log route, method, status, duration - never secrets or authorization headers
+    console.log(`[API] ${req.method} ${req.originalUrl || req.url} -> ${res.statusCode} (${duration}ms)`);
+  });
+  next();
+});
+
+// CORS: allow production Vercel frontend + configured FRONTEND_URL + local development
 const allowedOrigins = [
+  'https://client-pilot-ai-psi.vercel.app',
   'http://localhost:5173',
-  'http://192.168.1.4:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
   process.env.FRONTEND_URL,
 ].filter(Boolean) as string[];
 
@@ -44,7 +55,7 @@ const isAllowedOrigin = (origin: string): boolean => {
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. mobile apps, curl, Postman)
+    // Allow requests with no origin (e.g. server-to-server, curl, health checks)
     if (!origin || isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
@@ -53,27 +64,76 @@ app.use(cors({
   },
   credentials: true,
 }));
-app.use(express.json());
 
-// Basic rate limiting
+app.use(express.json({ limit: '2mb' }));
+
+// General API Rate Limiting (100 requests per 15 min per IP)
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' },
 });
 app.use('/api/', apiLimiter);
 
-// Health check
+// Expensive AI/Discovery endpoint rate limiting (30 requests per 10 min per IP)
+const expensiveOpsLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Rate limit exceeded for heavy operations. Please wait a few moments.' },
+});
+app.use('/api/leads/discover', expensiveOpsLimiter);
+app.use('/api/proposals/generate', expensiveOpsLimiter);
+app.use('/api/leads/:id/prepare', expensiveOpsLimiter);
+
+// ─── Health Checks ─────────────────────────────────────────────────────────────
+// Basic liveness probe: does NOT depend on external providers or DB
 app.get('/health', (_req, res) => {
-  res.status(200).json({ status: 'ok' });
+  res.status(200).json({
+    status: 'ok',
+    service: 'client-pilot-ai-api',
+  });
 });
 
-// Public routes (no auth required)
-app.use('/api/ai', aiRouter);
-app.use('/api/auth', authRouter); // Demo token endpoint
+// Readiness probe: verifies internal service dependencies
+app.get('/health/ready', async (_req, res) => {
+  try {
+    const { error } = await supabaseAdmin
+      .from('profiles')
+      .select('count', { count: 'exact', head: true });
 
-// Protected API Routes
+    if (error) {
+      return res.status(503).json({
+        status: 'degraded',
+        service: 'client-pilot-ai-api',
+        database: 'unreachable',
+        error: error.message,
+      });
+    }
+
+    res.status(200).json({
+      status: 'ready',
+      service: 'client-pilot-ai-api',
+      database: 'connected',
+    });
+  } catch (err: unknown) {
+    res.status(503).json({
+      status: 'degraded',
+      service: 'client-pilot-ai-api',
+      database: 'error',
+      error: err instanceof Error ? err.message : 'Unknown error',
+    });
+  }
+});
+
+// ─── Public routes (no JWT required) ──────────────────────────────────────────
+app.use('/api/ai', aiRouter);
+app.use('/api/auth', authRouter);
+
+// ─── Protected API Routes ──────────────────────────────────────────────────────
 app.use('/api/leads', authMiddleware, leadsRouter);
 app.use('/api/proposals', authMiddleware, proposalsRouter);
 app.use('/api/analytics', authMiddleware, analyticsRouter);
@@ -84,14 +144,14 @@ app.use('/api/outcomes', authMiddleware, outcomesRouter);
 app.use('/api/intelligence', authMiddleware, intelligenceRouter);
 app.use('/api/admin', authMiddleware, adminMiddleware, adminRouter);
 
-
-// Error handling middleware
-app.use((err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  void req;
-  void _next;
-  console.error(err instanceof Error ? err.stack : err);
-  const status = (err && typeof err === 'object' && 'status' in err && typeof err.status === 'number') ? err.status : 500;
+// ─── Centralized Error Handling Middleware ────────────────────────────────────
+app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('[ErrorMiddleware]', err instanceof Error ? err.stack : err);
+  const status = (err && typeof err === 'object' && 'status' in err && typeof (err as any).status === 'number')
+    ? (err as any).status
+    : 500;
   const message = err instanceof Error ? err.message : 'Internal Server Error';
+
   res.status(status).json({
     error: message,
   });

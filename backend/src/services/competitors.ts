@@ -65,62 +65,41 @@ export function benchmarkCompetitors(
   const targetHasBooking = !!targetLead.bookingDetected;
   const targetMaturity = targetLead.digitalMaturity ?? (targetHasWebsite ? 2 : 1);
 
-  // If no database peers found, synthesize realistic local category peers for comparison
-  const competitors: CompetitorPeerData[] = relevantPeers.length > 0
-    ? relevantPeers.map((p, idx) => {
-        const hasWeb = !!p.websiteUrl || !!p.hasWebsite;
-        const maturity: DigitalMaturityLevel = hasWeb ? (idx % 2 === 0 ? 3 : 2) : 1;
-        return {
-          id: p.id,
-          name: p.name,
-          address: p.address || 'Nearby Local Area',
-          rating: p.rating ?? 4.2,
-          reviewCount: p.reviewCount ?? 35,
-          websiteExists: hasWeb,
-          bookingExists: maturity >= 3,
-          orderingExists: maturity >= 3 && ['restaurant', 'bakery', 'retail'].includes(p.category),
-          digitalMaturity: maturity,
-          distanceKm: p.distance ?? 0.8 + idx * 0.4,
-        };
-      })
-    : [
-        {
-          id: `peer-${targetLead.id}-1`,
-          name: `${targetLead.name.split(' ')[0]} Prime Care`,
-          address: 'Local Commercial Strip',
-          rating: 4.5,
-          reviewCount: 64,
-          websiteExists: true,
-          bookingExists: true,
-          orderingExists: false,
-          digitalMaturity: 3,
-          distanceKm: 0.6,
-        },
-        {
-          id: `peer-${targetLead.id}-2`,
-          name: `Elite ${targetLead.category.charAt(0).toUpperCase() + targetLead.category.slice(1)} Hub`,
-          address: 'Adjacent Avenue',
-          rating: 4.3,
-          reviewCount: 48,
-          websiteExists: true,
-          bookingExists: false,
-          orderingExists: false,
-          digitalMaturity: 2,
-          distanceKm: 1.2,
-        },
-        {
-          id: `peer-${targetLead.id}-3`,
-          name: `Standard ${targetLead.category} Corner`,
-          address: 'Commercial Block B',
-          rating: 4.0,
-          reviewCount: 22,
-          websiteExists: false,
-          bookingExists: false,
-          orderingExists: false,
-          digitalMaturity: 1,
-          distanceKm: 1.5,
-        },
-      ];
+  // If no database peers found, return real empty state instead of fabricated demo data
+  if (relevantPeers.length === 0) {
+    return {
+      competitors: [],
+      targetComparison: {
+        targetMaturity,
+        competitorAvgMaturity: 0,
+        targetHasBooking,
+        competitorsWithBookingPct: 0,
+        targetHasWebsite,
+        competitorsWithWebsitePct: 0,
+      },
+      competitiveGaps: [
+        `No direct ${targetLead.category} peer businesses are currently discovered in this workspace. Discover more local businesses in this category to run comparative benchmarking.`,
+      ],
+      summary: `No local ${targetLead.category} peer data discovered yet in this workspace.`,
+    };
+  }
+
+  const competitors: CompetitorPeerData[] = relevantPeers.map((p, idx) => {
+    const hasWeb = !!p.websiteUrl || !!p.hasWebsite;
+    const maturity: DigitalMaturityLevel = hasWeb ? (idx % 2 === 0 ? 3 : 2) : 1;
+    return {
+      id: p.id,
+      name: p.name,
+      address: p.address || 'Nearby Local Area',
+      rating: p.rating ?? 4.0,
+      reviewCount: p.reviewCount ?? 0,
+      websiteExists: hasWeb,
+      bookingExists: maturity >= 3,
+      orderingExists: maturity >= 3 && ['restaurant', 'bakery', 'retail'].includes(p.category),
+      digitalMaturity: maturity,
+      distanceKm: p.distance ?? 0.8 + idx * 0.4,
+    };
+  });
 
   const total = competitors.length;
   const withWebsite = competitors.filter((c) => c.websiteExists).length;
@@ -164,3 +143,4 @@ export function benchmarkCompetitors(
     summary,
   };
 }
+

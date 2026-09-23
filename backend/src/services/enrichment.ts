@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { isSafePublicUrl } from '../lib/security';
 
 export interface EnrichmentResult {
   email: string | null;
@@ -82,6 +83,11 @@ export const enrichLeadContact = async (
   // 2. If website URL exists and we don't have an email yet, crawl the website
   if (website && !email) {
     const targetUrl = normalizeUrl(website);
+    if (!isSafePublicUrl(targetUrl)) {
+      console.warn(`[Enrichment] Skipped crawling unsafe/private URL: ${targetUrl}`);
+      return { email, phone, website, socialLinks, source, confidence };
+    }
+
     try {
       console.log(`[Enrichment] Attempting to crawl website homepage: ${targetUrl}`);
       const response = await axios.get(targetUrl, {
@@ -89,7 +95,10 @@ export const enrichLeadContact = async (
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ClientPilotAI/1.0',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         },
-        timeout: 6000,
+        timeout: 5000,
+        maxRedirects: 3,
+        maxContentLength: 1024 * 1024,
+        maxBodyLength: 1024 * 1024,
         validateStatus: () => true, // capture redirects and non-200 responses
       });
 
@@ -149,31 +158,36 @@ export const enrichLeadContact = async (
               contactUrl = new URL(contactUrl, base.origin).toString();
             }
 
-            console.log(`[Enrichment] Attempting to crawl contact/about page: ${contactUrl}`);
-            const contactRes = await axios.get(contactUrl, {
-              headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ClientPilotAI/1.0',
-              },
-              timeout: 4000,
-              validateStatus: () => true,
-            });
+            if (isSafePublicUrl(contactUrl)) {
+              console.log(`[Enrichment] Attempting to crawl contact/about page: ${contactUrl}`);
+              const contactRes = await axios.get(contactUrl, {
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ClientPilotAI/1.0',
+                },
+                timeout: 4000,
+                maxRedirects: 3,
+                maxContentLength: 1024 * 1024,
+                maxBodyLength: 1024 * 1024,
+                validateStatus: () => true,
+              });
 
-            if (contactRes.status === 200 && typeof contactRes.data === 'string') {
-              const contactHtml = contactRes.data;
-              const contactEmails = extractEmails(contactHtml);
-              if (contactEmails.length > 0) {
-                email = contactEmails[0];
-                source = 'website_contact_page';
-                confidence = 0.9;
-                console.log(`[Enrichment] Discovered email on contact page: ${email}`);
-              }
+              if (contactRes.status === 200 && typeof contactRes.data === 'string') {
+                const contactHtml = contactRes.data;
+                const contactEmails = extractEmails(contactHtml);
+                if (contactEmails.length > 0) {
+                  email = contactEmails[0];
+                  source = 'website_contact_page';
+                  confidence = 0.9;
+                  console.log(`[Enrichment] Discovered email on contact page: ${email}`);
+                }
 
-              // Supplement social links
-              for (const [platform, regex] of Object.entries(socialPatterns)) {
-                if (!socialLinks[platform as keyof typeof socialLinks]) {
-                  const sMatch = contactHtml.match(regex);
-                  if (sMatch) {
-                    socialLinks[platform as keyof typeof socialLinks] = sMatch[0];
+                // Supplement social links
+                for (const [platform, regex] of Object.entries(socialPatterns)) {
+                  if (!socialLinks[platform as keyof typeof socialLinks]) {
+                    const sMatch = contactHtml.match(regex);
+                    if (sMatch) {
+                      socialLinks[platform as keyof typeof socialLinks] = sMatch[0];
+                    }
                   }
                 }
               }
