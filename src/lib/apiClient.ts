@@ -18,11 +18,13 @@ import { apiPost, apiGet, apiPatch } from '@/api/client';
 import { updateProposalStatus } from '@/api/proposals';
 
 // Expose updateProposalStatus with the old name for backward compatibility
-export const updateProposalStatusApi = updateProposalStatus;
+export const updateProposalStatusApi = async (proposalId: string, status: any) => {
+  return updateProposalStatus(proposalId, status as any);
+};
 
 // Expose saveProposalApi as a wrapper over generateProposalApi for now
-export async function saveProposalApi(leadId: string, content: string) {
-  return apiPost<any>(`/proposals/${leadId}/save`, { content });
+export async function saveProposalApi(proposal: any) {
+  return apiPost<any>(`/proposals/${proposal.leadId}/save`, { content: proposal.content });
 }
 
 export async function enrichLead(leadId: string) {
@@ -41,14 +43,16 @@ export async function updateLeadStage(leadId: string, stage: string) {
   return apiPatch<any>(`/leads/${leadId}/stage`, { stage });
 }
 
-export async function saveDraft(leadId: string, subject: string, body: string) {
-  return apiPost<any>(`/leads/${leadId}/outreach/draft`, { subject, body });
+export async function saveDraft(leadId: string, draft: any) {
+  return apiPost<any>(`/leads/${leadId}/outreach/draft`, { subject: draft.subject, body: draft.body });
 }
 
 export async function prepareLead(leadId: string, force?: boolean) {
   // Mock shim for UI backward compatibility:
   return {
     lead: { isPreparing: false },
-    proposalContent: "Prepared proposal content mock"
+    proposalTitle: "Prepared Proposal",
+    proposalContent: "Prepared proposal content mock",
+    partialError: null as string | null
   };
 }
