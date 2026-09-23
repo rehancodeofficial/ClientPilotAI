@@ -1,9 +1,12 @@
-import { Moon, Sun, ChevronDown, LogOut } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Moon, Sun, ChevronDown, LogOut, Search } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { useTheme } from 'next-themes'
 import { supabase } from '@/lib/supabaseClient'
 import { useNavigate } from 'react-router-dom'
 import { NotificationBell } from './NotificationPanel'
+import { DemoModeToggle } from '@/components/ui/DemoModeToggle'
+import { GlobalSearchModal } from './GlobalSearchModal'
 
 export function TopBar() {
   const { theme, setTheme } = useTheme()
@@ -12,6 +15,19 @@ export function TopBar() {
   const setUserRole = useAppStore((s) => s.setUserRole)
   const setUserEmail = useAppStore((s) => s.setUserEmail)
   const navigate = useNavigate()
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+
+  // Global keyboard shortcut: ⌘K or Ctrl+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setIsSearchOpen((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -21,20 +37,38 @@ export function TopBar() {
   }
 
   return (
-    <header 
-      className="h-[80px] shrink-0 flex items-center justify-between px-6 z-10 clay-floating rounded-none border-b border-white/5"
-    >
-      {/* Left: workspace name */}
-      <div className="flex items-center gap-3 px-4 py-2 clay-inset cursor-pointer hover:bg-(--surface-raised) transition-colors">
-        <img src="/logo.png" alt="" className="h-6 w-6 rounded-lg object-cover drop-shadow-md" />
-        <span className="text-[15px] font-bold text-(--text-primary) tracking-wide">
-          Acme Software Agency
-        </span>
-        <ChevronDown className="h-4 w-4 text-(--text-secondary)" />
-      </div>
+    <>
+      <header 
+        className="h-[74px] shrink-0 flex items-center justify-between px-6 z-10 clay-floating rounded-none border-b border-(--border)"
+      >
+        {/* Left: workspace name */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 px-3.5 py-1.5 clay-inset cursor-pointer hover:bg-(--surface-hover) transition-colors">
+            <img src="/logo.png" alt="" className="h-6 w-6 rounded-lg object-cover drop-shadow-md" />
+            <span className="text-[14px] font-bold text-(--text-primary) tracking-tight">
+              Acme Software Agency
+            </span>
+            <ChevronDown className="h-3.5 w-3.5 text-(--text-muted)" />
+          </div>
 
-      {/* Right: live indicator + actions */}
-      <div className="flex items-center gap-3">
+          {/* Center-Left: Global Search Button */}
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="hidden md:flex items-center gap-2.5 px-3 py-1.5 clay-inset text-(--text-muted) hover:text-(--text-primary) text-xs font-medium transition-colors"
+          >
+            <Search className="h-3.5 w-3.5 text-(--text-muted)" />
+            <span>Search businesses, opportunities, proposals...</span>
+            <kbd className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-(--surface) text-(--text-muted) border border-(--border)">
+              ⌘K
+            </kbd>
+          </button>
+        </div>
+
+        {/* Right: live indicator + actions */}
+        <div className="flex items-center gap-3">
+        {/* FYP Defense Demo Scenario Selector */}
+        <DemoModeToggle />
+
         {/* Live indicator */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full clay-inset">
           <span className="relative flex h-2.5 w-2.5">
@@ -87,5 +121,9 @@ export function TopBar() {
         </button>
       </div>
     </header>
+
+    {/* Global Search Modal Triggered by ⌘K */}
+    <GlobalSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+    </>
   )
 }

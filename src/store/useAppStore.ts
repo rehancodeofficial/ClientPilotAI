@@ -25,6 +25,8 @@ export const useAppStore = create<AppState & {
   userRole: null,
   userEmail: null,
   proposals: [],
+  isDemoMode: false,
+  selectedDemoScenario: null,
   notifications: [
     {
       id: 'n1',
@@ -193,6 +195,9 @@ export const useAppStore = create<AppState & {
     })),
 
   clearNotifications: () => set({ notifications: [] }),
+
+  setIsDemoMode: (val: boolean) => set({ isDemoMode: val }),
+  setSelectedDemoScenario: (scenario: string | null) => set({ selectedDemoScenario: scenario }),
 
   initRealtime: () => {
     console.log('Initializing Supabase Realtime subscriptions...');

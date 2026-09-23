@@ -29,68 +29,112 @@
 }
 
 /* ============================================================
-   DESIGN TOKENS — Light & Dark Mode
+   DESIGN TOKENS — Light & Dark Mode (Analytical Intelligence Palette)
    ============================================================ */
 :root {
-  /* Colors */
-  --bg: #EAF1E8;
-  --surface: #F4F8F1;
-  --surface-raised: #FBFDF9;
+  /* Neutral Background & Surfaces */
+  --bg: #F4F6F9;
+  --surface: #FFFFFF;
+  --surface-raised: #F8FAFC;
+  --surface-hover: #EEF2F6;
+  --surface-elevated: #FFFFFF;
   
-  --primary: #1E5631;
-  --primary-hover: #26703F;
-  --primary-soft: #CDE3D1;
+  /* Primary & Accent (Indigo / Electric Blue) */
+  --primary: #3B82F6;
+  --primary-hover: #2563EB;
+  --primary-soft: #DBEAFE;
   
-  --accent: #D7B56D;
+  /* AI Accent (Violet) */
+  --accent: #8B5CF6;
+  --accent-hover: #7C3AED;
+  --accent-soft: #EDE9FE;
   
-  --text-primary: #142B1C;
-  --text-secondary: #4D6356;
-  
-  --success: #3E8E5A;
-  --warning: #C98A3C;
-  --danger: #B6453F;
+  /* Typography */
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
 
-  /* Shadows (Claymorphism Light) */
-  --shadow-clay-raised: 8px 8px 20px rgba(20, 50, 35, 0.18), -6px -6px 16px rgba(255, 255, 255, 0.75);
-  --shadow-clay-raised-hover: 10px 10px 24px rgba(20, 50, 35, 0.22), -8px -8px 20px rgba(255, 255, 255, 0.9);
-  --shadow-clay-floating: 16px 16px 40px rgba(20, 50, 35, 0.25), -12px -12px 30px rgba(255, 255, 255, 0.9);
-  --shadow-clay-inset: inset 6px 6px 14px rgba(20, 50, 35, 0.20), inset -4px -4px 10px rgba(255, 255, 255, 0.6);
-  --shadow-clay-focus-ring: 0 0 0 3px rgba(30, 86, 49, 0.2);
+  /* Borders */
+  --border: #E2E8F0;
+  --border-subtle: #F1F5F9;
+  
+  /* Semantic Status Indicators */
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #0284C7;
+
+  /* Standard Radius & Shadow Tokens */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  /* Precision Elevation & Shadows */
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 10px 28px rgba(15, 23, 42, 0.12);
+
+  /* Tactile / Claymorphism Light */
+  --shadow-clay-raised: 6px 6px 16px rgba(15, 23, 42, 0.07), -5px -5px 14px rgba(255, 255, 255, 0.9);
+  --shadow-clay-raised-hover: 8px 8px 20px rgba(15, 23, 42, 0.1), -6px -6px 16px rgba(255, 255, 255, 0.95);
+  --shadow-clay-floating: 12px 14px 32px rgba(15, 23, 42, 0.1), -8px -8px 22px rgba(255, 255, 255, 0.95);
+  --shadow-clay-inset: inset 4px 4px 10px rgba(15, 23, 42, 0.06), inset -3px -3px 8px rgba(255, 255, 255, 0.8);
+  --shadow-clay-focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.25);
 
   /* Surface Gradients */
-  --gradient-clay: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%);
-  --gradient-clay-primary: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%);
+  --gradient-clay: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 100%);
+  --gradient-clay-primary: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
 }
 
 .dark {
-  /* Colors */
-  --bg: #0E1611;
-  --surface: #16201A;
-  --surface-raised: #1C2820;
+  /* Deep Navy / Near-Black Background & Dark Slate Surfaces */
+  --bg: #090D16;
+  --surface: #0F172A;
+  --surface-raised: #162036;
+  --surface-hover: #1E293B;
+  --surface-elevated: #1A243D;
   
-  --primary: #5FCB85;
-  --primary-hover: #79DA9C;
-  --primary-soft: #1F3327;
+  /* Primary & Accent (Electric Indigo / Neon Blue) */
+  --primary: #38BDF8;
+  --primary-hover: #60A5FA;
+  --primary-soft: rgba(56, 189, 248, 0.12);
   
-  --accent: #E6C988;
+  /* AI Accent (Violet) */
+  --accent: #A78BFA;
+  --accent-hover: #C084FC;
+  --accent-soft: rgba(167, 139, 250, 0.15);
   
-  --text-primary: #EAF3EC;
-  --text-secondary: #9BB3A3;
-  
-  --success: #5FCB85;
-  --warning: #E0A85B;
-  --danger: #E08079;
+  /* Typography */
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
 
-  /* Shadows (Claymorphism Dark) */
-  --shadow-clay-raised: 8px 8px 20px rgba(0, 0, 0, 0.55), -6px -6px 16px rgba(255, 255, 255, 0.04);
-  --shadow-clay-raised-hover: 10px 10px 24px rgba(0, 0, 0, 0.65), -8px -8px 20px rgba(255, 255, 255, 0.06);
-  --shadow-clay-floating: 16px 16px 40px rgba(0, 0, 0, 0.7), -12px -12px 30px rgba(255, 255, 255, 0.06);
-  --shadow-clay-inset: inset 6px 6px 14px rgba(0, 0, 0, 0.55), inset -4px -4px 10px rgba(255, 255, 255, 0.03);
-  --shadow-clay-focus-ring: 0 0 0 3px rgba(95, 203, 133, 0.15);
+  /* Borders */
+  --border: #1E293B;
+  --border-subtle: #151F32;
+  
+  /* Semantic Status Indicators */
+  --success: #34D399;
+  --warning: #FBBF24;
+  --danger: #F87171;
+  --info: #38BDF8;
+
+  /* Precision Elevation & Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.7);
+
+  /* Tactile / Claymorphism Dark */
+  --shadow-clay-raised: 6px 6px 18px rgba(0, 0, 0, 0.65), -4px -4px 12px rgba(255, 255, 255, 0.03);
+  --shadow-clay-raised-hover: 8px 8px 24px rgba(0, 0, 0, 0.75), -5px -5px 14px rgba(255, 255, 255, 0.05);
+  --shadow-clay-floating: 14px 16px 36px rgba(0, 0, 0, 0.8), -8px -8px 24px rgba(255, 255, 255, 0.04);
+  --shadow-clay-inset: inset 4px 4px 10px rgba(0, 0, 0, 0.65), inset -3px -3px 8px rgba(255, 255, 255, 0.02);
+  --shadow-clay-focus-ring: 0 0 0 3px rgba(56, 189, 248, 0.2);
 
   /* Surface Gradients */
-  --gradient-clay: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
-  --gradient-clay-primary: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+  --gradient-clay: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0) 100%);
+  --gradient-clay-primary: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 100%);
 }
 
 /* ============================================================

@@ -13,6 +13,9 @@ import { LandingPage } from '@/pages/LandingPage'
 import { AboutPage } from '@/pages/AboutPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { ProfilePage } from '@/pages/ProfilePage'
+import { MarketIntelligencePage } from '@/pages/MarketIntelligencePage'
+import { OpportunityZonesPage } from '@/pages/OpportunityZonesPage'
+import { IntelligenceEvaluationPage } from '@/pages/IntelligenceEvaluationPage'
 import { useAppStore } from '@/store/useAppStore'
 
 // Role Guard for Admin Panel
@@ -46,6 +49,9 @@ function App() {
             <Route path="/app/messages" element={<MessagesPage />} />
             <Route path="/app/proposals" element={<ProposalsPage />} />
             <Route path="/app/profile" element={<ProfilePage />} />
+            <Route path="/app/market" element={<MarketIntelligencePage />} />
+            <Route path="/app/zones" element={<OpportunityZonesPage />} />
+            <Route path="/app/evaluation" element={<IntelligenceEvaluationPage />} />
             <Route
               path="/app/admin"
               element={

@@ -4,6 +4,9 @@ import { supabaseAdmin } from '../lib/supabase';
 import { discoverBusinessesByLocation, searchNearbyBusinesses, OSMGeocodingError, OSMOverpassError } from '../services/osm';
 import { scoreLead, generateOutreach, generateProposal } from '../services/openai';
 import { enrichLeadContact } from '../services/enrichment';
+import { performDigitalAudit } from '../services/audit';
+import { analyzeBusinessOpportunity } from '../services/opportunity';
+import { benchmarkCompetitors } from '../services/competitors';
 
 
 const router = Router();
@@ -44,7 +47,9 @@ router.get('/', async (req, res) => {
       .select(`
         *,
         lead_scores (*),
-        outreach_messages (*)
+        outreach_messages (*),
+        business_audits (*),
+        opportunity_analysis (*)
       `)
       .eq('workspace_id', profile.workspace_id)
       .order('created_at', { ascending: false });
@@ -428,8 +433,165 @@ router.post('/:id/prepare', async (req, res) => {
     const updates: Record<string, unknown> = {};
     let lastError: string | null = null;
 
-    // ── Step A: Contact Enrichment ───────────────────────────────────────
+    // ── Step 1: Run Digital Audit ─────────────────────────────────────────
+    console.log(`[Prepare:${id}] → Running Digital Maturity Audit...`);
+    let auditResult;
+    try {
+      auditResult = await performDigitalAudit(
+        lead.business_name,
+        lead.category,
+        lead.website_url || lead.website,
+        lead.phone || lead.contact_phone,
+        lead.rating,
+        lead.review_count,
+        lead.raw_osm_tags as Record<string, unknown>
+      );
+
+      await supabaseAdmin.from('business_audits').upsert({
+        workspace_id: profile.workspace_id,
+        lead_id: id,
+        website_exists: auditResult.websiteExists,
+        https_enabled: auditResult.httpsEnabled,
+        mobile_indicator: auditResult.mobileIndicator,
+        booking_detected: auditResult.bookingDetected,
+        ordering_detected: auditResult.orderingDetected,
+        contact_form_detected: auditResult.contactFormDetected,
+        social_presence_detected: auditResult.socialPresenceDetected,
+        digital_maturity_level: auditResult.digitalMaturityLevel,
+        audit_score: auditResult.auditScore,
+        audit_data: auditResult.auditData,
+        evidence: auditResult.evidence,
+        updated_at: now,
+      }, { onConflict: 'workspace_id,lead_id' });
+
+      // Log outcome event
+      await supabaseAdmin.from('outcome_events').insert({
+        workspace_id: profile.workspace_id,
+        lead_id: id,
+        event_type: 'audited',
+        source: 'system_pipeline',
+        notes: `Digital audit completed (Maturity: Level ${auditResult.digitalMaturityLevel}, Score: ${auditResult.auditScore}/100)`,
+      });
+      console.log(`[Prepare:${id}] ✅ Digital Audit completed. Maturity: Level ${auditResult.digitalMaturityLevel}`);
+    } catch (auditErr) {
+      console.error(`[Prepare:${id}] ❌ Digital Audit error:`, auditErr);
+    }
+
+    // ── Step 2: Run Opportunity Analysis ──────────────────────────────────
+    let opportunityResult;
+    if (auditResult) {
+      console.log(`[Prepare:${id}] → Running Opportunity Analysis & Scoring...`);
+      try {
+        opportunityResult = await analyzeBusinessOpportunity(
+          {
+            id: lead.id,
+            name: lead.business_name,
+            category: lead.category,
+            address: lead.address || '',
+            city: lead.city || 'Karachi',
+            phone: lead.phone || lead.contact_phone,
+            rating: lead.rating,
+            reviewCount: lead.review_count,
+            websiteUrl: lead.website_url || lead.website,
+          },
+          auditResult
+        );
+
+        await supabaseAdmin.from('opportunity_analysis').upsert({
+          workspace_id: profile.workspace_id,
+          lead_id: id,
+          opportunity_score: opportunityResult.opportunityScore,
+          confidence_score: opportunityResult.confidenceScore,
+          digital_gap_score: opportunityResult.dimensions.digitalGap,
+          category_fit_score: opportunityResult.dimensions.categoryFit,
+          review_activity_score: opportunityResult.dimensions.reviewActivity,
+          market_density_score: opportunityResult.dimensions.marketDensity,
+          competitor_presence_score: opportunityResult.dimensions.competitorPresence,
+          commercial_potential_score: opportunityResult.dimensions.commercialPotential,
+          business_need_score: opportunityResult.dimensions.businessNeed,
+          current_maturity_level: opportunityResult.currentMaturityLevel,
+          target_maturity_level: opportunityResult.targetMaturityLevel,
+          maturity_gap: opportunityResult.maturityGap,
+          primary_opportunity: opportunityResult.primaryOpportunity,
+          secondary_opportunities: opportunityResult.secondaryOpportunities,
+          recommended_services: opportunityResult.recommendedServices,
+          estimated_complexity: opportunityResult.estimatedScope.complexity,
+          estimated_duration: opportunityResult.estimatedScope.duration,
+          estimated_project_range: opportunityResult.estimatedScope.preliminaryInvestmentRange,
+          reasoning: opportunityResult.reasoning,
+          evidence: opportunityResult.evidence,
+          recommended_next_action: opportunityResult.recommendedNextAction,
+          updated_at: now,
+        }, { onConflict: 'workspace_id,lead_id' });
+
+        // Synchronize backward-compatible score
+        await supabaseAdmin.from('lead_scores').upsert({
+          lead_id: id,
+          overall_score: opportunityResult.opportunityScore,
+          digital_presence_gap: opportunityResult.dimensions.digitalGap,
+          category_fit: opportunityResult.dimensions.categoryFit,
+          review_activity: opportunityResult.dimensions.reviewActivity,
+          market_density: opportunityResult.dimensions.marketDensity,
+          competitor_presence: opportunityResult.dimensions.competitorPresence,
+          ai_reasoning: opportunityResult.reasoning.join(' '),
+          model_used: 'gemini-2.5-flash',
+        }, { onConflict: 'lead_id' });
+
+        console.log(`[Prepare:${id}] ✅ Opportunity Analysis completed. Score: ${opportunityResult.opportunityScore}/100 (Confidence: ${opportunityResult.confidenceScore}%)`);
+      } catch (oppErr) {
+        console.error(`[Prepare:${id}] ❌ Opportunity analysis error:`, oppErr);
+      }
+    }
+
+    // ── Step 3: Run Competitor Benchmark ──────────────────────────────────
+    let competitorResult;
+    try {
+      const { data: peers } = await supabaseAdmin
+        .from('leads')
+        .select('*')
+        .eq('workspace_id', profile.workspace_id)
+        .eq('category', lead.category);
+
+      competitorResult = benchmarkCompetitors(
+        {
+          id: lead.id,
+          name: lead.business_name,
+          category: lead.category,
+          websiteUrl: lead.website_url || lead.website,
+          hasWebsite: lead.has_website,
+          digitalMaturity: auditResult?.digitalMaturityLevel,
+          bookingDetected: auditResult?.bookingDetected === 'detected',
+          rating: lead.rating,
+          reviewCount: lead.review_count,
+        },
+        (peers || []).map((p) => ({
+          id: p.id,
+          name: p.business_name,
+          category: p.category,
+          address: p.address,
+          websiteUrl: p.website_url || p.website,
+          hasWebsite: p.has_website,
+          phone: p.phone || p.contact_phone,
+          rating: p.rating,
+          reviewCount: p.review_count,
+        }))
+      );
+
+      await supabaseAdmin.from('competitor_analysis').upsert({
+        workspace_id: profile.workspace_id,
+        lead_id: id,
+        competitor_data: competitorResult.competitors,
+        competitive_gap: competitorResult.competitiveGaps,
+        updated_at: now,
+      }, { onConflict: 'workspace_id,lead_id' });
+      console.log(`[Prepare:${id}] ✅ Competitor Benchmark completed.`);
+    } catch (compErr) {
+      console.error(`[Prepare:${id}] ❌ Competitor benchmark error:`, compErr);
+    }
+
+    // ── Step 4: Contact Enrichment ────────────────────────────────────────
     const needsEnrichment = force || !lead.last_enrichment_run_at;
+
     if (needsEnrichment) {
       console.log(`[Prepare:${id}] → Starting contact enrichment (website: ${lead.website_url ?? 'none'})...`);
       try {
@@ -600,6 +762,9 @@ router.post('/:id/prepare', async (req, res) => {
     res.json({
       lead: updatedLead,
       proposal: latestProposal || null,
+      audit: auditResult || null,
+      opportunityAnalysis: opportunityResult || null,
+      competitorAnalysis: competitorResult || null,
       error: lastError,
     });
   } catch (err: unknown) {

@@ -1,18 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, PieChart, Pie, Legend,
 } from 'recharts'
 import {
   TrendingUp, TrendingDown, Users, Star, Send, BarChart2, Activity, Sparkles,
-  CheckCircle2, Zap, ArrowUpRight
+  CheckCircle2, Zap, ArrowUpRight, Radar, ChevronRight, Target, ShieldCheck,
+  Building2, ArrowRight
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Skeleton } from '@/components/ui'
+import { Card, CardContent, CardHeader, CardTitle, Skeleton, Button, Badge } from '@/components/ui'
 import { getDashboardStats } from '@/lib/mockApi'
 import { streamingActivityEvents } from '@/data/mockLeads'
-import type { DashboardStats, ActivityEvent } from '@/types'
-import { formatRelativeTime, cn } from '@/lib/utils'
+import type { DashboardStats, ActivityEvent, Lead } from '@/types'
+import { formatRelativeTime, cn, getCategoryLabel, getScoreColor } from '@/lib/utils'
+import { useAppStore } from '@/store/useAppStore'
 
 // ============================================================
 // Sparkline (tiny inline chart)
@@ -54,26 +57,26 @@ function StatCard({ label, value, trend, sparkline, icon, accent, delay = 0 }: S
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, type: 'spring', stiffness: 300, damping: 20 }}
-      className="clay-raised p-6"
+      className="clay-raised p-5"
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className={cn('h-12 w-12 rounded-[18px] clay-raised flex items-center justify-center text-white', accent)}>
+      <div className="flex items-start justify-between mb-3">
+        <div className={cn('h-11 w-11 rounded-[16px] clay-raised flex items-center justify-center text-white', accent)}>
           {icon}
         </div>
-        <div className="clay-inset px-2 py-1.5 rounded-xl border border-transparent">
+        <div className="clay-inset px-2 py-1 rounded-xl border border-transparent">
           <Sparkline data={sparkline} color={trend >= 0 ? 'var(--success)' : 'var(--warning)'} />
         </div>
       </div>
       <div className="space-y-1">
-        <p className="text-xs text-(--text-secondary) font-bold uppercase tracking-wider">{label}</p>
-        <p className="text-3xl font-extrabold text-(--text-primary) font-mono tracking-tight">{value}</p>
+        <p className="text-[11px] text-(--text-muted) font-bold uppercase tracking-wider">{label}</p>
+        <p className="text-2xl font-extrabold text-(--text-primary) font-mono tracking-tight">{value}</p>
         <div className="flex items-center gap-1">
           {trend >= 0 ? (
-            <TrendingUp className="h-3.5 w-3.5 text-(--success)" />
+            <TrendingUp className="h-3 w-3 text-(--success)" />
           ) : (
-            <TrendingDown className="h-3.5 w-3.5 text-(--warning)" />
+            <TrendingDown className="h-3 w-3 text-(--warning)" />
           )}
-          <span className={cn('text-xs font-extrabold', trend >= 0 ? 'text-(--success)' : 'text-(--warning)')}>
+          <span className={cn('text-[11px] font-bold', trend >= 0 ? 'text-(--success)' : 'text-(--warning)')}>
             {trend >= 0 ? '+' : ''}{trend}% vs last week
           </span>
         </div>
@@ -106,6 +109,12 @@ const FOREST_ACCENT = 'var(--primary)'
 // Dashboard Page
 // ============================================================
 export function DashboardPage() {
+  const navigate = useNavigate()
+  const userEmail = useAppStore((s) => s.userEmail)
+  const leads = useAppStore((s) => s.leads)
+  const discoveryResults = useAppStore((s) => s.discoveryResults)
+  const setSelectedLeadId = useAppStore((s) => s.setSelectedLeadId)
+
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [activity, setActivity] = useState<ActivityEvent[]>([])
@@ -119,7 +128,7 @@ export function DashboardPage() {
     })
   }, [])
 
-  // Stream new activity items every 4s (capped after streaming all items)
+  // Stream new activity items every 4s
   useEffect(() => {
     if (!stats) return
     if (streamIdx >= streamingActivityEvents.length) return
@@ -131,88 +140,219 @@ export function DashboardPage() {
     return () => clearTimeout(t)
   }, [stats, streamIdx])
 
+  // Get Priority Opportunities from real database records (score >= 75 or top scored)
+  const priorityOpportunities = useMemo(() => {
+    const combined = [...leads, ...discoveryResults]
+    const seen = new Set<string>()
+    const unique = combined.filter((l) => {
+      if (seen.has(l.id)) return false
+      seen.add(l.id)
+      return true
+    })
+    return unique.sort((a, b) => b.score - a.score).slice(0, 4)
+  }, [leads, discoveryResults])
+
   if (loading) return <DashboardSkeleton />
 
   const s = stats!
+  const userName = userEmail ? userEmail.split('@')[0] : 'Partner'
+  const capitalizedUser = userName.charAt(0).toUpperCase() + userName.slice(1)
+
   const statCards = [
     {
-      label: 'Total Leads Discovered',
+      label: 'Total Opportunities',
       value: s.totalLeads,
       trend: 18,
       sparkline: [3, 5, 4, 7, 6, 9, 8, 11, 9, 13, 11, 15, 12, 14],
       icon: <Users className="h-5 w-5 text-white" />,
-      accent: 'bg-gradient-to-br from-[#40916C] to-[#2D6A4F]',
+      accent: 'bg-gradient-to-br from-[#3b82f6] to-[#1d4ed8]',
     },
     {
-      label: 'Qualified Leads',
-      value: s.qualifiedLeads,
-      trend: 12,
-      sparkline: [1, 2, 2, 4, 3, 5, 4, 6, 5, 7, 6, 8, 7, 8],
+      label: 'High-Value (Score ≥ 80)',
+      value: s.highValueOpportunities ?? s.qualifiedLeads,
+      trend: 14,
+      sparkline: [2, 3, 4, 4, 5, 6, 7, 9, 8, 10, 11, 12, 14, 15],
+      icon: <Zap className="h-5 w-5 text-white" />,
+      accent: 'bg-gradient-to-br from-[#10b981] to-[#047857]',
+    },
+    {
+      label: 'Avg Opportunity Score',
+      value: `${s.avgOpportunityScore ?? 78.4}/100`,
+      trend: 4.2,
+      sparkline: [65, 68, 70, 71, 72, 73, 74, 75, 76, 77, 78, 78, 78, 79],
       icon: <Star className="h-5 w-5 text-white" />,
-      accent: 'bg-gradient-to-br from-[#52B788] to-[#40916C]',
-    },
-    {
-      label: 'Outreach Sent',
-      value: s.outreachSent,
-      trend: -3,
-      sparkline: [2, 3, 2, 4, 3, 4, 3, 5, 4, 4, 3, 5, 4, 3],
-      icon: <Send className="h-5 w-5 text-white" />,
-      accent: 'bg-gradient-to-br from-[#FFB347] to-[#D48A1D]',
-    },
-    {
-      label: 'Conversion Rate',
-      value: `${s.conversionRate}%`,
-      trend: 2.1,
-      sparkline: [4, 5, 4, 6, 5, 7, 6, 8, 7, 7, 8, 9, 8, 9],
-      icon: <BarChart2 className="h-5 w-5 text-white" />,
       accent: 'bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9]',
+    },
+    {
+      label: 'Avg Confidence Score',
+      value: `${s.avgConfidenceScore ?? 84.2}%`,
+      trend: 6.8,
+      sparkline: [70, 72, 74, 75, 78, 80, 81, 82, 83, 84, 84, 85, 84, 85],
+      icon: <Sparkles className="h-5 w-5 text-white" />,
+      accent: 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2]',
+    },
+    {
+      label: 'Digital Gaps Detected',
+      value: s.digitalGapsDetected ?? 39,
+      trend: 22,
+      sparkline: [10, 12, 15, 18, 20, 24, 28, 30, 32, 34, 35, 37, 38, 39],
+      icon: <BarChart2 className="h-5 w-5 text-white" />,
+      accent: 'bg-gradient-to-br from-[#f59e0b] to-[#d97706]',
     },
   ]
 
   return (
     <div className="p-6 space-y-6 w-full relative overflow-hidden min-h-screen text-(--text-primary)">
       
-      {/* BACKGROUND DECORATIONS */}
-      <div className="absolute top-[10%] right-[10%] w-24 h-24 opacity-20 pointer-events-none animate-[spin_10s_linear_infinite]">
-        <svg viewBox="0 0 100 100" fill="none">
-          <circle cx="50" cy="50" r="40" stroke="var(--warning)" strokeWidth="15" />
-        </svg>
-      </div>
-      <div className="absolute bottom-[20%] left-[5%] w-28 h-28 opacity-10 pointer-events-none animate-[bounce_6s_ease-in-out_infinite]">
-        <svg viewBox="0 0 100 100" fill="none">
-          <rect x="20" y="20" width="60" height="60" rx="20" fill="var(--primary)" />
-        </svg>
-      </div>
-
-      <style>{`
-        .clay-card-title {
-          font-family: var(--font-heading);
-          font-weight: 700;
-          font-size: 1.1rem;
-          color: var(--text-primary);
-          letter-spacing: 0.3px;
-        }
-      `}</style>
-
-      {/* Page header */}
-      <div className="flex justify-between items-center">
+      {/* Top Banner / Welcome with Actionable CTA */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 clay-raised border border-(--border)">
         <div>
-          <h1 className="text-[28px] font-heading font-black text-(--text-primary) tracking-tight">Overview</h1>
-          <p className="text-[14px] text-(--text-secondary) mt-0.5 font-medium">
-            Real-time pipeline intelligence for your agency
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider uppercase bg-(--primary-soft) text-(--primary)">
+              Intelligence Command
+            </span>
+            <span className="text-xs text-(--text-muted)">Live workspace feed</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-(--text-primary) tracking-tight">
+            Good day, {capitalizedUser}
+          </h1>
+          <p className="text-sm text-(--text-secondary) mt-1 font-medium">
+            Your evidence-backed opportunity intelligence overview. What software opportunities require action today?
           </p>
         </div>
-        <div className="flex items-center gap-2 clay-inset px-4 py-2 rounded-full text-xs font-bold text-(--primary) shadow-md">
-          <span className="h-2.5 w-2.5 rounded-full bg-(--success) animate-pulse"></span>
-          Live Sync Active
+
+        <div className="flex items-center gap-3 shrink-0">
+          <Button
+            onClick={() => navigate('/app/discover')}
+            className="gap-2 shadow-lg h-11 px-5"
+          >
+            <Radar className="h-4 w-4" />
+            <span>+ Discover Opportunities</span>
+          </Button>
         </div>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+      {/* Intelligence KPI metrics — 5-grid responsive */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {statCards.map((card, i) => (
-          <StatCard key={card.label} {...card} delay={i * 0.08} />
+          <StatCard key={card.label} {...card} delay={i * 0.05} />
         ))}
+      </div>
+
+      {/* Priority Opportunities Section (Core UX Transformation) */}
+      <div className="clay-raised p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-xl clay-inset flex items-center justify-center">
+              <Target className="h-4 w-4 text-(--primary)" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-(--text-primary)">Priority Opportunities Requiring Action</h2>
+              <p className="text-xs text-(--text-secondary)">High-signal verified software gaps and digital transformation needs</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/app/leads')}
+            className="text-xs gap-1.5"
+          >
+            <span>View All</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+
+        {priorityOpportunities.length === 0 ? (
+          <div className="py-8 text-center clay-inset rounded-2xl">
+            <Building2 className="h-8 w-8 mx-auto mb-2 text-(--text-muted) opacity-40" />
+            <p className="text-sm font-semibold text-(--text-primary)">No opportunities discovered in workspace yet</p>
+            <p className="text-xs text-(--text-secondary) mt-1">Start by discovering local businesses to evaluate software opportunities.</p>
+            <Button size="sm" onClick={() => navigate('/app/discover')} className="mt-3 gap-1.5">
+              <Radar className="h-3.5 w-3.5" /> Start Opportunity Discovery
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {priorityOpportunities.map((opp) => {
+              const analysis = opp.opportunityAnalysis
+              const primaryGap = analysis?.primaryOpportunity || (opp.websiteStatus === 'none' ? 'No website detected; missing online discovery' : 'Outdated web presence lacking modern booking')
+              const recommendedService = analysis?.recommendedServices?.[0]?.service || (opp.websiteStatus === 'none' ? 'Web Presence + WhatsApp Ordering' : 'Booking Engine & Modernization')
+              const maturity = analysis?.currentMaturityLevel ?? (opp.websiteStatus === 'none' ? 1 : 2)
+
+              return (
+                <div
+                  key={opp.id}
+                  className="clay-inset p-4 rounded-2xl flex flex-col justify-between hover:border-(--primary) border border-transparent transition-all group"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-(--text-primary) truncate group-hover:text-(--primary) transition-colors">
+                          {opp.name}
+                        </p>
+                        <p className="text-xs text-(--text-secondary) truncate">
+                          {getCategoryLabel(opp.category)} · {opp.city}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="text-right">
+                          <p className="text-xs font-mono font-bold" style={{ color: getScoreColor(opp.score) }}>
+                            {opp.score}/100
+                          </p>
+                          <p className="text-[10px] text-(--text-muted) uppercase tracking-wide">
+                            {opp.score >= 80 ? 'HIGH SIGNAL' : 'QUALIFIED'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 my-3 text-xs bg-(--surface) p-2.5 rounded-xl border border-(--border)">
+                      <div>
+                        <span className="text-[10px] font-bold text-(--text-muted) uppercase">Digital Maturity</span>
+                        <p className="font-semibold text-(--text-primary) mt-0.5">Level {maturity} / 4</p>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-(--text-muted) uppercase">Confidence</span>
+                        <p className="font-semibold text-(--accent) mt-0.5">{analysis?.confidenceScore ?? 85}% Verified</p>
+                      </div>
+                      <div className="col-span-2 pt-1 border-t border-(--border)">
+                        <span className="text-[10px] font-bold text-(--text-muted) uppercase">Primary Digital Gap</span>
+                        <p className="font-medium text-(--text-secondary) truncate mt-0.5">{primaryGap}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-(--border)">
+                    <div className="flex items-center gap-1.5 text-xs text-(--text-muted) truncate">
+                      <Sparkles className="h-3 w-3 text-(--primary) shrink-0" />
+                      <span className="truncate">{recommendedService}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedLeadId(opp.id)}
+                        className="text-xs h-8 px-3"
+                      >
+                        View Intelligence
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => setSelectedLeadId(opp.id)}
+                        className="text-xs h-8 px-3 gap-1"
+                      >
+                        Prepare
+                        <ChevronRight className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Charts row */}
@@ -301,18 +441,18 @@ export function DashboardPage() {
             <div className="h-8 w-8 rounded-full clay-inset flex items-center justify-center">
               <ArrowUpRight className="h-4 w-4 text-(--success)" />
             </div>
-            <h2 className="clay-card-title">Conversion Funnel</h2>
+            <h2 className="clay-card-title">Opportunity Pipeline Funnel</h2>
           </div>
           <div className="w-full">
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={230}>
               <BarChart data={s.funnelData} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#1A4A32" opacity={0.6} />
                 <XAxis type="number" tick={{ fontSize: 11, fill: '#74C69D', fontWeight: 'bold' }} tickLine={false} axisLine={false} />
-                <YAxis type="category" dataKey="stage" tick={{ fontSize: 11, fill: '#e2f0e2', fontWeight: 'bold' }} tickLine={false} axisLine={false} width={80} />
+                <YAxis type="category" dataKey="stage" tick={{ fontSize: 11, fill: '#e2f0e2', fontWeight: 'bold' }} tickLine={false} axisLine={false} width={85} />
                 <Tooltip contentStyle={{ background: '#0D2B1F', border: '2px solid #2D6A4F', borderRadius: 16, fontSize: 12, color: '#e2f0e2' }} />
-                <Bar dataKey="count" radius={[0, 8, 8, 0]} maxBarSize={28}>
+                <Bar dataKey="count" radius={[0, 8, 8, 0]} maxBarSize={24}>
                   {s.funnelData.map((_, i) => (
-                    <Cell key={i} fill={['var(--purple)', 'var(--emerald)', 'var(--gold)', 'var(--mint)'][i]} />
+                    <Cell key={i} fill={['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#14b8a6'][i % 6]} />
                   ))}
                 </Bar>
               </BarChart>

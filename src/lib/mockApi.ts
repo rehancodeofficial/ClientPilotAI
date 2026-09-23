@@ -1,5 +1,9 @@
 import { supabase } from './supabaseClient';
-import type { Lead, DashboardStats, PipelineStage, OutreachMessage, ProgressStep, BusinessCategory } from '../types';
+import type {
+  Lead, DashboardStats, PipelineStage, OutreachMessage, ProgressStep, BusinessCategory,
+  DigitalAudit, OpportunityAnalysis, CompetitorAnalysisResult, OpportunityZone,
+  MarketIntelligenceStats, ModelEvaluationStats, OutcomeEvent, OutcomeEventType
+} from '../types';
 import { mockLeads, mockDashboardStats } from '../data/mockLeads';
 import { getCategoryLabel } from './utils';
 
@@ -543,12 +547,15 @@ export async function saveDraft(
 }
 
 // ============================================================
-// Prepare Lead (Enrich + AI Generate Outreach + Proposal)
+// Prepare Lead / Opportunity (Audit + Analysis + Competitors + Outreach + Proposal)
 // ============================================================
 export interface PrepareLeadResult {
   lead: Lead;
   proposalContent?: string;
   proposalTitle?: string;
+  audit?: DigitalAudit;
+  opportunityAnalysis?: OpportunityAnalysis;
+  competitorAnalysis?: CompetitorAnalysisResult;
   partialError?: string | null;
 }
 
@@ -565,40 +572,220 @@ export async function prepareLead(
   }
 
   if (isDemoMode(session)) {
-    // In demo mode: simulate enrichment & drafting with a delay
-    await delay(jitter(2200, 400));
+    await delay(jitter(2000, 300));
     const lead = mockLeads.find((l) => l.id === leadId);
     if (!lead) throw new Error('Lead not found');
 
+    const hasWeb = lead.websiteStatus === 'has_website';
+    const audit: DigitalAudit = {
+      leadId,
+      workspaceId: 'demo-workspace',
+      websiteExists: hasWeb ? 'detected' : 'not_detected',
+      httpsEnabled: hasWeb ? 'detected' : 'not_detected',
+      mobileIndicator: hasWeb ? 'detected' : 'unknown',
+      bookingDetected: 'not_detected',
+      orderingDetected: 'not_detected',
+      contactFormDetected: hasWeb ? 'detected' : 'not_detected',
+      socialPresenceDetected: 'detected',
+      digitalMaturityLevel: hasWeb ? 2 : 1,
+      auditScore: hasWeb ? 68 : 28,
+      auditData: {
+        websiteScore: hasWeb ? 75 : 10,
+        discoverabilityScore: 65,
+        engagementScore: 70,
+        conversionScore: 30,
+        informationScore: 85,
+        detectedServices: hasWeb ? ['Informational Website', 'Contact Form'] : ['Public Phone Directory'],
+      },
+      evidence: [
+        {
+          id: `ev-${leadId}-1`,
+          type: 'website_presence',
+          description: hasWeb ? `Active website verified: ${lead.websiteUrl}` : 'No public website detected in commercial directory',
+          source: 'osm',
+          confidence: 90,
+          timestamp: new Date().toISOString(),
+          isAiInference: false,
+        },
+        {
+          id: `ev-${leadId}-2`,
+          type: 'booking_mechanism',
+          description: 'No online booking or self-service appointment mechanism detected',
+          source: 'website_crawl',
+          confidence: 85,
+          timestamp: new Date().toISOString(),
+          isAiInference: false,
+        },
+        {
+          id: `ev-${leadId}-3`,
+          type: 'public_reputation',
+          description: `${lead.reviewCount ?? 45} customer reviews recorded with ${lead.rating ?? 4.2}/5.0 average`,
+          source: 'osm',
+          confidence: 90,
+          timestamp: new Date().toISOString(),
+          isAiInference: false,
+        }
+      ]
+    };
+
+    const opportunityAnalysis: OpportunityAnalysis = {
+      leadId,
+      workspaceId: 'demo-workspace',
+      opportunityScore: lead.score || 85,
+      confidenceScore: 84,
+      dimensions: {
+        digitalGap: hasWeb ? 6 : 9,
+        categoryFit: 9,
+        reviewActivity: 8,
+        marketDensity: 8,
+        competitorPresence: 8,
+        commercialPotential: 8,
+        businessNeed: 9,
+        evidenceQuality: 8,
+      },
+      currentMaturityLevel: hasWeb ? 2 : 1,
+      targetMaturityLevel: 3,
+      maturityGap: hasWeb ? 1 : 2,
+      primaryOpportunity: hasWeb ? 'Online Booking & Conversion System' : 'Digital Presence & Custom Website',
+      secondaryOpportunities: ['Mobile Experience Refinement', 'Local SEO & Discoverability'],
+      recommendedServices: [
+        {
+          service: hasWeb ? 'Online Appointment Flow' : 'Custom Responsive Website',
+          category: 'Web Development',
+          detectedProblem: hasWeb ? 'No online booking mechanism detected' : 'No public website detected',
+          reason: 'High customer inquiry volume requires self-service digital scheduling.',
+          expectedBenefit: 'Streamlines customer intake and captures after-hours appointments.',
+          estimatedComplexity: 'Medium',
+        },
+        {
+          service: 'Local Search Optimization',
+          category: 'Local SEO',
+          detectedProblem: 'Limited search visibility compared to nearby peers',
+          reason: 'Local competitors hold stronger keyword positioning in the target area.',
+          expectedBenefit: 'Increases discovery among searchers in immediate neighborhood.',
+          estimatedComplexity: 'Low',
+        }
+      ],
+      estimatedScope: {
+        projectType: hasWeb ? 'Booking System Integration' : 'Full Web Development & Local Presence',
+        complexity: 'Medium',
+        duration: '3-4 weeks',
+        suggestedTeam: ['Frontend Developer', 'UI/UX Designer'],
+        preliminaryInvestmentRange: 'PKR 150,000 - 275,000 (Preliminary Estimate)',
+      },
+      reasoning: [
+        `Customer demand is established with ${lead.reviewCount ?? 45} verified reviews.`,
+        `Current digital maturity is Level ${hasWeb ? 2 : 1}, lagging behind the category benchmark of Level 3.`,
+        `Nearby competitors offer digital booking functionality not present here.`
+      ],
+      evidence: audit.evidence,
+      recommendedNextAction: {
+        action: 'Dispatch personalized digital audit outreach',
+        channel: 'email',
+        objective: 'Initiate conversation with owner highlighting the booking capability gap',
+        rationale: 'High opportunity score paired with verifiable public contact data.',
+      }
+    };
+
+    const competitorAnalysis: CompetitorAnalysisResult = {
+      leadId,
+      workspaceId: 'demo-workspace',
+      competitors: [
+        {
+          id: `peer-${leadId}-1`,
+          name: `${lead.name.split(' ')[0]} Premier Services`,
+          address: 'Main Commercial Avenue',
+          rating: 4.6,
+          reviewCount: 78,
+          websiteExists: true,
+          bookingExists: true,
+          orderingExists: false,
+          digitalMaturity: 3,
+          distanceKm: 0.5,
+        },
+        {
+          id: `peer-${leadId}-2`,
+          name: `Elite ${lead.category} Center`,
+          address: 'Adjacent Plaza',
+          rating: 4.4,
+          reviewCount: 52,
+          websiteExists: true,
+          bookingExists: true,
+          orderingExists: false,
+          digitalMaturity: 3,
+          distanceKm: 0.9,
+        }
+      ],
+      targetComparison: {
+        targetMaturity: hasWeb ? 2 : 1,
+        competitorAvgMaturity: 3.0,
+        targetHasBooking: false,
+        competitorsWithBookingPct: 100,
+        targetHasWebsite: hasWeb,
+        competitorsWithWebsitePct: 100,
+      },
+      competitiveGaps: [
+        `100% of nearby peer competitors operate online booking flows, while none was detected for ${lead.name}.`,
+        `Competitors maintain active Level 3 transactional presence, creating a convenience gap.`
+      ],
+      summary: `Benchmark analysis against 2 local peers indicates a distinct operational capability gap in online customer booking.`,
+    };
+
     const demoResult: Lead = {
       ...lead,
-      contactEmail: 'owner@' + lead.name.toLowerCase().replace(/\s+/g, '') + '.com',
+      contactEmail: lead.contactEmail || ('owner@' + lead.name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com'),
       contactSource: 'website_homepage',
-      contactConfidence: 0.8,
-      outreachSubject: `Grow ${lead.name} Online — Let's Talk`,
-      outreachBody: `Hi ${lead.name} team,\n\nI came across your business and noticed a great opportunity to strengthen your digital presence. We specialise in building high-converting websites for ${lead.category} businesses like yours.\n\nI'd love to show you a quick demo — completely free, no obligation.\n\nBest regards,\nClientPilot AI`,
+      contactConfidence: 0.85,
+      outreachSubject: `Operational opportunity for ${lead.name} — Online Booking`,
+      outreachBody: `Hi ${lead.name} team,\n\nWhile evaluating digital services in your area, we noted your strong reputation (${lead.reviewCount ?? 45} customer reviews).\n\nWe also detected that while local competitors offer online booking, your business currently does not appear to provide an automated appointment flow. We specialize in building fast, modern booking systems for ${lead.category} businesses.\n\nWould you be open to reviewing a 10-minute digital audit summary?\n\nBest regards,\nClientPilot AI`,
       outreachStatus: 'draft',
       outreachGeneratedAt: new Date().toISOString(),
-      proposalContent: `# Proposal for ${lead.name}\n\n## Overview\nWe propose a modern web solution to help ${lead.name} attract more customers online.\n\n## Scope\n- Professional website design\n- SEO optimisation\n- Google Business profile setup\n- Social media integration\n\n## Pricing\nStarting from PKR 45,000 — flexible payment plans available.`,
+      proposalContent: `# Commercial Project Proposal — ${lead.name}\n\n## Executive Summary\nClient Pilot AI has prepared this modernization proposal following a digital presence audit of ${lead.name}.\n\n## Identified Digital Gaps\n- No automated online booking or self-service appointment mechanism detected\n- Digital maturity currently at Level ${hasWeb ? 2 : 1} (Category Benchmark: Level 3)\n\n## Proposed Solution\n1. Custom Responsive Booking Portal\n2. Real-time Calendar & SMS/WhatsApp Notification Integration\n3. Local Search Optimization\n\n## Deliverables & Milestones\n- Week 1: Wireframes & Booking Workflow Architecture\n- Week 2-3: Frontend Development & Calendar Sync\n- Week 4: Quality Assurance, Staff Walkthrough & Launch\n\n## Estimated Investment\nPKR 175,000 - 250,000 *(Preliminary Estimate)*`,
       proposalStatus: 'draft',
       proposalGeneratedAt: new Date().toISOString(),
+      audit,
+      opportunityAnalysis,
+      competitorAnalysis,
     };
-    return { lead: demoResult, proposalContent: demoResult.proposalContent };
+
+    return {
+      lead: demoResult,
+      proposalContent: demoResult.proposalContent,
+      proposalTitle: `Digital Modernization Proposal — ${lead.name}`,
+      audit,
+      opportunityAnalysis,
+      competitorAnalysis,
+    };
   }
 
   const result = await fetchWithAuth(`/leads/${leadId}/prepare`, {
     method: 'POST',
     body: JSON.stringify({ force }),
-  }) as { lead: DbLead; proposal?: { title?: string; content?: string } | null; error?: string | null };
+  }) as {
+    lead: DbLead;
+    proposal?: { title?: string; content?: string } | null;
+    audit?: DigitalAudit;
+    opportunityAnalysis?: OpportunityAnalysis;
+    competitorAnalysis?: CompetitorAnalysisResult;
+    error?: string | null;
+  };
 
   const mappedLead = mapDbLeadToLead(result.lead as unknown as DbLead);
+  if (result.audit) mappedLead.audit = result.audit;
+  if (result.opportunityAnalysis) mappedLead.opportunityAnalysis = result.opportunityAnalysis;
+  if (result.competitorAnalysis) mappedLead.competitorAnalysis = result.competitorAnalysis;
+
   return {
     lead: mappedLead,
     proposalContent: result.proposal?.content ?? mappedLead.proposalContent,
     proposalTitle: result.proposal?.title,
+    audit: result.audit,
+    opportunityAnalysis: result.opportunityAnalysis,
+    competitorAnalysis: result.competitorAnalysis,
     partialError: result.error,
   };
 }
+
 
 // ============================================================
 // Update Lead Stage
@@ -840,4 +1027,426 @@ export async function deleteProposalApi(id: string): Promise<void> {
 
   await fetchWithAuth(`/proposals/${id}`, { method: 'DELETE' });
 }
+
+// ============================================================
+// FYP Intelligence API Methods
+// ============================================================
+
+export async function getDigitalAudit(leadId: string): Promise<DigitalAudit | null> {
+  let session = null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch { /* ignore */ }
+
+  if (isDemoMode(session)) {
+    const lead = mockLeads.find((l) => l.id === leadId);
+    if (!lead) return null;
+    return (lead as any).audit || null;
+  }
+
+  try {
+    return await fetchWithAuth(`/audits/${leadId}`);
+  } catch {
+    return null;
+  }
+}
+
+export async function runDigitalAudit(leadId: string): Promise<DigitalAudit> {
+  let session = null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch { /* ignore */ }
+
+  if (isDemoMode(session)) {
+    await delay(jitter(1200, 200));
+    const prep = await prepareLead(leadId);
+    return prep.audit!;
+  }
+
+  return await fetchWithAuth(`/audits/${leadId}/run`, { method: 'POST' });
+}
+
+export async function getOpportunityAnalysis(leadId: string): Promise<OpportunityAnalysis | null> {
+  let session = null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch { /* ignore */ }
+
+  if (isDemoMode(session)) {
+    const lead = mockLeads.find((l) => l.id === leadId);
+    if (!lead) return null;
+    return (lead as any).opportunityAnalysis || null;
+  }
+
+  try {
+    return await fetchWithAuth(`/opportunities/${leadId}`);
+  } catch {
+    return null;
+  }
+}
+
+export async function analyzeOpportunity(leadId: string): Promise<OpportunityAnalysis> {
+  let session = null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch { /* ignore */ }
+
+  if (isDemoMode(session)) {
+    await delay(jitter(1500, 250));
+    const prep = await prepareLead(leadId);
+    return prep.opportunityAnalysis!;
+  }
+
+  return await fetchWithAuth(`/opportunities/${leadId}/analyze`, { method: 'POST' });
+}
+
+export async function getCompetitorAnalysis(leadId: string): Promise<CompetitorAnalysisResult | null> {
+  let session = null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch { /* ignore */ }
+
+  if (isDemoMode(session)) {
+    const lead = mockLeads.find((l) => l.id === leadId);
+    if (!lead) return null;
+    return (lead as any).competitorAnalysis || null;
+  }
+
+  try {
+    return await fetchWithAuth(`/competitors/${leadId}`);
+  } catch {
+    // If not found, trigger analyze
+    try {
+      return await fetchWithAuth(`/competitors/${leadId}/analyze`, { method: 'POST' });
+    } catch {
+      return null;
+    }
+  }
+}
+
+export async function getOpportunityZones(): Promise<OpportunityZone[]> {
+  let session = null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch { /* ignore */ }
+
+  if (isDemoMode(session)) {
+    return [
+      {
+        zoneName: 'Karachi — Clifton Commercial',
+        centerLat: 24.8138,
+        centerLng: 67.0300,
+        totalOpportunities: 34,
+        avgOpportunityScore: 86,
+        avgMaturityLevel: 1.8,
+        topCategory: 'clinic',
+        highPriorityCount: 22,
+      },
+      {
+        zoneName: 'Karachi — DHA Phase 5 & 6',
+        centerLat: 24.8250,
+        centerLng: 67.0650,
+        totalOpportunities: 28,
+        avgOpportunityScore: 82,
+        avgMaturityLevel: 2.1,
+        topCategory: 'salon',
+        highPriorityCount: 16,
+      },
+      {
+        zoneName: 'Karachi — Gulshan-e-Iqbal Block 13/14',
+        centerLat: 24.9180,
+        centerLng: 67.0971,
+        totalOpportunities: 25,
+        avgOpportunityScore: 88,
+        avgMaturityLevel: 1.2,
+        topCategory: 'restaurant',
+        highPriorityCount: 19,
+      },
+      {
+        zoneName: 'Lahore — Gulberg Commercial',
+        centerLat: 31.5204,
+        centerLng: 74.3587,
+        totalOpportunities: 29,
+        avgOpportunityScore: 84,
+        avgMaturityLevel: 1.9,
+        topCategory: 'retail',
+        highPriorityCount: 17,
+      },
+      {
+        zoneName: 'Islamabad — Blue Area & F-7',
+        centerLat: 33.7200,
+        centerLng: 73.0600,
+        totalOpportunities: 21,
+        avgOpportunityScore: 81,
+        avgMaturityLevel: 2.3,
+        topCategory: 'real_estate',
+        highPriorityCount: 12,
+      }
+    ];
+  }
+
+  try {
+    const zones = await fetchWithAuth('/opportunities/zones');
+    return zones || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getMarketIntelligence(): Promise<MarketIntelligenceStats> {
+  let session = null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch { /* ignore */ }
+
+  if (isDemoMode(session)) {
+    return {
+      totalOpportunities: mockLeads.length,
+      avgOpportunityScore: 83,
+      avgConfidenceScore: 82,
+      digitalMaturityDistribution: [
+        { level: 0, label: 'Level 0 — Digitally Invisible', count: 8 },
+        { level: 1, label: 'Level 1 — Basic Presence', count: 22 },
+        { level: 2, label: 'Level 2 — Informational Presence', count: 14 },
+        { level: 3, label: 'Level 3 — Transactional Presence', count: 5 },
+        { level: 4, label: 'Level 4 — Digitally Optimized', count: 1 },
+      ],
+      topCategoryOpportunities: [
+        { category: 'restaurant', count: 14, avgScore: 87 },
+        { category: 'clinic', count: 11, avgScore: 89 },
+        { category: 'salon', count: 8, avgScore: 84 },
+        { category: 'retail', count: 7, avgScore: 79 },
+        { category: 'bakery', count: 5, avgScore: 82 },
+        { category: 'auto_service', count: 5, avgScore: 78 },
+      ],
+      digitalGapDistribution: [
+        { gap: 'No Public Website', percentage: 46, count: 23 },
+        { gap: 'Missing Online Booking', percentage: 68, count: 34 },
+        { gap: 'Missing Online Ordering', percentage: 38, count: 19 },
+        { gap: 'Weak Mobile Optimization', percentage: 28, count: 14 },
+      ],
+      opportunityZones: await getOpportunityZones(),
+    };
+  }
+
+  try {
+    const stats = await fetchWithAuth('/intelligence/market');
+    const zones = await getOpportunityZones();
+    return { ...stats, opportunityZones: zones };
+  } catch {
+    return {
+      totalOpportunities: 0,
+      avgOpportunityScore: 0,
+      avgConfidenceScore: 0,
+      digitalMaturityDistribution: [],
+      topCategoryOpportunities: [],
+      digitalGapDistribution: [],
+      opportunityZones: [],
+    };
+  }
+}
+
+export async function getModelEvaluation(): Promise<ModelEvaluationStats> {
+  let session = null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch { /* ignore */ }
+
+  if (isDemoMode(session)) {
+    return {
+      totalAnalyzed: mockLeads.length,
+      totalWithOutcomes: 28,
+      scoreBands: [
+        {
+          band: '80-100 (High)',
+          leadCount: 26,
+          replies: 12,
+          proposalsSent: 9,
+          wonDeals: 5,
+          replyRatePct: 46.2,
+          conversionRatePct: 19.2,
+        },
+        {
+          band: '60-79 (Medium)',
+          leadCount: 18,
+          replies: 4,
+          proposalsSent: 3,
+          wonDeals: 1,
+          replyRatePct: 22.2,
+          conversionRatePct: 5.6,
+        },
+        {
+          band: '0-59 (Low)',
+          leadCount: 6,
+          replies: 0,
+          proposalsSent: 0,
+          wonDeals: 0,
+          replyRatePct: 0.0,
+          conversionRatePct: 0.0,
+        },
+      ],
+      evidenceQualityStats: {
+        avgConfidencePct: 84,
+        verifiedContactsPct: 88,
+        directCrawlCoveragePct: 76,
+      },
+      researchMetrics: {
+        correlationDescription: 'Empirical correlation observed across demonstration outcomes: businesses scoring 80-100 demonstrated 2.1x higher reply rates and 3.4x higher deal conversion rates compared to the 60-79 band.',
+        hasSufficientData: true,
+        sampleSize: 28,
+      }
+    };
+  }
+
+  try {
+    return await fetchWithAuth('/intelligence/evaluation');
+  } catch {
+    return {
+      totalAnalyzed: 0,
+      totalWithOutcomes: 0,
+      scoreBands: [],
+      evidenceQualityStats: {
+        avgConfidencePct: 0,
+        verifiedContactsPct: 0,
+        directCrawlCoveragePct: 0,
+      },
+      researchMetrics: {
+        correlationDescription: 'Evaluation pending — insufficient labeled outcome events recorded.',
+        hasSufficientData: false,
+        sampleSize: 0,
+      },
+    };
+  }
+}
+
+export async function getOutcomeEvents(leadId: string): Promise<OutcomeEvent[]> {
+  let session = null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch { /* ignore */ }
+
+  if (isDemoMode(session)) {
+    return [
+      {
+        id: `ev-out-${leadId}-1`,
+        leadId,
+        workspaceId: 'demo-workspace',
+        eventType: 'discovered',
+        eventDate: new Date(Date.now() - 3 * 86400000).toISOString(),
+        source: 'system_pipeline',
+        notes: 'Business discovered via OpenStreetMap geospatial radar scan.',
+      },
+      {
+        id: `ev-out-${leadId}-2`,
+        leadId,
+        workspaceId: 'demo-workspace',
+        eventType: 'audited',
+        eventDate: new Date(Date.now() - 2 * 86400000).toISOString(),
+        source: 'system_pipeline',
+        notes: 'Automated digital audit completed; digital maturity evaluated at Level 1.',
+      },
+      {
+        id: `ev-out-${leadId}-3`,
+        leadId,
+        workspaceId: 'demo-workspace',
+        eventType: 'qualified',
+        eventDate: new Date(Date.now() - 1 * 86400000).toISOString(),
+        source: 'user_action',
+        notes: 'Opportunity validated; high potential booking capability gap confirmed.',
+      },
+    ];
+  }
+
+  try {
+    return await fetchWithAuth(`/outcomes/${leadId}`);
+  } catch {
+    return [];
+  }
+}
+
+export async function logOutcomeEvent(
+  leadId: string,
+  eventType: OutcomeEventType,
+  notes?: string
+): Promise<OutcomeEvent> {
+  let session = null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch { /* ignore */ }
+
+  if (isDemoMode(session)) {
+    await delay(jitter(200, 50));
+    return {
+      id: `ev-out-${Date.now()}`,
+      leadId,
+      workspaceId: 'demo-workspace',
+      eventType,
+      eventDate: new Date().toISOString(),
+      source: 'user_action',
+      notes,
+    };
+  }
+
+  return await fetchWithAuth(`/outcomes/${leadId}`, {
+    method: 'POST',
+    body: JSON.stringify({ eventType, notes }),
+  });
+}
+
+export async function getOutcomeTimeline(): Promise<OutcomeEvent[]> {
+  let session = null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch { /* ignore */ }
+
+  if (isDemoMode(session)) {
+    return [
+      {
+        id: 'ev-1',
+        leadId: 'lead-001',
+        workspaceId: 'demo-workspace',
+        eventType: 'won',
+        eventDate: new Date(Date.now() - 1 * 3600000).toISOString(),
+        source: 'user_action',
+        notes: 'Client accepted proposal for WhatsApp ordering flow.',
+      },
+      {
+        id: 'ev-2',
+        leadId: 'lead-002',
+        workspaceId: 'demo-workspace',
+        eventType: 'proposal_sent',
+        eventDate: new Date(Date.now() - 4 * 3600000).toISOString(),
+        source: 'user_action',
+        notes: 'Custom booking portal proposal delivered via email.',
+      },
+      {
+        id: 'ev-3',
+        leadId: 'lead-003',
+        workspaceId: 'demo-workspace',
+        eventType: 'contacted',
+        eventDate: new Date(Date.now() - 8 * 3600000).toISOString(),
+        source: 'email_outreach',
+        notes: 'Initial audit summary email dispatched.',
+      }
+    ];
+  }
+
+  try {
+    return await fetchWithAuth('/outcomes/timeline');
+  } catch {
+    return [];
+  }
+}
+
 

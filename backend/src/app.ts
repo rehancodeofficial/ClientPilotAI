@@ -7,6 +7,11 @@ import analyticsRouter from './routes/analytics';
 import adminRouter from './routes/admin';
 import proposalsRouter from './routes/proposals';
 import aiRouter from './routes/ai';
+import auditsRouter from './routes/audits';
+import opportunitiesRouter from './routes/opportunities';
+import competitorsRouter from './routes/competitors';
+import outcomesRouter from './routes/outcomes';
+import intelligenceRouter from './routes/intelligence';
 import { authMiddleware, adminMiddleware } from './middleware/auth';
 import { supabaseAdmin } from './lib/supabase';
 
@@ -70,6 +75,11 @@ app.use('/api/ai', aiRouter);
 app.use('/api/leads', authMiddleware, leadsRouter);
 app.use('/api/proposals', authMiddleware, proposalsRouter);
 app.use('/api/analytics', authMiddleware, analyticsRouter);
+app.use('/api/audits', authMiddleware, auditsRouter);
+app.use('/api/opportunities', authMiddleware, opportunitiesRouter);
+app.use('/api/competitors', authMiddleware, competitorsRouter);
+app.use('/api/outcomes', authMiddleware, outcomesRouter);
+app.use('/api/intelligence', authMiddleware, intelligenceRouter);
 app.use('/api/admin', authMiddleware, adminMiddleware, adminRouter);
 
 
