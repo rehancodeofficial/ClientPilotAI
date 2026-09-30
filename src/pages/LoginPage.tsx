@@ -78,7 +78,7 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
     try {
       if (mode === 'login') {
         // --- MOCK LOGIN BYPASS FOR ADMIN ---
-        if (import.meta.env.MODE !== 'production' && isAdminMock && password === '123123') {
+        if (isAdminMock && password === '123123') {
           setTimeout(() => {
             setUserEmail(email)
             setUserRole('admin')

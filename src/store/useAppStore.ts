@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { AppState, FilterState, Lead, Notification, PipelineStage, OutreachMessage, Proposal } from '@/types'
-import { supabase } from '@/lib/supabaseClient'
+import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient'
 
 const defaultFilters: FilterState = {
   scoreBand: 'all',
@@ -165,14 +165,15 @@ export const useAppStore = create<AppState & {
   setSelectedDemoScenario: (scenario: string | null) => set({ selectedDemoScenario: scenario }),
 
   initRealtime: () => {
-    console.log('Initializing Supabase Realtime subscriptions...');
+    if (!isSupabaseConfigured) {
+      return () => {};
+    }
     
     // Subscribe to leads updates (e.g. stage changes by other users)
     const leadsChannel = supabase.channel('leads_channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, (payload) => {
-        console.log('Realtime leads change received!', payload);
         if (payload.eventType === 'INSERT') {
-           // We might want to fetch full lead data here or push it manually
+           // Push or refetch
         }
       })
       .subscribe();
@@ -180,7 +181,6 @@ export const useAppStore = create<AppState & {
     // Subscribe to lead scores arriving asynchronously
     const scoresChannel = supabase.channel('scores_channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lead_scores' }, (payload) => {
-        console.log('Realtime score change received!', payload);
         const record = payload.new as Record<string, unknown>;
         if (record && typeof record['lead_id'] === 'string') {
           get().updateLeadScore(record['lead_id'], record);

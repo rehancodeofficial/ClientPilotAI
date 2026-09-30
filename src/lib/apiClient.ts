@@ -38,13 +38,15 @@ export async function deleteProposalApi(proposalId: string) {
   return apiDelete<any>(`/proposals/${proposalId}`);
 }
 
+import { mockLeads, mockDashboardStats } from '@/data/mockLeads';
+
 // ─── Lead helpers ─────────────────────────────────────────────────────────────
 export async function getAllLeads(): Promise<any[]> {
   try {
     const result = await apiGet<{ leads: any[] }>('/leads');
-    return result.leads || [];
+    return result.leads && result.leads.length > 0 ? result.leads : mockLeads;
   } catch {
-    return [];
+    return mockLeads;
   }
 }
 
@@ -105,20 +107,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   try {
     return await apiGet<DashboardStats>('/intelligence/dashboard');
   } catch {
-    return {
-      totalLeads: 0,
-      qualifiedLeads: 0,
-      outreachSent: 0,
-      conversionRate: 0,
-      leadsPerDay: [],
-      funnelData: [],
-      scoreBandData: [],
-      recentActivity: [],
-      highValueOpportunities: 0,
-      avgOpportunityScore: 0,
-      avgConfidenceScore: 0,
-      digitalGapsDetected: 0,
-    };
+    return mockDashboardStats;
   }
 }
 

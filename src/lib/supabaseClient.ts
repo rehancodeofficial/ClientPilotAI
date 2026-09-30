@@ -3,16 +3,20 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
-    'Supabase environment variables (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY) are not set. ' +
-    'Please configure them in your local .env file.'
-  );
+export const isSupabaseConfigured = Boolean(
+  supabaseUrl && 
+  supabaseAnonKey && 
+  supabaseAnonKey !== 'placeholder-anon-key' &&
+  !supabaseUrl.includes('localhost:54321')
+);
+
+if (!isSupabaseConfigured) {
+  // Silent or mild warning to avoid console spam in demo environments
 }
 
 // Initialize client with fallback values to prevent build/init time crashes
 export const supabase = createClient(
-  supabaseUrl || 'http://localhost:54321',
+  supabaseUrl || 'https://placeholder.supabase.co',
   (supabaseAnonKey || 'placeholder-anon-key').trim()
 );
 
