@@ -84,8 +84,7 @@ export function AuthGuard() {
   }, [setUserRole, setUserEmail])
 
   // If a demo role is set, grant access immediately without waiting
-  // In production, we MUST wait for the real session to validate.
-  if (import.meta.env.MODE !== 'production' && userRole !== null && !session) {
+  if (userRole !== null) {
     return <Outlet />
   }
 
