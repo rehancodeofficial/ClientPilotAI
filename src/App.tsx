@@ -10,8 +10,20 @@ import { ProposalsPage } from '@/pages/ProposalsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { AdminDashboardPage } from '@/pages/AdminDashboardPage'
 import { LandingPage } from '@/pages/LandingPage'
+import { ProductPage } from '@/pages/ProductPage'
+import { FeaturesPage } from '@/pages/FeaturesPage'
+import { SolutionsPage } from '@/pages/SolutionsPage'
+import { HowItWorksPage } from '@/pages/HowItWorksPage'
+import { PricingPage } from '@/pages/PricingPage'
 import { AboutPage } from '@/pages/AboutPage'
+import { ResourcesPage } from '@/pages/ResourcesPage'
+import { FaqPage } from '@/pages/FaqPage'
+import { ContactPage } from '@/pages/ContactPage'
 import { LoginPage } from '@/pages/LoginPage'
+import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from '@/pages/AuthFlowPages'
+import { OnboardingPage } from '@/pages/OnboardingPage'
+import { PrivacyPage, TermsPage, CookiePolicyPage, AcceptableUsePage } from '@/pages/LegalPages'
+import { NotFoundPage, ErrorPage } from '@/pages/SystemPages'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { MarketIntelligencePage } from '@/pages/MarketIntelligencePage'
 import { OpportunityZonesPage } from '@/pages/OpportunityZonesPage'
@@ -33,11 +45,31 @@ function App() {
       <Routes>
         {/* ── Public marketing pages ─────────────────────────── */}
         <Route path="/" element={<LandingPage />} />
+        <Route path="/product" element={<ProductPage />} />
+        <Route path="/features" element={<FeaturesPage />} />
+        <Route path="/solutions" element={<SolutionsPage />} />
+        <Route path="/how-it-works" element={<HowItWorksPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/faq" element={<FaqPage />} />
+        <Route path="/contact" element={<ContactPage />} />
 
-        {/* ── Auth pages ─────────────────────────────────────── */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<LoginPage />} />
+        {/* ── Auth & Onboarding pages ────────────────────────── */}
+        <Route path="/login" element={<LoginPage initialMode="login" />} />
+        <Route path="/sign-in" element={<LoginPage initialMode="login" />} />
+        <Route path="/signup" element={<LoginPage initialMode="signup" />} />
+        <Route path="/sign-up" element={<LoginPage initialMode="signup" />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
+
+        {/* ── Legal pages ────────────────────────────────────── */}
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/cookies" element={<CookiePolicyPage />} />
+        <Route path="/acceptable-use" element={<AcceptableUsePage />} />
 
         {/* ── Protected app routes ───────────────────────────── */}
         <Route element={<AuthGuard />}>
@@ -71,8 +103,9 @@ function App() {
           </Route>
         </Route>
 
-        {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Catch-all 404 */}
+        <Route path="/500" element={<ErrorPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
   )
