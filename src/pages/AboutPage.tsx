@@ -73,8 +73,16 @@ export function AboutPage() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-              className="space-y-4"
+              className="space-y-6"
             >
+              <div className="rounded-2xl overflow-hidden border border-black/10 shadow-md h-56 bg-[#edede8]">
+                <img
+                  src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1000&q=80"
+                  alt="ClientPilot team agency workspace"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
               {[
                 { icon: Globe, title: 'A world where businesses have great digital presences', desc: 'We believe that every small and medium business deserves a professional, effective digital presence — and that the agencies capable of delivering that deserve better ways to find their clients.' },
                 { icon: Heart, title: 'Built with agencies, for agencies', desc: 'ClientPilot was designed with real feedback from digital agencies, development studios, SEO specialists, and freelancers. Every feature solves a real workflow problem.' },
