@@ -368,7 +368,7 @@ export function LandingPage() {
                 { title: 'Smart Qualification', desc: 'Separate interesting businesses from genuinely relevant opportunities.', icon: Target, delay: 0.15 },
                 { title: 'Personalized Outreach', desc: 'Turn verified findings into highly relevant, evidence-backed outreach.', icon: Mail, delay: 0.2 },
               ].map((card) => (
-                <FeatureCard key={card.title} icon={card.icon} title={card.title} desc={card.desc} delay={card.delay} />
+                <WorkflowCircleCard key={card.title} icon={card.icon} title={card.title} desc={card.desc} delay={card.delay} />
               ))}
             </div>
           </Section>
