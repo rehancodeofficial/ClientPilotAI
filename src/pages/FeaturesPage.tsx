@@ -196,7 +196,7 @@ export function FeaturesPage() {
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.5, delay: (idx % 3) * 0.07, ease: [0.22, 1, 0.36, 1] }}
                 whileHover={{ y: -4 }}
-                className={`p-[18px] rounded-xl border flex flex-col gap-4 ${
+                className={`p-[18px] rounded-lg border flex flex-col gap-4 ${
                   f.accent
                     ? 'bg-[#dbdbd2] border-black/8'
                     : 'bg-white border-black/8'

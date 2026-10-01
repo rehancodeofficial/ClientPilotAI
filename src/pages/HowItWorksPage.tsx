@@ -186,10 +186,10 @@ export function HowItWorksPage() {
               {/* Text */}
               <div className="lg:col-span-5 space-y-5">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full border border-black/10 flex items-center justify-center font-mono text-sm text-[#6f6f6e]">
+                  <div className="w-10 h-10 rounded-lg border border-black/10 flex items-center justify-center font-mono text-sm text-[#6f6f6e]">
                     {step.num}
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-[#c0c0c0] flex items-center justify-center text-[#353535]">
+                  <div className="w-8 h-8 rounded-lg bg-[#c0c0c0] flex items-center justify-center text-[#353535]">
                     <step.icon className="w-4 h-4" />
                   </div>
                 </div>
@@ -204,8 +204,8 @@ export function HowItWorksPage() {
 
               {/* Visual mock */}
               <div className="lg:col-span-7">
-                <div className="p-3 bg-white rounded-2xl border border-black/10 shadow-xl">
-                  <div className="bg-[#edede8] rounded-xl overflow-hidden">
+                <div className="p-3 bg-white rounded-lg border border-black/10 shadow-xl">
+                  <div className="bg-[#edede8] rounded-lg overflow-hidden">
                     <div className="px-4 py-3 border-b border-black/8 flex items-center gap-2 bg-white">
                       <div className="flex gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]/40" />

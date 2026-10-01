@@ -207,7 +207,7 @@ export function PricingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.07, ease: [0.22, 1, 0.36, 1] }}
-                className={`relative p-[18px] rounded-xl border flex flex-col ${
+                className={`relative p-[18px] rounded-lg border flex flex-col ${
                   tier.featured
                     ? 'bg-[#dbdbd2] border-black/12 shadow-sm'
                     : 'bg-white border-black/8'
