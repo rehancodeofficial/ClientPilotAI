@@ -1,10 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
 import type { BusinessAuditResult, DigitalMaturityLevel, EvidenceItem } from './audit';
-
-const GEMINI_MODEL = 'gemini-2.5-flash';
-const apiKey = process.env.GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(apiKey ?? '');
+import { createAiClient, getResolvedModel, hasApiKey } from '../lib/aiConfig';
 
 // ─── Output Schema ────────────────────────────────────────────────────────────
 
@@ -95,8 +91,18 @@ function getCategoryStandards(category: string): { categoryFit: number; targetMa
   return { categoryFit: 7, targetMaturity: 2 };
 }
 
+/** Removes ```json fences some models wrap JSON responses in. */
+function stripCodeFence(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith('```')) return trimmed;
+  return trimmed
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/```\s*$/, '')
+    .trim();
+}
+
 /**
- * Analyzes a business opportunity using a hybrid rule-based + Gemini 2.5 Flash model.
+ * Analyzes a business opportunity using a hybrid rule-based + AgentRouter LLM approach.
  * Never invents facts; anchors all outputs to the provided digital audit & evidence chain.
  */
 export async function analyzeBusinessOpportunity(
@@ -190,7 +196,7 @@ export async function analyzeBusinessOpportunity(
   }
   confidenceScore = Math.min(95, Math.max(25, confidenceScore));
 
-  // 4. Formulate Prompt for Gemini 2.5 Flash Qualitative Synthesis
+  // 4. Formulate Prompt for AgentRouter Qualitative Synthesis
   const prompt = `
 You are the Chief Opportunity Analyst of Client Pilot AI, an intelligent B2B business intelligence engine for software agencies.
 Analyze the following empirical business data and digital audit findings.
@@ -277,23 +283,45 @@ Return valid JSON conforming to the requested schema.
   };
 
   try {
-    if (apiKey && apiKey.startsWith('AIza')) {
-      const model = genAI.getGenerativeModel({
-        model: GEMINI_MODEL,
-        generationConfig: { responseMimeType: 'application/json' },
-        systemInstruction,
-      });
+    if (hasApiKey()) {
+      const client = createAiClient();
+      const messages = [
+        { role: 'system' as const, content: systemInstruction + '\nRespond with JSON matching the requested structure.' },
+        { role: 'user' as const, content: prompt },
+      ];
 
-      const response = await model.generateContent(prompt);
-      const text = response.response.text();
-      const parsed = JSON.parse(text);
-      const validated = OpportunitySynthesisSchema.safeParse(parsed);
-      if (validated.success) {
-        synthesis = validated.data;
+      let response;
+      try {
+        response = await client.chat.completions.create({
+          model: getResolvedModel(),
+          messages,
+          temperature: 0.3,
+          response_format: { type: 'json_object' },
+        });
+      } catch (formatError: unknown) {
+        // Some AgentRouter models reject JSON mode; retry once without it.
+        console.warn(
+          '[OpportunityService] response_format not supported by model, retrying without JSON mode:',
+          formatError instanceof Error ? formatError.message : String(formatError)
+        );
+        response = await client.chat.completions.create({
+          model: getResolvedModel(),
+          messages,
+          temperature: 0.3,
+        });
+      }
+
+      const text = response.choices[0]?.message?.content || '';
+      if (text) {
+        const parsed = JSON.parse(stripCodeFence(text));
+        const validated = OpportunitySynthesisSchema.safeParse(parsed);
+        if (validated.success) {
+          synthesis = validated.data;
+        }
       }
     }
   } catch (err: unknown) {
-    console.warn('[OpportunityService] Gemini synthesis fallback used:', err instanceof Error ? err.message : String(err));
+    console.warn('[OpportunityService] AgentRouter synthesis fallback used:', err instanceof Error ? err.message : String(err));
   }
 
   // Add AI inferences as flagged evidence items

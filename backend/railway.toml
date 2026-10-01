@@ -1,7 +1,7 @@
 [build]
 builder = "npm-run"
 buildCommand = "npm run build"
-startCommand = "npm start"
+startCommand = "npm run start"
 
 [build.environment]
 NODE_ENV = "production"

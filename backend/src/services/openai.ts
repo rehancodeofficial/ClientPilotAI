@@ -1,40 +1,23 @@
 /**
- * AI Service — Gemini 2.5 Flash
+ * AI Service — AgentRouter (https://agentrouter.org/v1)
  *
- * All functions return a typed Result<T> instead of T | null so callers
- * can surface specific error messages rather than swallowing failures.
+ * Uses the OpenAI SDK pointed at AgentRouter's OpenAI-compatible chat
+ * completions endpoint. Provider configuration and model selection live in
+ * ../lib/aiConfig so there is a single source of truth for the API key, base
+ * URL and model actually in use.
+ *
+ * All functions return a typed Result<T> or null so callers can surface
+ * specific error messages cleanly.
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import dotenv from 'dotenv';
 import { z } from 'zod';
-
-dotenv.config();
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const GEMINI_MODEL = 'gemini-2.5-flash';
-
-// ─── API Key validation ────────────────────────────────────────────────────────
-
-const apiKey = process.env.GEMINI_API_KEY;
-
-if (!apiKey) {
-  console.error('[AI] ❌ CRITICAL: GEMINI_API_KEY is not set. All AI operations will fail.');
-} else if (!apiKey.startsWith('AIza')) {
-  // Keys that don't start with "AIza" are invalid (e.g. the legacy "AQ." format).
-  // Log at ERROR level — this is a misconfiguration, not a warning.
-  console.error(
-    `[AI] ❌ CRITICAL: GEMINI_API_KEY has an invalid format (starts with "${apiKey.slice(0, 6)}..."). ` +
-    `Valid Gemini keys start with "AIza". ` +
-    `Generate a new key at https://aistudio.google.com/app/apikey — all AI calls will fail until fixed.`
-  );
-} else {
-  console.log(`[AI] ✅ GEMINI_API_KEY loaded (starts with ${apiKey.slice(0, 8)}...). Model: ${GEMINI_MODEL}`);
-}
-
-const genAI = new GoogleGenerativeAI(apiKey ?? '');
-
+import {
+  createAiClient,
+  getApiKey,
+  getBaseUrl,
+  getResolvedModel,
+  hasApiKey,
+} from '../lib/aiConfig';
 
 // ─── Result type ──────────────────────────────────────────────────────────────
 
@@ -75,46 +58,116 @@ const ProposalResponseSchema = z.object({
   content: z.string().min(1),
 });
 
+// ─── Error helpers ────────────────────────────────────────────────────────────
+
+interface ApiErrorDetails {
+  status: number | null;
+  message: string;
+}
+
+/** Extracts the HTTP status and message from an OpenAI SDK / fetch error. */
+function describeApiError(error: unknown): ApiErrorDetails {
+  if (error && typeof error === 'object') {
+    const candidate = error as { status?: unknown; message?: unknown };
+    const status = typeof candidate.status === 'number' ? candidate.status : null;
+    const message = typeof candidate.message === 'string' ? candidate.message : String(error);
+    return { status, message };
+  }
+  return { status: null, message: String(error) };
+}
+
+/** Maps a provider failure to a safe, user-facing message (never echoes the key). */
+function toUserFacingError({ status, message }: ApiErrorDetails): string {
+  if (status === 401 || status === 403) {
+    return 'AgentRouter rejected the request. Verify AGENTROUTER_API_KEY in backend/.env is valid.';
+  }
+  if (status === 402) {
+    return 'AgentRouter budget pool quota is exhausted. Wait for the next quota batch or switch to a DeepSeek model.';
+  }
+  if (status === 404) {
+    return `AgentRouter does not offer the configured model "${getResolvedModel()}". Set AGENTROUTER_MODEL to an available model.`;
+  }
+  if (status === 429) {
+    return 'AgentRouter rate limit reached. Please retry in a moment.';
+  }
+  if (message.includes('401') || message.includes('Unauthorized') || message.includes('unauthorized')) {
+    return 'AgentRouter rejected the request. Verify AGENTROUTER_API_KEY in backend/.env is valid.';
+  }
+  if (message.includes('402') || message.includes('quota')) {
+    return 'AgentRouter budget pool quota is exhausted. Wait for the next quota batch or switch to a DeepSeek model.';
+  }
+  if (message.includes('429') || message.includes('rate limit')) {
+    return 'AgentRouter rate limit reached. Please retry in a moment.';
+  }
+  return `AgentRouter API error: ${message}`;
+}
+
+/** True when the provider rejected `response_format` rather than the request itself. */
+function isUnsupportedResponseFormat({ status, message }: ApiErrorDetails): boolean {
+  const mentionsFormat = message.includes('response_format') || message.includes('json_object');
+  return mentionsFormat && (status === 400 || status === 422 || status === null);
+}
+
 // ─── Shared helper ────────────────────────────────────────────────────────────
 
-async function callGemini<T>(
+async function callAgentRouter<T>(
   label: string,
   systemInstruction: string,
   userPrompt: string,
   schema: z.ZodSchema<T>
 ): Promise<AIResult<T>> {
   const startMs = Date.now();
+  const model = getResolvedModel();
 
-  if (!apiKey) {
+  if (!hasApiKey()) {
     return {
       success: false,
-      error: 'GEMINI_API_KEY is not configured on this server.',
+      error: 'AGENTROUTER_API_KEY is not set in backend/.env. Please add your AgentRouter API key.',
       latencyMs: 0,
-      model: GEMINI_MODEL,
+      model,
     };
   }
 
-  console.log(`[AI:${label}] → Sending request to Gemini (model: ${GEMINI_MODEL})`);
+  const messages = [
+    {
+      role: 'system' as const,
+      content: `${systemInstruction}\nYou MUST respond with raw JSON only matching the schema.`,
+    },
+    { role: 'user' as const, content: userPrompt },
+  ];
+
+  console.log(
+    `[AI:${label}] → Sending request to AgentRouter (${getBaseUrl()}, model: ${model})`
+  );
 
   try {
-    const model = genAI.getGenerativeModel({
-      model: GEMINI_MODEL,
-      generationConfig: { responseMimeType: 'application/json' },
-      systemInstruction,
-    });
+    const client = createAiClient(getApiKey());
 
-    const response = await model.generateContent(userPrompt);
+    let response;
+    try {
+      response = await client.chat.completions.create({
+        model,
+        messages,
+        temperature: 0.3,
+        response_format: { type: 'json_object' },
+      });
+    } catch (firstError: unknown) {
+      // Some AgentRouter models reject JSON mode; retry once without it.
+      if (!isUnsupportedResponseFormat(describeApiError(firstError))) throw firstError;
+      console.warn(`[AI:${label}] ⚠️  Model rejected response_format; retrying without JSON mode.`);
+      response = await client.chat.completions.create({ model, messages, temperature: 0.3 });
+    }
+
     const latencyMs = Date.now() - startMs;
-
-    const rawText = response.response.text();
+    const rawText = response.choices[0]?.message?.content || '';
 
     if (!rawText || rawText.trim() === '') {
-      console.error(`[AI:${label}] ❌ Empty response from Gemini (${latencyMs}ms)`);
+      console.error(`[AI:${label}] ❌ Empty response from AgentRouter (${latencyMs}ms)`);
       return {
         success: false,
-        error: 'Gemini returned an empty response.',
+        error: 'AgentRouter returned an empty response.',
         latencyMs,
-        model: GEMINI_MODEL,
+        model,
       };
     }
 
@@ -122,14 +175,14 @@ async function callGemini<T>(
 
     let parsed: unknown;
     try {
-      parsed = JSON.parse(rawText);
+      parsed = JSON.parse(stripCodeFence(rawText));
     } catch (jsonErr) {
-      console.error(`[AI:${label}] ❌ JSON parse failed. Raw (first 200 chars): ${rawText.slice(0, 200)}`);
+      console.error(`[AI:${label}] ❌ JSON parse failed. Raw: ${rawText.slice(0, 200)}`);
       return {
         success: false,
         error: `Failed to parse AI response as JSON: ${jsonErr instanceof Error ? jsonErr.message : String(jsonErr)}`,
         latencyMs,
-        model: GEMINI_MODEL,
+        model,
       };
     }
 
@@ -141,32 +194,32 @@ async function callGemini<T>(
         success: false,
         error: `AI response failed schema validation: ${issues}`,
         latencyMs,
-        model: GEMINI_MODEL,
+        model,
       };
     }
 
     console.log(`[AI:${label}] ✅ Success (${latencyMs}ms)`);
-    return { success: true, data: validated.data, latencyMs, model: GEMINI_MODEL };
-
+    return { success: true, data: validated.data, latencyMs, model };
   } catch (err: unknown) {
     const latencyMs = Date.now() - startMs;
-    const message = err instanceof Error ? err.message : String(err);
+    const details = describeApiError(err);
 
-    // Surface specific API errors (auth, quota, network)
-    let userFacingError = `Gemini API error: ${message}`;
-    if (message.includes('API_KEY_INVALID') || message.includes('401')) {
-      userFacingError = 'Gemini API key is invalid or expired. Check GEMINI_API_KEY in your server environment.';
-    } else if (message.includes('QUOTA_EXCEEDED') || message.includes('429')) {
-      userFacingError = 'Gemini API quota exceeded. Please check your Google AI Studio billing.';
-    } else if (message.includes('ENOTFOUND') || message.includes('ECONNREFUSED')) {
-      userFacingError = 'Cannot reach Gemini API — check server network/DNS.';
-    }
-
-    console.error(`[AI:${label}] ❌ Request failed (${latencyMs}ms): ${message}`);
-    return { success: false, error: userFacingError, latencyMs, model: GEMINI_MODEL };
+    console.error(
+      `[AI:${label}] ❌ Request failed (HTTP ${details.status ?? 'n/a'}, ${latencyMs}ms): ${details.message}`
+    );
+    return { success: false, error: toUserFacingError(details), latencyMs, model };
   }
 }
 
+/** Removes ```json fences some models wrap JSON responses in. */
+function stripCodeFence(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith('```')) return trimmed;
+  return trimmed
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/```\s*$/, '')
+    .trim();
+}
 // ─── Public API functions ──────────────────────────────────────────────────────
 
 export const scoreLead = async (
@@ -175,17 +228,17 @@ export const scoreLead = async (
   address: string,
   hasWebsite: boolean
 ): Promise<ScoreOutput | null> => {
-  const result = await callGemini(
+  const result = await callAgentRouter(
     'ScoreLead',
-    'You are a lead scoring AI. Output JSON only matching the schema: {"overall_score": 0-100, "digital_presence_gap": 0-10, "category_fit": 0-10, "review_activity": 0-10, "market_density": 0-10, "competitor_presence": 0-10, "ai_reasoning": "..."}',
-    `You are an expert AI lead scoring system for a software development agency. Evaluate this business as a potential client for web development, digital transformation, or automation services.
+    'You are an AI lead scoring engine. Output JSON only matching: {"overall_score": 0-100, "digital_presence_gap": 0-10, "category_fit": 0-10, "review_activity": 0-10, "market_density": 0-10, "competitor_presence": 0-10, "ai_reasoning": "..."}',
+    `Evaluate this business as a potential client for web development, digital transformation, or software services.
 
 Business Name: ${businessName}
 Category: ${category}
 Address: ${address}
 Has Website: ${hasWebsite ? 'Yes' : 'No'}
 
-Score the lead based on their likely need for our services. Businesses without websites or with a clear need for digital presence should score higher. Provide a detailed structured JSON response.`,
+Score the lead based on their likely need for digital services. Provide a structured JSON response.`,
     ScoreSchema
   );
 
@@ -201,22 +254,20 @@ export const generateOutreach = async (
   category: string,
   scoreReasoning: string
 ): Promise<OutreachOutput | null> => {
-  const result = await callGemini(
+  const result = await callAgentRouter(
     'Outreach',
-    'You are an expert sales copywriter. Output JSON only: {"subject": "...", "body": "...", "follow_up": "...", "whatsapp_body": "..."}',
-    `Write a personalized, professional, and concise cold outreach package to this business owner offering our software/web development services.
-    
+    'You are a B2B sales copywriter. Output JSON only: {"subject": "...", "body": "...", "follow_up": "...", "whatsapp_body": "..."}',
+    `Write a personalized cold outreach package for this business owner offering software & web development services.
+
 Business Name: ${businessName}
 Category: ${category}
-Why they are a good lead: ${scoreReasoning}
+Reasoning: ${scoreReasoning}
 
-The outreach should be friendly, not overly salesy, and highlight the specific value we could bring based on the reasoning provided.
-
-For this business, generate:
-1. An email subject line (subject).
-2. A professional email message body (body).
-3. A short follow-up email (follow_up).
-4. A quick WhatsApp message variant — short, casual, action-oriented (whatsapp_body).
+Generate:
+1. Email subject
+2. Email body
+3. Follow-up email
+4. Short WhatsApp message
 
 Return JSON: {"subject": "...", "body": "...", "follow_up": "...", "whatsapp_body": "..."}`,
     OutreachResponseSchema
@@ -238,38 +289,19 @@ export const generateProposal = async (
   aiAnalysis?: string,
   rawOsmTags?: Record<string, unknown>
 ): Promise<{ title: string; content: string } | null> => {
-  const result = await callGemini(
+  const result = await callAgentRouter(
     'Proposal',
-    'You are a professional business consultant and sales copywriter. Output JSON only: {"title": "...", "content": "..."}',
-    `You are a professional AI consultant at a software development agency called "ClientPilot AI". Write a detailed, personalized web/digital services proposal for the following business:
-    
-Business Details:
-- Name: ${businessName}
-- Category: ${category}
-- Address: ${address}
-${phone ? `- Phone: ${phone}` : ''}
-${websiteUrl ? `- Website: ${websiteUrl}` : '- Website: None detected (Major digital presence gap!)'}
-${aiAnalysis ? `- AI Analysis: ${aiAnalysis}` : ''}
-${rawOsmTags && Object.keys(rawOsmTags).length > 0 ? `- Additional data: ${JSON.stringify(rawOsmTags)}` : ''}
+    'You are a professional business consultant. Output JSON only: {"title": "...", "content": "..."}',
+    `Write a customized software/web services proposal for:
 
-Create a CUSTOMIZED proposal — do NOT use a generic template. Tailor the solution to the business type:
-- Restaurant/cafe → online menus, reservation systems, Google Maps optimization
-- Salon/clinic → online appointment booking
-- Retail → e-commerce, inventory management
-- No website → focus on building first modern web presence
-- Outdated site → mobile-first redesign
+Business: ${businessName}
+Category: ${category}
+Address: ${address}
+Phone: ${phone || 'N/A'}
+Website: ${websiteUrl || 'None'}
+Analysis: ${aiAnalysis || ''}
 
-Output a JSON object with:
-- "title": A compelling, specific proposal title (e.g. "Digital Transformation Proposal for Al Madina Bakery")
-- "content": The proposal in clean markdown format with EXACTLY these sections:
-  # Executive Summary
-  # Current Opportunity & Pain Points
-  # Recommended Digital Solution
-  # Proposed Services & Deliverables
-  # Expected Outcomes & Benefits
-  # Next Steps
-
-Return JSON: {"title": "...", "content": "..."}`,
+Return JSON: {"title": "...", "content": "...markdown content..."}`,
     ProposalResponseSchema
   );
 
@@ -280,15 +312,11 @@ Return JSON: {"title": "...", "content": "..."}`,
   return result.data;
 };
 
-/**
- * Quick connectivity test — used by /api/ai/test endpoint.
- * Sends a minimal prompt and returns the raw result with diagnostics.
- */
 export const testAiConnection = async (): Promise<AIResult<{ message: string }>> => {
-  return callGemini(
+  return callAgentRouter(
     'ConnectivityTest',
-    'You are a helpful assistant. Always respond with valid JSON.',
-    'Generate a 2-sentence friendly business greeting for a software agency called ClientPilot AI. Return JSON: {"message": "..."}',
+    'You are a helpful assistant. Respond with JSON.',
+    'Generate a 1-sentence friendly greeting for ClientPilot AI. Return JSON: {"message": "..."}',
     z.object({ message: z.string().min(1) })
   );
 };

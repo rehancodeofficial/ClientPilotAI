@@ -1,10 +1,14 @@
 -- Migration 00014: Demo Workspace and Users
 
+-- Allow owner_id to be NULL so the demo workspace (which has no real auth user) can be inserted
+ALTER TABLE workspaces ALTER COLUMN owner_id DROP NOT NULL;
+
 -- 1. Insert Demo Workspace
-INSERT INTO workspaces (id, name, created_at)
+INSERT INTO workspaces (id, name, owner_id, created_at)
 VALUES (
     '00000000-0000-0000-0000-000000000001',
     'Demo Workspace',
+    NULL,
     now()
 )
 ON CONFLICT (id) DO NOTHING;

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabase';
 import { performDigitalAudit, BusinessAuditResult } from '../services/audit';
 import { analyzeBusinessOpportunity } from '../services/opportunity';
+import { getResolvedModel } from '../lib/aiConfig';
 
 const router = Router();
 
@@ -302,7 +303,7 @@ router.post('/:leadId/analyze', async (req, res) => {
       market_density: oppResult.dimensions.marketDensity,
       competitor_presence: oppResult.dimensions.competitorPresence,
       ai_reasoning: oppResult.reasoning.join(' '),
-      model_used: 'gemini-2.5-flash',
+      model_used: getResolvedModel(),
     }, { onConflict: 'lead_id' });
 
     res.json(savedOpp);

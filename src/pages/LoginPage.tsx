@@ -347,24 +347,24 @@ return (
           <svg style={{ width: '90%', maxWidth: '420px', height: 'auto', filter: 'drop-shadow(0 20px 30px rgba(0, 0, 0, 0.35))' }} viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <filter id="clayShadow" x="-20%" y="-20%" width="150%" height="150%">
-                <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#05140e" flood-opacity="0.5" />
+                <feDropShadow dx="0" dy="12" stdDeviation="10" floodColor="#05140e" floodOpacity="0.5" />
               </filter>
               <linearGradient id="portalGrad" x1="100" y1="80" x2="100" y2="380" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#40916C" />
-                <stop offset="100%" stop-color="#2D6A4F" />
+                <stop offset="0%" stopColor="#40916C" />
+                <stop offset="100%" stopColor="#2D6A4F" />
               </linearGradient>
               <linearGradient id="torusGrad" x1="60" y1="80" x2="180" y2="180" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#FFD166" />
-                <stop offset="50%" stop-color="#FFB347" />
-                <stop offset="100%" stop-color="#D48A1D" />
+                <stop offset="0%" stopColor="#FFD166" />
+                <stop offset="50%" stopColor="#FFB347" />
+                <stop offset="100%" stopColor="#D48A1D" />
               </linearGradient>
               <linearGradient id="pinkGrad" x1="320" y1="310" x2="380" y2="350" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#FF85A2" />
-                <stop offset="100%" stop-color="#FF6B9D" />
+                <stop offset="0%" stopColor="#FF85A2" />
+                <stop offset="100%" stopColor="#FF6B9D" />
               </linearGradient>
               <linearGradient id="cyanGrad" x1="300" y1="200" x2="420" y2="240" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#4EECD6" />
-                <stop offset="100%" stop-color="#2EC4B6" />
+                <stop offset="0%" stopColor="#4EECD6" />
+                <stop offset="100%" stopColor="#2EC4B6" />
               </linearGradient>
               <linearGradient id="mintBodyGradient" x1="90" y1="80" x2="230" y2="250" gradientUnits="userSpaceOnUse">
                 <stop stopColor="#d1fae5" />
@@ -385,7 +385,7 @@ return (
             <path d="M 210 435 Q 240 415 270 435 Z" fill="#B7E4C7" filter="url(#clayShadow)" />
 
             <g filter="url(#clayShadow)">
-              <path d="M 330 260 Q 360 210 390 220" stroke="#1A4A32" stroke-width="6" stroke-linecap="round" fill="none" />
+              <path d="M 330 260 Q 360 210 390 220" stroke="#1A4A32" strokeWidth="6" strokeLinecap="round" fill="none" />
               <path d="M 360 220 Q 390 190 380 170 Q 350 190 360 220 Z" fill="#52B788" />
               <path d="M 345 235 Q 380 215 385 195 Q 355 210 345 235 Z" fill="#40916C" />
               <path d="M 370 215 Q 410 210 405 190 Q 380 195 370 215 Z" fill="#52B788" />

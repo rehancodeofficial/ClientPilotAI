@@ -1,6 +1,7 @@
+// Load .env before any route/service module reads process.env.
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import leadsRouter from './routes/leads';
 import analyticsRouter from './routes/analytics';
@@ -15,8 +16,6 @@ import intelligenceRouter from './routes/intelligence';
 import authRouter from './routes/auth';
 import { authMiddleware, adminMiddleware } from './middleware/auth';
 import { supabaseAdmin } from './lib/supabase';
-
-dotenv.config();
 
 export const app = express();
 

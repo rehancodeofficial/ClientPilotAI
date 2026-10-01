@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { supabaseAdmin } from '../lib/supabase';
 import { discoverBusinessesByLocation, searchNearbyBusinesses, OSMGeocodingError, OSMOverpassError } from '../services/osm';
 import { scoreLead, generateOutreach, generateProposal } from '../services/openai';
+import { getResolvedModel } from '../lib/aiConfig';
 import { enrichLeadContact } from '../services/enrichment';
 import { performDigitalAudit } from '../services/audit';
 import { analyzeBusinessOpportunity } from '../services/opportunity';
@@ -210,7 +211,7 @@ async function scoreLeadAsync(leadId: string, name: string, category: string, ad
       market_density: score.market_density,
       competitor_presence: score.competitor_presence,
       ai_reasoning: score.ai_reasoning,
-      model_used: 'gemini-2.5-flash'
+      model_used: getResolvedModel()
     }, { onConflict: 'lead_id' });
   }
 }
@@ -229,7 +230,7 @@ router.post('/:id/score', async (req, res) => {
     const { data: updated } = await supabaseAdmin.from('lead_scores').upsert({
       lead_id: id,
       ...score,
-      model_used: 'gemini-2.5-flash'
+      model_used: getResolvedModel()
     }, { onConflict: 'lead_id' }).select().single();
 
     res.json(updated);
@@ -279,26 +280,26 @@ router.post('/:id/outreach', async (req, res) => {
       'This business lacks a modern digital presence and would benefit from our services.';
 
     console.log(`[Outreach:${id}] AI reasoning snippet: "${reasoning.slice(0, 100)}"`);
-    console.log(`[Outreach:${id}] → Sending outreach prompt to Gemini...`);
+    console.log(`[Outreach:${id}] → Sending outreach prompt to AgentRouter...`);
 
-    // ── Step 4: Call Gemini ────────────────────────────────────────────
+    // ── Step 4: Call AgentRouter ───────────────────────────────────────
     const outreach = await generateOutreach(lead.business_name, lead.category, reasoning);
 
     if (!outreach) {
       console.error(
         `[Outreach:${id}] ❌ generateOutreach returned null. ` +
-        `Check [AI:Outreach] logs above for the specific Gemini error.`
+        `Check [AI:Outreach] logs above for the specific AgentRouter error.`
       );
       return res.status(500).json({
         success: false,
         error:
           'Outreach generation returned null — common causes: ' +
-          'invalid GEMINI_API_KEY (must start with "AIza"), quota exceeded, or network error. ' +
+          'missing or invalid AGENTROUTER_API_KEY, AgentRouter quota exhausted, unavailable model, or network error. ' +
           'Check server logs for [AI:Outreach] details.',
       });
     }
 
-    console.log(`[Outreach:${id}] ✅ Gemini returned outreach. Subject: "${outreach.subject}"`);
+    console.log(`[Outreach:${id}] ✅ AgentRouter returned outreach. Subject: "${outreach.subject}"`);
 
     const now = new Date().toISOString();
 
@@ -335,7 +336,7 @@ router.post('/:id/outreach', async (req, res) => {
         outreach_body: outreach.body,
         outreach_status: 'draft',
         outreach_generated_at: now,
-        last_ai_model: 'gemini-2.5-flash',
+        last_ai_model: getResolvedModel(),
         updated_at: now,
       })
       .eq('id', id)
@@ -357,7 +358,7 @@ router.post('/:id/outreach', async (req, res) => {
       outreachBody: outreach.body,
       followUp: outreach.follow_up,
       whatsappBody: outreach.whatsapp_body,
-      model: 'gemini-2.5-flash',
+      model: getResolvedModel(),
       // Also return the raw DB row if the frontend needs it
       message: savedMsg ?? null,
     });
@@ -534,7 +535,7 @@ router.post('/:id/prepare', async (req, res) => {
           market_density: opportunityResult.dimensions.marketDensity,
           competitor_presence: opportunityResult.dimensions.competitorPresence,
           ai_reasoning: opportunityResult.reasoning.join(' '),
-          model_used: 'gemini-2.5-flash',
+          model_used: getResolvedModel(),
         }, { onConflict: 'lead_id' });
 
         console.log(`[Prepare:${id}] ✅ Opportunity Analysis completed. Score: ${opportunityResult.opportunityScore}/100 (Confidence: ${opportunityResult.confidenceScore}%)`);
@@ -642,7 +643,7 @@ router.post('/:id/prepare', async (req, res) => {
 
       // ── Outreach generation ──────────────────────────────────────────
       if (force || !alreadyHasOutreach) {
-        console.log(`[Prepare:${id}] → Requesting outreach from Gemini...`);
+        console.log(`[Prepare:${id}] → Requesting outreach from AgentRouter...`);
         try {
           const outreach = await generateOutreach(lead.business_name, lead.category, aiReasoning);
           if (outreach) {
@@ -650,7 +651,7 @@ router.post('/:id/prepare', async (req, res) => {
             updates.outreach_body = outreach.body;
             updates.outreach_status = 'draft';
             updates.outreach_generated_at = now;
-            updates.last_ai_model = 'gemini-2.5-flash';
+            updates.last_ai_model = getResolvedModel();
             console.log(`[Prepare:${id}] ✅ Outreach generated. Subject: "${outreach.subject}"`);
 
             // Mirror into outreach_messages for dashboard compatibility
@@ -669,7 +670,7 @@ router.post('/:id/prepare', async (req, res) => {
               console.log(`[Prepare:${id}] ✅ outreach_messages saved to Supabase`);
             }
           } else {
-            const msg = 'Outreach generation returned null — Gemini call may have failed or returned empty. Check [AI:Outreach] logs above.';
+            const msg = 'Outreach generation returned null — AgentRouter call may have failed or returned empty. Check [AI:Outreach] logs above.';
             lastError = msg;
             console.error(`[Prepare:${id}] ❌ ${msg}`);
           }
@@ -681,7 +682,7 @@ router.post('/:id/prepare', async (req, res) => {
 
       // ── Proposal generation ──────────────────────────────────────────
       if (force || !alreadyHasProposal) {
-        console.log(`[Prepare:${id}] → Requesting proposal from Gemini...`);
+        console.log(`[Prepare:${id}] → Requesting proposal from AgentRouter...`);
         try {
           const proposal = await generateProposal(
             lead.business_name,
@@ -714,7 +715,7 @@ router.post('/:id/prepare', async (req, res) => {
               console.log(`[Prepare:${id}] ✅ proposals table saved to Supabase`);
             }
           } else {
-            const msg = 'Proposal generation returned null — Gemini call may have failed. Check [AI:Proposal] logs above.';
+            const msg = 'Proposal generation returned null — AgentRouter call may have failed. Check [AI:Proposal] logs above.';
             if (!lastError) lastError = msg;
             console.error(`[Prepare:${id}] ❌ ${msg}`);
           }

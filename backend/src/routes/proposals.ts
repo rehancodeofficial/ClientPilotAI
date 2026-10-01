@@ -125,7 +125,7 @@ router.post('/generate', async (req, res) => {
       return res.status(404).json({ error: 'Lead not found in your workspace' });
     }
 
-    console.log(`[Proposals:generate] Lead loaded: "${lead.business_name}" | Calling Gemini...`);
+    console.log(`[Proposals:generate] Lead loaded: "${lead.business_name}" | Calling AgentRouter AI...`);
 
     const aiAnalysisText = lead.lead_scores?.[0]?.ai_reasoning || 'Lacks professional digital presence.';
     const rawTags = (lead.raw_osm_tags as Record<string, unknown>) || {};
@@ -143,7 +143,7 @@ router.post('/generate', async (req, res) => {
     if (!proposal) {
       console.error(`[Proposals:generate] ❌ AI returned null for "${lead.business_name}". Check [AI:Proposal] logs above.`);
       return res.status(500).json({
-        error: 'Failed to generate proposal via AI. Common causes: invalid GEMINI_API_KEY, quota exceeded, or network issue. Check server logs for details.',
+        error: 'Failed to generate proposal via AI. Common causes: invalid AGENTROUTER_API_KEY, quota exceeded, or network issue. Check server logs for details.',
       });
     }
 

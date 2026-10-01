@@ -245,14 +245,14 @@ export function LandingPage() {
               className="w-full max-w-85"
             >
               <svg viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <ellipse cx="160" cy="290" rx="75" ry="14" fill="#000" fill-opacity="0.08" />
-                <path d="M160 80L160 50" stroke="#059669" stroke-width="8" stroke-linecap="round" />
+                <ellipse cx="160" cy="290" rx="75" ry="14" fill="#000" fillOpacity="0.08" />
+                <path d="M160 80L160 50" stroke="#059669" strokeWidth="8" strokeLinecap="round" />
                 <circle cx="160" cy="40" r="12" fill="url(#antennaGlow)" />
                 <circle cx="160" cy="40" r="8" fill="#10b981" />
                 <rect x="75" y="150" width="30" height="60" rx="15" fill="#059669" transform="rotate(-15 75 150)" />
                 <rect x="52" y="125" width="8" height="40" rx="4" fill="#64748b" transform="rotate(35 52 125)" />
-                <circle cx="40" cy="115" r="22" stroke="#475569" stroke-width="6" fill="#e0f2fe" fill-opacity="0.8" />
-                <circle cx="34" cy="109" r="6" fill="#ffffff" fill-opacity="0.6" />
+                <circle cx="40" cy="115" r="22" stroke="#475569" strokeWidth="6" fill="#e0f2fe" fillOpacity="0.8" />
+                <circle cx="34" cy="109" r="6" fill="#ffffff" fillOpacity="0.6" />
                 <rect x="215" y="150" width="30" height="60" rx="15" fill="#059669" transform="rotate(15 215 150)" />
                 <rect x="90" y="80" width="140" height="170" rx="70" fill="url(#mintBodyGradient)" />
                 <rect x="110" y="105" width="100" height="65" rx="28" fill="#0f172a" />
@@ -262,16 +262,16 @@ export function LandingPage() {
                 <circle cx="180" cy="138" r="16" fill="#ffffff" />
                 <circle cx="178" cy="138" r="8" fill="#059669" />
                 <circle cx="174" cy="134" r="3" fill="#ffffff" />
-                <path d="M150 190 Q160 198 170 190" stroke="#047857" stroke-width="6" stroke-linecap="round" fill="none" />
+                <path d="M150 190 Q160 198 170 190" stroke="#047857" strokeWidth="6" strokeLinecap="round" fill="none" />
                 <defs>
                   <linearGradient id="mintBodyGradient" x1="90" y1="80" x2="230" y2="250" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#d1fae5" />
-                    <stop offset="0.5" stop-color="#a7f3d0" />
-                    <stop offset="1" stop-color="#059669" />
+                    <stop stopColor="#d1fae5" />
+                    <stop offset="0.5" stopColor="#a7f3d0" />
+                    <stop offset="1" stopColor="#059669" />
                   </linearGradient>
                   <radialGradient id="antennaGlow" cx="0.5" cy="0.5" r="0.5">
-                    <stop stop-color="#a7f3d0" />
-                    <stop offset="1" stop-color="#10b981" stop-opacity="0" />
+                    <stop stopColor="#a7f3d0" />
+                    <stop offset="1" stopColor="#10b981" stopOpacity="0" />
                   </radialGradient>
                 </defs>
               </svg>
@@ -326,16 +326,16 @@ export function LandingPage() {
               className="max-w-40"
             >
               <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <ellipse cx="100" cy="180" rx="45" ry="8" fill="#000" fill-opacity="0.06" />
+                <ellipse cx="100" cy="180" rx="45" ry="8" fill="#000" fillOpacity="0.06" />
                 <path d="M50 130 C30 130 20 110 30 90 C20 70 40 50 60 60 C70 40 100 40 110 55 C130 40 155 55 150 80 C165 90 165 110 150 125 C155 145 130 155 115 145 C100 160 70 155 50 130 Z" fill="url(#lavenderBody)" />
                 <path d="M150 45 L155 35 L165 30 L155 25 L150 15 L145 25 L135 30 L145 35 Z" fill="#e9c46a" />
                 <path d="M45 40 L48 33 L55 30 L48 27 L45 20 L42 27 L35 30 L42 33 Z" fill="#e9c46a" />
-                <path d="M95 70 L75 110 L95 110 L85 140 L120 95 L98 95 Z" fill="#ffb703" stroke="#f59e0b" stroke-width="4" stroke-linejoin="round" />
+                <path d="M95 70 L75 110 L95 110 L85 140 L120 95 L98 95 Z" fill="#ffb703" stroke="#f59e0b" strokeWidth="4" strokeLinejoin="round" />
                 <defs>
                   <linearGradient id="lavenderBody" x1="30" y1="50" x2="160" y2="150">
-                    <stop stop-color="#ede9fe" />
-                    <stop offset="0.6" stop-color="#ddd6fe" />
-                    <stop offset="1" stop-color="#8b5cf6" />
+                    <stop stopColor="#ede9fe" />
+                    <stop offset="0.6" stopColor="#ddd6fe" />
+                    <stop offset="1" stopColor="#8b5cf6" />
                   </linearGradient>
                 </defs>
               </svg>
@@ -571,14 +571,14 @@ export function LandingPage() {
             {/* Spark character left */}
             <div className="hidden lg:block absolute left-[6%] bottom-[15%] w-32 pointer-events-none">
               <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <ellipse cx="100" cy="180" rx="45" ry="8" fill="#000" fill-opacity="0.15" />
+                <ellipse cx="100" cy="180" rx="45" ry="8" fill="#000" fillOpacity="0.15" />
                 <path d="M50 130 C30 130 20 110 30 90 C20 70 40 50 60 60 C70 40 100 40 110 55 C130 40 155 55 150 80 C165 90 165 110 150 125 C155 145 130 155 115 145 C100 160 70 155 50 130 Z" fill="url(#lavenderBodyCTA)" />
-                <path d="M95 70 L75 110 L95 110 L85 140 L120 95 L98 95 Z" fill="#ffb703" stroke="#f59e0b" stroke-width="4" stroke-linejoin="round" />
+                <path d="M95 70 L75 110 L95 110 L85 140 L120 95 L98 95 Z" fill="#ffb703" stroke="#f59e0b" strokeWidth="4" strokeLinejoin="round" />
                 <defs>
                   <linearGradient id="lavenderBodyCTA" x1="30" y1="50" x2="160" y2="150">
-                    <stop stop-color="#ede9fe" />
-                    <stop offset="0.6" stop-color="#ddd6fe" />
-                    <stop offset="1" stop-color="#8b5cf6" />
+                    <stop stopColor="#ede9fe" />
+                    <stop offset="0.6" stopColor="#ddd6fe" />
+                    <stop offset="1" stopColor="#8b5cf6" />
                   </linearGradient>
                 </defs>
               </svg>
@@ -587,7 +587,7 @@ export function LandingPage() {
             {/* Bolt rocket right */}
             <div className="hidden lg:block absolute right-[6%] top-[15%] w-32 pointer-events-none transform rotate-20">
               <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <ellipse cx="100" cy="180" rx="35" ry="7" fill="#000" fill-opacity="0.15" />
+                <ellipse cx="100" cy="180" rx="35" ry="7" fill="#000" fillOpacity="0.15" />
                 <path d="M85 140 Q100 180 115 140 Q100 160 85 140 Z" fill="#ff9f1c" />
                 <path d="M90 140 Q100 170 110 140 Q100 155 90 140 Z" fill="#ff5a5f" />
                 <rect x="75" y="30" width="50" height="110" rx="25" fill="url(#rocketBody)" />
@@ -597,9 +597,9 @@ export function LandingPage() {
                 <path d="M125 120 L145 140 L125 140 Z" fill="#047857" />
                 <defs>
                   <linearGradient id="rocketBody" x1="75" y1="30" x2="125" y2="140">
-                    <stop stop-color="#10b981" />
-                    <stop offset="0.6" stop-color="#059669" />
-                    <stop offset="1" stop-color="#047857" />
+                    <stop stopColor="#10b981" />
+                    <stop offset="0.6" stopColor="#059669" />
+                    <stop offset="1" stopColor="#047857" />
                   </linearGradient>
                 </defs>
               </svg>
@@ -665,7 +665,7 @@ export function LandingPage() {
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path></svg>
                 </a>
                 <a href="#" className="w-11 h-11 rounded-full bg-white clay-shadow-white border-1.5 border-white flex items-center justify-center text-[#1e293b] hover:scale-[1.08] hover:bg-[#d1fae5] hover:text-[#059669] transition-all">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.137 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z"></path></svg>
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.137 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z"></path></svg>
                 </a>
               </div>
             </div>

@@ -502,7 +502,7 @@ export function ClayDashboardPage() {
                         >
                           <svg viewBox="0 0 120 120" fill="none" className="w-full h-auto">
                             <filter id="clayShadow" x="-20%" y="-20%" width="140%" height="140%">
-                              <feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#071307" flood-opacity="0.3" />
+                              <feDropShadow dx="0" dy="6" stdDeviation="4" floodColor="#071307" floodOpacity="0.3" />
                             </filter>
                             <g filter="url(#clayShadow)">
                               <rect x="20" y="60" width="16" height="40" rx="8" fill="#40916C" />
@@ -570,8 +570,8 @@ export function ClayDashboardPage() {
                         <svg className="w-full h-full absolute inset-0" viewBox="0 0 500 200" preserveAspectRatio="none">
                           <defs>
                             <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stop-color="#52B788" stop-opacity="0.3" />
-                              <stop offset="100%" stop-color="#52B788" stop-opacity="0.0" />
+                              <stop offset="0%" stopColor="#52B788" stopOpacity="0.3" />
+                              <stop offset="100%" stopColor="#52B788" stopOpacity="0.0" />
                             </linearGradient>
                           </defs>
                           <path
