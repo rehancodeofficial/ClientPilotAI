@@ -560,6 +560,7 @@ export function LandingPage() {
               icon={Target}
               title="Opportunity Scoring"
               desc="AI ranks every gap by severity, relevance, and your agency's service capability."
+              image="606cd2a5-726b-4aea-9c20-8a2e08749bd6.png"
               delay={0.1}
             />
             <FeatureCard
@@ -581,12 +582,28 @@ export function LandingPage() {
               icon={Code2}
               title="Developer Handoff"
               desc="Turn opportunities into technical briefs your dev team can act on immediately."
+              image="a3924b2f1dae.jpeg"
               delay={0.25}
               accent
             />
-            <FeatureCard icon={Users}       title="Team Collaboration"         desc="Share prospects, notes, and status updates across your agency team." delay={0.3} />
-            <FeatureCard icon={Shield}      title="Privacy First"              desc="All analysis uses only publicly available information — fully GDPR compliant." delay={0.35} accent />
-            <FeatureCard icon={Zap}         title="Fast Automation"            desc="Run discovery and analysis at scale — analyze hundreds of businesses in hours, not weeks." delay={0.4} />
+            <FeatureCard icon={Users}   
+                title="Team Collaboration"
+                desc="Share prospects, notes, and status updates across your agency team."
+                image="10-Smart-Ways-to-Better-Team-Collaboration-1.webp"
+                delay={0.3} />
+
+            <FeatureCard icon={Shield}
+                title="Privacy First"
+                desc="All analysis uses only publicly available information — fully GDPR compliant."
+                image='image.png'
+                delay={0.35} 
+              
+                accent />
+            <FeatureCard icon={Zap} 
+                title="Fast Automation"            
+                desc="Run discovery and analysis at scale — analyze hundreds of businesses in hours, not weeks." 
+                image='fast.jpeg'
+                delay={0.4} />
           </div>
         </div>
       </section>
