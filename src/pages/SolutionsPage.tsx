@@ -134,9 +134,10 @@ function SolutionCard({ sol, idx }: { sol: typeof solutions[0]; idx: number }) {
           : '0 2px 12px rgba(0,0,0,0.05)',
       }}
     >
-      {/* Dark header with accent glow */}
+      {/* Light header with accent subtle tint */}
       <div style={{
-        background: sol.bg,
+        background: `${sol.accent}0a`,
+        borderBottom: '1px solid rgba(0,0,0,0.06)',
         padding: '28px 28px 24px',
         position: 'relative',
         overflow: 'hidden',
@@ -145,18 +146,19 @@ function SolutionCard({ sol, idx }: { sol: typeof solutions[0]; idx: number }) {
         <div style={{
           position: 'absolute', top: -40, right: -40,
           width: 160, height: 160, borderRadius: '50%',
-          background: `radial-gradient(circle, ${sol.accent}30 0%, transparent 70%)`,
+          background: `radial-gradient(circle, ${sol.accent}20 0%, transparent 70%)`,
           transition: 'opacity 300ms',
-          opacity: hovered ? 1 : 0.5,
+          opacity: hovered ? 1 : 0.4,
         }} />
 
         {/* Top row */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16, position: 'relative', zIndex: 1 }}>
           <div style={{
             width: 44, height: 44, borderRadius: 14,
-            background: `${sol.accent}20`, border: `1px solid ${sol.accent}40`,
+            background: '#fff', border: `1px solid ${sol.accent}35`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: sol.accent,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
           }}>
             <sol.icon size={20} />
           </div>
@@ -164,7 +166,7 @@ function SolutionCard({ sol, idx }: { sol: typeof solutions[0]; idx: number }) {
             <div style={{ fontSize: 32, fontWeight: 800, color: sol.accent, letterSpacing: '-0.04em', lineHeight: 1, fontFamily: 'var(--font-heading)' }}>
               {sol.stat.value}
             </div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace', letterSpacing: '0.3px' }}>
+            <div style={{ fontSize: 10, color: '#8f8f8e', fontFamily: 'monospace', letterSpacing: '0.3px' }}>
               {sol.stat.label}
             </div>
           </div>
@@ -172,7 +174,7 @@ function SolutionCard({ sol, idx }: { sol: typeof solutions[0]; idx: number }) {
 
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 6,
-          background: `${sol.accent}18`, border: `1px solid ${sol.accent}35`,
+          background: '#fff', border: `1px solid ${sol.accent}30`,
           borderRadius: 999, padding: '3px 10px', marginBottom: 10,
         }}>
           <span style={{ fontSize: 10, fontWeight: 700, color: sol.accent, letterSpacing: '0.5px', fontFamily: 'monospace' }}>
@@ -181,7 +183,7 @@ function SolutionCard({ sol, idx }: { sol: typeof solutions[0]; idx: number }) {
         </div>
 
         <h2 style={{
-          fontSize: '1.15rem', fontWeight: 700, color: '#f5f5f3',
+          fontSize: '1.15rem', fontWeight: 700, color: '#141414',
           letterSpacing: '-0.02em', lineHeight: 1.3, margin: 0,
           fontFamily: 'var(--font-heading)', position: 'relative', zIndex: 1,
           maxWidth: 280,
@@ -411,7 +413,7 @@ export function SolutionsPage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Light CTA Banner */}
       <section style={{ padding: '80px 24px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <motion.div
@@ -420,20 +422,21 @@ export function SolutionsPage() {
             viewport={{ once: true }}
             style={{
               position: 'relative', borderRadius: 28, overflow: 'hidden',
-              background: '#141414', padding: '72px 48px', textAlign: 'center',
-              border: '1px solid rgba(255,255,255,0.06)',
+              background: '#ffffff', padding: '72px 48px', textAlign: 'center',
+              border: '1px solid rgba(0,0,0,0.08)',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
             }}
           >
-            <div style={{ position: 'absolute', top: -60, right: -60, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(76,192,43,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', bottom: -60, left: -60, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(76,192,43,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: -60, right: -60, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(76,192,43,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', bottom: -60, left: -60, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(76,192,43,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ position: 'relative', zIndex: 1 }}>
               <h2 style={{
                 fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontWeight: 800, letterSpacing: '-0.04em',
-                color: '#f5f5f3', fontFamily: 'var(--font-heading)', margin: '0 0 16px', lineHeight: 1.1,
+                color: '#141414', fontFamily: 'var(--font-heading)', margin: '0 0 16px', lineHeight: 1.1,
               }}>
                 Your agency deserves<br />better prospects.
               </h2>
-              <p style={{ fontSize: 15, color: 'rgba(245,245,243,0.4)', maxWidth: 400, margin: '0 auto 36px', lineHeight: 1.6 }}>
+              <p style={{ fontSize: 15, color: '#5c5c5b', maxWidth: 400, margin: '0 auto 36px', lineHeight: 1.6 }}>
                 Start discovering businesses that actually need what you build.
               </p>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -442,7 +445,7 @@ export function SolutionsPage() {
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 8,
                     padding: '0 32px', height: 50, borderRadius: 999,
-                    background: '#fff', color: '#141414',
+                    background: '#141414', color: '#fff',
                     fontSize: 14, fontWeight: 700, textDecoration: 'none',
                   }}
                 >
@@ -453,9 +456,9 @@ export function SolutionsPage() {
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 8,
                     padding: '0 28px', height: 50, borderRadius: 999,
-                    background: 'transparent', color: 'rgba(245,245,243,0.55)',
+                    background: '#fff', color: '#292929',
                     fontSize: 14, fontWeight: 500, textDecoration: 'none',
-                    border: '1px solid rgba(255,255,255,0.14)',
+                    border: '1px solid rgba(0,0,0,0.1)',
                   }}
                 >
                   View Pricing

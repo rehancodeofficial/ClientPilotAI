@@ -412,8 +412,8 @@ export function HowItWorksPage() {
         </div>
       </section>
 
-      {/* Dark stats strip */}
-      <section style={{ background: '#141414', padding: '64px 24px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      {/* Light stats strip */}
+      <section style={{ background: '#ffffff', padding: '64px 24px', borderTop: '1px solid rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 24 }}>
             {[
@@ -430,13 +430,13 @@ export function HowItWorksPage() {
                 transition={{ delay: i * 0.07, duration: 0.5, ease: EASE }}
                 style={{ textAlign: 'center', padding: '28px 16px' }}
               >
-                <div style={{ fontSize: 42, fontWeight: 800, letterSpacing: '-0.04em', color: '#f5f5f3', fontFamily: 'var(--font-heading)', marginBottom: 6 }}>
+                <div style={{ fontSize: 42, fontWeight: 800, letterSpacing: '-0.04em', color: '#141414', fontFamily: 'var(--font-heading)', marginBottom: 6 }}>
                   {stat.value}
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(245,245,243,0.7)', marginBottom: 2 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#292929', marginBottom: 2 }}>
                   {stat.label}
                 </div>
-                <div style={{ fontSize: 11, color: 'rgba(245,245,243,0.3)', fontFamily: 'monospace' }}>
+                <div style={{ fontSize: 11, color: '#8f8f8e', fontFamily: 'monospace' }}>
                   {stat.sub}
                 </div>
               </motion.div>
@@ -445,7 +445,7 @@ export function HowItWorksPage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Light CTA Banner */}
       <section style={{ padding: '80px 24px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <motion.div
@@ -454,30 +454,31 @@ export function HowItWorksPage() {
             viewport={{ once: true }}
             style={{
               position: 'relative', borderRadius: 28, overflow: 'hidden',
-              background: '#0d0f12', padding: '72px 48px', textAlign: 'center',
-              border: '1px solid rgba(255,255,255,0.08)',
+              background: '#ffffff', padding: '72px 48px', textAlign: 'center',
+              border: '1px solid rgba(0,0,0,0.08)',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
             }}
           >
-            <div style={{ position: 'absolute', top: -60, right: -60, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(76,192,43,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', bottom: -60, left: -60, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: -60, right: -60, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(76,192,43,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', bottom: -60, left: -60, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ position: 'relative', zIndex: 1 }}>
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
-                background: 'rgba(76,192,43,0.12)', border: '1px solid rgba(76,192,43,0.25)',
+                background: '#dbdbd2', border: '1px solid rgba(0,0,0,0.08)',
                 borderRadius: 999, padding: '5px 14px',
                 fontSize: 10, fontFamily: 'monospace', letterSpacing: '1px',
-                color: '#4cc02b', marginBottom: 24,
+                color: '#6f6f6e', marginBottom: 24,
               }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4cc02b', display: 'inline-block' }} />
                 FREE TO START
               </div>
               <h2 style={{
                 fontSize: 'clamp(2rem, 4vw, 3.2rem)', fontWeight: 800, letterSpacing: '-0.04em',
-                color: '#f5f5f3', fontFamily: 'var(--font-heading)', margin: '0 0 16px', lineHeight: 1.1,
+                color: '#141414', fontFamily: 'var(--font-heading)', margin: '0 0 16px', lineHeight: 1.1,
               }}>
                 Start your first discovery<br />in minutes.
               </h2>
-              <p style={{ fontSize: 15, color: 'rgba(245,245,243,0.45)', maxWidth: 460, margin: '0 auto 36px', lineHeight: 1.6 }}>
+              <p style={{ fontSize: 15, color: '#5c5c5b', maxWidth: 460, margin: '0 auto 36px', lineHeight: 1.6 }}>
                 Free to start. No credit card. See real results before you commit to a plan.
               </p>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -486,7 +487,7 @@ export function HowItWorksPage() {
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 8,
                     padding: '0 32px', height: 50, borderRadius: 999,
-                    background: '#4cc02b', color: '#fff',
+                    background: '#141414', color: '#fff',
                     fontSize: 14, fontWeight: 700, textDecoration: 'none',
                   }}
                 >
@@ -497,9 +498,9 @@ export function HowItWorksPage() {
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 8,
                     padding: '0 28px', height: 50, borderRadius: 999,
-                    background: 'transparent', color: 'rgba(245,245,243,0.6)',
+                    background: '#fff', color: '#292929',
                     fontSize: 14, fontWeight: 500, textDecoration: 'none',
-                    border: '1px solid rgba(255,255,255,0.14)',
+                    border: '1px solid rgba(0,0,0,0.1)',
                   }}
                 >
                   View Pricing
