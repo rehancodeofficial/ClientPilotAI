@@ -1,4 +1,14 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
+
+// ── Scroll to top on every route change ──────────────────────────────────────
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [pathname])
+  return null
+}
 import { AppShell } from '@/components/layout/AppShell'
 import { AuthGuard } from '@/components/layout/AuthGuard'
 import { DashboardPage } from '@/pages/DashboardPage'
@@ -42,6 +52,7 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         {/* ── Public marketing pages ─────────────────────────── */}
         <Route path="/" element={<LandingPage />} />
