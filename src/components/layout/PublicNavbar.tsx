@@ -56,17 +56,17 @@ export function PublicNavbar() {
 
   return (
     <header
-      className={`sticky top-0 z-[100] transition-colors duration-300 font-sans ${
+      className={`sticky top-0 z-100 transition-colors duration-300 font-sans ${
         scrolled
-          ? 'bg-[#edede8] border-b border-black/10 shadow-[0_2px_16px_rgba(0,0,0,0.05)] py-2'
-          : 'bg-[#edede8] border-b border-black/8 py-3'
+          ? 'bg-linen-canvas border-b border-black/10 shadow-[0_2px_16px_rgba(0,0,0,0.05)] py-2'
+          : 'bg-linen-canvas border-b border-black/8 py-3'
       }`}
     >
-      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 flex items-center justify-between">
+      <div className="max-w-310 mx-auto px-4 sm:px-6 flex items-center justify-between">
         {/* Brand Logo with Live Pulse Indicator */}
         <Link
           to="/"
-          className="flex items-center gap-2.5 group text-[#292929] select-none"
+          className="flex items-center gap-2.5 group text-charcoal-body select-none"
         >
           <div className="relative flex items-center justify-center">
             <motion.div
