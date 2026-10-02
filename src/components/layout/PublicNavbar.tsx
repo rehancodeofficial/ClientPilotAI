@@ -56,10 +56,10 @@ export function PublicNavbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-300 font-sans ${
+      className={`sticky top-0 z-[100] transition-colors duration-300 font-sans ${
         scrolled
-          ? 'bg-[#edede8]/90 backdrop-blur-xl border-b border-black/10 shadow-[0_4px_24px_rgba(0,0,0,0.04)] py-2'
-          : 'bg-[#edede8]/80 backdrop-blur-md border-b border-black/8 py-3'
+          ? 'bg-[#edede8] border-b border-black/10 shadow-[0_2px_16px_rgba(0,0,0,0.05)] py-2'
+          : 'bg-[#edede8] border-b border-black/8 py-3'
       }`}
     >
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6 flex items-center justify-between">

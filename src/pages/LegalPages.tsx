@@ -28,7 +28,7 @@ function LegalHero({ icon: Icon, badge, title, subtitle, date }: {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#eaf5e7] border border-[#4cc02b]/30 text-[#2a7a18] text-xs font-mono mb-6"
+          className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#dbdbd2] border border-black/8 text-[#5c5c5b] text-xs font-mono mb-6"
         >
           <Icon className="w-3.5 h-3.5" />
           <span>{badge}</span>

@@ -148,7 +148,7 @@ export function FeaturesPage() {
           <motion.div
             variants={fadeUp} custom={0}
             initial="hidden" animate="visible"
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#dbdbd2] text-xs font-normal mb-6"
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#dbdbd2] border border-black/8 text-[#5c5c5b] text-xs font-mono mb-6"
           >
             <span className="w-2 h-2 rounded-full bg-[#4cc02b]" />
             Features

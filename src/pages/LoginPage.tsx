@@ -633,7 +633,7 @@ return (
               {/* ── DEMO QUICK ACCESS ─────────────────────── */}
               <div style={{ marginTop: '24px', borderTop: '1.5px dashed #74C69D', paddingTop: '20px' }}>
                 <p style={{ textAlign: 'center', fontSize: '11px', fontWeight: 700, color: '#52B788', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
-                  ⚡ Demo Quick Access
+                  Demo Quick Access
                 </p>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button
@@ -653,7 +653,7 @@ return (
                       letterSpacing: '0.3px'
                     }}
                   >
-                    🛡️ Admin Demo
+                    Admin Demo
                   </button>
                   <button
                     type="button"

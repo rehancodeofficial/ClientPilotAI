@@ -69,7 +69,7 @@ export function AboutPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#dbdbd2]/80 backdrop-blur-xs text-xs mb-6 border border-black/5"
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#dbdbd2] border border-black/8 text-[#5c5c5b] text-xs font-mono mb-6"
           >
             <span className="w-2 h-2 rounded-full bg-[#4cc02b]" />
             <span className="font-mono text-[11px] text-[#4a4a49]">About ClientPilot</span>
@@ -352,7 +352,7 @@ export function AboutPage() {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#eaf5e7] border border-[#4cc02b]/30 text-[#2a7a18] text-xs font-mono mb-4"
+              className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#dbdbd2] border border-black/8 text-[#5c5c5b] text-xs font-mono mb-4"
             >
               <span className="w-2 h-2 rounded-full bg-[#4cc02b]" />
               OUR PRINCIPLES

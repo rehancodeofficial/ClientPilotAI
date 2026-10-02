@@ -118,7 +118,7 @@ export function SolutionsPage() {
         <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#eaf5e7] border border-[#4cc02b]/30 text-[#2a7a18] text-xs font-mono mb-6"
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#dbdbd2] border border-black/8 text-[#5c5c5b] text-xs font-mono mb-6"
           >
             <span className="w-2 h-2 rounded-full bg-[#4cc02b] shadow-[0_0_8px_rgba(76,192,43,0.8)]" />
             TAILORED SOLUTIONS
