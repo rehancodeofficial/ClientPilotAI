@@ -17,6 +17,11 @@ const fadeUp = {
   })
 }
 
+const accents = [
+  '#4cc02b', '#3b82f6', '#f59e0b', '#8b5cf6', '#ef4444', '#0ea5e9',
+  '#4cc02b', '#ec4899', '#10b981', '#f97316', '#6366f1', '#4cc02b', '#64748b', '#e11d48'
+]
+
 const features = [
   {
     category: 'Discovery',
@@ -185,46 +190,77 @@ export function FeaturesPage() {
       </section>
 
       {/* Feature grid */}
-      <section className="py-20 border-b border-black/10">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((f, idx) => (
-              <motion.div
-                key={f.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-60px' }}
-                transition={{ duration: 0.5, delay: (idx % 3) * 0.07, ease: [0.22, 1, 0.36, 1] }}
-                whileHover={{ y: -4 }}
-                className={`p-6 sm:p-7 rounded-2xl border flex flex-col justify-between gap-5 transition-all shadow-sm ${
-                  f.accent
-                    ? 'bg-[#dbdbd2] border-black/8 hover:border-black/15'
-                    : 'bg-white border-black/8 hover:border-black/15'
-                }`}
-              >
-                <div>
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-black/5 border border-black/5 flex items-center justify-center text-[#292929]">
-                      <f.icon className="w-5 h-5" />
-                    </div>
-                    <span className="text-[10px] font-mono uppercase text-[#8f8f8e] mt-1 tracking-wider">{f.category}</span>
-                  </div>
-                  <div>
-                    <h3 className="text-base font-medium text-[#141414] font-heading mb-2">{f.title}</h3>
-                    <p className="text-sm text-[#5c5c5b] leading-relaxed mb-4">{f.desc}</p>
-                  </div>
-                </div>
+      <section className="relative py-20 border-b border-black/10 overflow-hidden">
+        {/* Dot-grid background */}
+        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, #29292914 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+        {/* Ambient top glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-48 bg-[#4cc02b]/6 rounded-full blur-3xl pointer-events-none" />
 
-                <ul className="space-y-2 pt-3 border-t border-black/5">
-                  {f.bullets.map((b) => (
-                    <li key={b} className="flex items-center gap-2 text-xs text-[#5c5c5b]">
-                      <Check className="w-3.5 h-3.5 text-[#4cc02b] shrink-0" />
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-            ))}
+        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {features.map((f, idx) => {
+              const accent = accents[idx] || '#4cc02b'
+              return (
+                <motion.div
+                  key={f.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 0.5, delay: (idx % 3) * 0.07, ease: [0.22, 1, 0.36, 1] }}
+                  whileHover={{ y: -5, scale: 1.01 }}
+                  className="group relative p-6 sm:p-7 rounded-2xl border border-black/8 bg-white flex flex-col justify-between gap-5 transition-all duration-300 shadow-sm hover:shadow-lg hover:border-black/12 overflow-hidden"
+                >
+                  {/* Corner glow */}
+                  <div
+                    className="absolute -top-6 -right-6 w-28 h-28 rounded-full blur-2xl opacity-0 group-hover:opacity-25 transition-opacity duration-500 pointer-events-none"
+                    style={{ background: accent }}
+                  />
+
+                  <div>
+                    <div className="flex items-start justify-between mb-5">
+                      {/* Gradient icon badge */}
+                      <div
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm"
+                        style={{
+                          background: `linear-gradient(135deg, ${accent}22 0%, ${accent}10 100%)`,
+                          border: `1px solid ${accent}28`,
+                          color: accent
+                        }}
+                      >
+                        <f.icon className="w-5.5 h-5.5" style={{ width: 22, height: 22 }} />
+                      </div>
+                      <span
+                        className="text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full border font-semibold"
+                        style={{ color: accent, borderColor: accent + '35', background: accent + '0f' }}
+                      >
+                        {f.category}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-base font-medium text-[#141414] font-heading mb-2">{f.title}</h3>
+                      <p className="text-sm text-[#5c5c5b] leading-relaxed mb-4">{f.desc}</p>
+                    </div>
+                  </div>
+
+                  <ul className="space-y-2 pt-3 border-t border-black/5">
+                    {f.bullets.map((b) => (
+                      <li key={b} className="flex items-center gap-2 text-xs text-[#5c5c5b]">
+                        <span className="w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0" style={{ background: accent + '18' }}>
+                          <Check className="w-2 h-2" style={{ color: accent }} />
+                        </span>
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Animated bottom accent bar */}
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{ background: `linear-gradient(to right, ${accent}30, ${accent}, ${accent}30)` }}
+                  />
+                </motion.div>
+              )
+            })}
           </div>
         </div>
       </section>

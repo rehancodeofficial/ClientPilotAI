@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { PublicNavbar } from '@/components/layout/PublicNavbar'
 import { PublicFooter } from '@/components/layout/PublicFooter'
-import { ArrowRight, Heart, Globe, Sparkles, Layers, Cpu, Compass, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, Heart, Globe, Sparkles, Layers, Cpu, Compass, CheckCircle2, Search, Shield, Zap, Star } from 'lucide-react'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -331,55 +331,128 @@ export function AboutPage() {
       </section>
 
       {/* Values */}
-      <section className="py-20 bg-[#edede8] border-b border-black/10">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55 }}
-            className="text-3xl sm:text-4xl font-normal text-[#292929] font-heading mb-12"
-          >
-            What we stand for
-          </motion.h2>
+      <section className="relative py-24 border-b border-black/10 overflow-hidden">
+        {/* Background image + overlay */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=2000&q=80"
+            alt="Agency collaboration"
+            className="w-full h-full object-cover opacity-[0.07]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#edede8] via-[#edede8]/95 to-[#edede8]" />
+          {/* Dot grid pattern */}
+          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, #4cc02b22 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+          {/* Ambient green glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-64 bg-[#4cc02b]/10 rounded-full blur-3xl pointer-events-none" />
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6">
+          <div className="mb-14">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#eaf5e7] border border-[#4cc02b]/30 text-[#2a7a18] text-xs font-mono mb-4"
+            >
+              <span className="w-2 h-2 rounded-full bg-[#4cc02b]" />
+              OUR PRINCIPLES
+            </motion.div>
+            <motion.h2
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.55 }}
+              className="text-3xl sm:text-4xl font-normal text-[#292929] font-heading"
+            >
+              What we stand for
+            </motion.h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
               {
+                icon: Search,
+                num: '01',
                 title: 'Evidence before outreach',
                 desc: 'We believe cold outreach should be grounded in real findings, not assumptions. ClientPilot helps agencies reach out with evidence, not guesses.',
+                accent: '#4cc02b',
               },
               {
+                icon: Star,
+                num: '02',
                 title: 'Quality over quantity',
                 desc: 'A hundred businesses with genuine digital problems are more valuable than ten thousand contacts without context. We optimize for relevance, not volume.',
+                accent: '#f59e0b',
               },
               {
+                icon: Sparkles,
+                num: '03',
                 title: 'Transparency in AI',
                 desc: 'Every AI finding in ClientPilot is traceable. We show agencies exactly what signals we found and why we scored opportunities the way we did.',
+                accent: '#3b82f6',
               },
               {
+                icon: Shield,
+                num: '04',
                 title: 'Privacy by design',
                 desc: 'ClientPilot analyzes only publicly available information. We don\'t scrape private data or use anything that isn\'t already visible to anyone on the internet.',
+                accent: '#8b5cf6',
               },
               {
+                icon: Zap,
+                num: '05',
                 title: 'Built for craft',
                 desc: 'The best agencies win because of their craft. We help them find clients who deserve that craft — not just any client who\'ll sign a contract.',
+                accent: '#ef4444',
               },
               {
+                icon: Heart,
+                num: '06',
                 title: 'Genuine opportunity',
                 desc: 'We exist to create win-win outcomes: agencies find better clients, and businesses get the digital help they actually need.',
+                accent: '#ec4899',
               },
             ].map((val, idx) => (
               <motion.div
                 key={val.title}
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.07, duration: 0.5 }}
-                className="p-6 sm:p-7 rounded-2xl bg-white border border-black/8 shadow-sm flex flex-col justify-start h-full hover:border-black/15 transition-all"
+                whileHover={{ y: -4, scale: 1.01 }}
+                className="group relative p-7 rounded-2xl bg-white/90 backdrop-blur-sm border border-black/8 shadow-sm flex flex-col gap-4 h-full hover:shadow-md transition-all duration-300 overflow-hidden"
               >
-                <h3 className="text-base font-normal text-[#292929] font-heading mb-2">{val.title}</h3>
-                <p className="text-sm text-[#6f6f6e] leading-relaxed">{val.desc}</p>
+                {/* Subtle accent glow on hover */}
+                <div
+                  className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-500 pointer-events-none"
+                  style={{ background: val.accent }}
+                />
+                {/* Number + Icon row */}
+                <div className="flex items-center justify-between">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm"
+                    style={{ background: val.accent + '18', color: val.accent }}
+                  >
+                    <val.icon className="w-5 h-5" />
+                  </div>
+                  <span
+                    className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full border"
+                    style={{ color: val.accent, borderColor: val.accent + '40', background: val.accent + '0f' }}
+                  >
+                    {val.num}
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-base font-medium text-[#141414] font-heading mb-1.5">{val.title}</h3>
+                  <p className="text-sm text-[#6f6f6e] leading-relaxed">{val.desc}</p>
+                </div>
+
+                {/* Bottom accent bar on hover */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{ background: `linear-gradient(to right, ${val.accent}40, ${val.accent}, ${val.accent}40)` }}
+                />
               </motion.div>
             ))}
           </div>
