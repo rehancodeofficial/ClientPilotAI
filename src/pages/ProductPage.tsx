@@ -10,24 +10,35 @@ export function ProductPage() {
       <PublicNavbar />
 
       {/* Hero */}
-      <section className="py-16 sm:py-24 border-b border-black/10 text-center">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[200px] bg-[#dbdbd2] text-[#292929] text-xs font-normal">
-            <span className="w-2 h-2 rounded-full bg-[#4cc02b]" />
-            <span>PRODUCT OVERVIEW</span>
+      <section className="relative py-20 sm:py-28 border-b border-black/10 text-center overflow-hidden bg-[#edede8]">
+        {/* Background Image with refined gradient overlay */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=2000&q=80"
+            alt="Product Digital Presence Workspace"
+            className="w-full h-full object-cover opacity-10"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#edede8]/90 via-[#edede8]/85 to-[#edede8]" />
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#4cc02b]/15 rounded-full blur-3xl pointer-events-none" />
+        </div>
+
+        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 space-y-6">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#eaf5e7] border border-[#4cc02b]/30 text-[#2a7a18] text-xs font-mono">
+            <span className="w-2 h-2 rounded-full bg-[#4cc02b] shadow-[0_0_8px_rgba(76,192,43,0.8)]" />
+            <span>PRODUCT ARCHITECTURE</span>
           </div>
-          <h1 className="text-4xl sm:text-6xl font-normal text-[#292929] tracking-[-0.01em] font-heading max-w-4xl mx-auto leading-tight">
+          <h1 className="text-4xl sm:text-6xl font-normal text-[#141414] tracking-[-0.01em] font-heading max-w-4xl mx-auto leading-tight">
             The intelligence layer behind modern agency prospecting.
           </h1>
-          <p className="text-lg text-[#6f6f6e] max-w-3xl mx-auto font-normal leading-relaxed">
+          <p className="text-lg text-[#5c5c5b] max-w-3xl mx-auto font-normal leading-relaxed">
             ClientPilot connects business discovery, digital intelligence, opportunity detection, qualification, outreach, and agency execution into one unified workspace.
           </p>
           <div className="pt-2 flex justify-center gap-3">
-            <Link to="/signup" className="inline-flex items-center gap-2 px-6 h-[44px] rounded-[200px] text-sm font-normal text-white bg-[#141414] hover:bg-[#292929] transition-all">
+            <Link to="/signup" className="inline-flex items-center gap-2 px-7 h-12 rounded-full text-sm font-medium text-white bg-[#141414] hover:bg-[#292929] transition-all shadow-sm">
               <span>Start Free</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link to="/how-it-works" className="inline-flex items-center gap-2 px-6 h-[44px] rounded-[200px] text-sm font-normal text-[#292929] bg-[#dbdbd2] hover:bg-[#d0d0c8] transition-all">
+            <Link to="/how-it-works" className="inline-flex items-center gap-2 px-7 h-12 rounded-full text-sm font-medium text-[#292929] bg-white border border-black/10 hover:bg-[#f4f4ef] transition-all shadow-xs">
               <span>See How It Works</span>
             </Link>
           </div>
@@ -95,14 +106,14 @@ export function ProductPage() {
               icon: Brain
             }
           ].map((sec, idx) => (
-            <div key={idx} id={sec.id} className="p-[18px] rounded-[12px] bg-white border border-black/10 flex flex-col md:flex-row items-start gap-6 text-left">
-              <div className="w-10 h-10 rounded-full bg-[#c0c0c0] flex items-center justify-center text-[#353535] shrink-0">
-                <sec.icon className="w-5 h-5" />
+            <div key={idx} id={sec.id} className="p-6 sm:p-8 rounded-2xl bg-white border border-black/8 shadow-sm flex flex-col md:flex-row items-start gap-6 text-left hover:border-black/15 transition-all">
+              <div className="w-12 h-12 rounded-xl bg-[#edede8] border border-black/5 flex items-center justify-center text-[#292929] shrink-0">
+                <sec.icon className="w-6 h-6" />
               </div>
-              <div className="space-y-1 text-left">
-                <span className="text-xs font-mono text-[#8f8f8e] uppercase">{sec.subtitle}</span>
-                <h2 className="text-2xl font-normal text-[#292929] font-heading">{sec.title}</h2>
-                <p className="text-sm text-[#6f6f6e] leading-relaxed max-w-4xl">{sec.desc}</p>
+              <div className="space-y-1.5 text-left flex-1 min-w-0">
+                <span className="text-[11px] font-mono text-[#8f8f8e] uppercase tracking-wider">{sec.subtitle}</span>
+                <h2 className="text-xl sm:text-2xl font-normal text-[#141414] font-heading tracking-tight">{sec.title}</h2>
+                <p className="text-sm text-[#5c5c5b] leading-relaxed max-w-4xl">{sec.desc}</p>
               </div>
             </div>
           ))}

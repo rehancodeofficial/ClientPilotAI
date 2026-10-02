@@ -87,26 +87,37 @@ export function SolutionsPage() {
       <PublicNavbar />
 
       {/* Hero */}
-      <section className="py-20 lg:py-28 bg-[#edede8] border-b border-black/10">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+      <section className="relative py-20 lg:py-28 border-b border-black/10 overflow-hidden bg-[#edede8]">
+        {/* Background Image with refined gradient overlay */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2000&q=80"
+            alt="Agency Solutions Workspace"
+            className="w-full h-full object-cover opacity-10"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#edede8]/90 via-[#edede8]/85 to-[#edede8]" />
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#4cc02b]/15 rounded-full blur-3xl pointer-events-none" />
+        </div>
+
+        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#dbdbd2] text-xs mb-6"
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#eaf5e7] border border-[#4cc02b]/30 text-[#2a7a18] text-xs font-mono mb-6"
           >
-            <span className="w-2 h-2 rounded-full bg-[#4cc02b]" />
-            Solutions
+            <span className="w-2 h-2 rounded-full bg-[#4cc02b] shadow-[0_0_8px_rgba(76,192,43,0.8)]" />
+            <span>TAILORED SOLUTIONS</span>
           </motion.div>
           <motion.h1
             variants={fadeUp} custom={0.05}
             initial="hidden" animate="visible"
-            className="text-4xl sm:text-5xl lg:text-[64px] font-normal tracking-[-0.01em] text-[#292929] font-heading leading-[1.05] max-w-3xl mb-6"
+            className="text-4xl sm:text-5xl lg:text-[64px] font-normal tracking-[-0.01em] text-[#141414] font-heading leading-[1.05] max-w-3xl mb-6"
           >
             Built for agencies of every kind.
           </motion.h1>
           <motion.p
             variants={fadeUp} custom={0.15}
             initial="hidden" animate="visible"
-            className="text-lg text-[#6f6f6e] max-w-xl leading-relaxed mb-8"
+            className="text-lg text-[#5c5c5b] max-w-xl leading-relaxed mb-8"
           >
             ClientPilot is purpose-built for agencies, studios, and freelancers who want to find better clients — not just more contacts.
           </motion.p>
@@ -117,14 +128,14 @@ export function SolutionsPage() {
           >
             <Link
               to="/signup"
-              className="inline-flex items-center gap-2 px-6 h-11 rounded-full text-sm text-white bg-[#141414] hover:bg-[#292929] transition-all"
+              className="inline-flex items-center justify-center gap-2 px-7 h-12 rounded-full text-sm font-medium text-white bg-[#141414] hover:bg-[#292929] transition-all shadow-sm"
             >
               Start Free
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               to="/how-it-works"
-              className="inline-flex items-center gap-2 px-6 h-11 rounded-full text-sm text-[#292929] bg-[#dbdbd2] hover:bg-[#d0d0c8] transition-all"
+              className="inline-flex items-center justify-center gap-2 px-7 h-12 rounded-full text-sm font-medium text-[#292929] bg-white border border-black/10 hover:bg-[#f4f4ef] transition-all shadow-xs"
             >
               See How It Works
             </Link>

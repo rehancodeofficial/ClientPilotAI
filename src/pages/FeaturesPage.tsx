@@ -187,7 +187,7 @@ export function FeaturesPage() {
       {/* Feature grid */}
       <section className="py-20 border-b border-black/10">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((f, idx) => (
               <motion.div
                 key={f.title}
@@ -196,30 +196,33 @@ export function FeaturesPage() {
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.5, delay: (idx % 3) * 0.07, ease: [0.22, 1, 0.36, 1] }}
                 whileHover={{ y: -4 }}
-                className={`p-[18px] rounded-lg border flex flex-col gap-4 ${
+                className={`p-6 sm:p-7 rounded-2xl border flex flex-col justify-between gap-5 transition-all shadow-sm ${
                   f.accent
-                    ? 'bg-[#dbdbd2] border-black/8'
-                    : 'bg-white border-black/8'
+                    ? 'bg-[#dbdbd2] border-black/8 hover:border-black/15'
+                    : 'bg-white border-black/8 hover:border-black/15'
                 }`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="w-10 h-10 rounded-full bg-[#c0c0c0] flex items-center justify-center text-[#353535]">
-                    <f.icon className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-mono uppercase text-[#8f8f8e] mt-1">{f.category}</span>
-                </div>
                 <div>
-                  <h3 className="text-base font-normal text-[#292929] font-heading mb-2">{f.title}</h3>
-                  <p className="text-sm text-[#6f6f6e] leading-relaxed mb-3">{f.desc}</p>
-                  <ul className="space-y-1.5">
-                    {f.bullets.map((b) => (
-                      <li key={b} className="flex items-center gap-2 text-xs text-[#6f6f6e]">
-                        <Check className="w-3.5 h-3.5 text-[#4cc02b] shrink-0" />
-                        {b}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-black/5 border border-black/5 flex items-center justify-center text-[#292929]">
+                      <f.icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-mono uppercase text-[#8f8f8e] mt-1 tracking-wider">{f.category}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-medium text-[#141414] font-heading mb-2">{f.title}</h3>
+                    <p className="text-sm text-[#5c5c5b] leading-relaxed mb-4">{f.desc}</p>
+                  </div>
                 </div>
+
+                <ul className="space-y-2 pt-3 border-t border-black/5">
+                  {f.bullets.map((b) => (
+                    <li key={b} className="flex items-center gap-2 text-xs text-[#5c5c5b]">
+                      <Check className="w-3.5 h-3.5 text-[#4cc02b] shrink-0" />
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
               </motion.div>
             ))}
           </div>

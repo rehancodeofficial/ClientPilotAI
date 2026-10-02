@@ -204,15 +204,20 @@ export function HowItWorksPage() {
 
               {/* Visual mock */}
               <div className="lg:col-span-7">
-                <div className="p-3 bg-white rounded-lg border border-black/10 shadow-xl">
-                  <div className="bg-[#edede8] rounded-lg overflow-hidden">
-                    <div className="px-4 py-3 border-b border-black/8 flex items-center gap-2 bg-white">
-                      <div className="flex gap-1.5">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]/40" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#f59e0b]/40" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#4cc02b]/40" />
+                <div className="p-4 bg-white rounded-2xl border border-black/10 shadow-lg">
+                  <div className="bg-[#edede8] rounded-xl overflow-hidden border border-black/5">
+                    <div className="px-4 py-3 border-b border-black/8 flex items-center justify-between bg-white">
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1.5">
+                          <div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]/60" />
+                          <div className="w-2.5 h-2.5 rounded-full bg-[#f59e0b]/60" />
+                          <div className="w-2.5 h-2.5 rounded-full bg-[#4cc02b]/60" />
+                        </div>
+                        <span className="text-xs text-[#8f8f8e] ml-2 font-mono">{step.visual.label}</span>
                       </div>
-                      <span className="text-xs text-[#8f8f8e] ml-2 font-mono">{step.visual.label}</span>
+                      <span className="text-[10px] font-mono text-[#4cc02b] bg-[#4cc02b]/10 px-2 py-0.5 rounded-full">
+                        Live System
+                      </span>
                     </div>
                     <div className="p-4 space-y-2">
                       {step.visual.items.map((item, i) => (
@@ -222,10 +227,10 @@ export function HowItWorksPage() {
                           whileInView={{ opacity: 1, x: 0 }}
                           viewport={{ once: true }}
                           transition={{ delay: i * 0.07 + 0.2 }}
-                          className="flex items-center justify-between py-2 px-3 rounded-lg bg-white border border-black/5"
+                          className="flex items-center justify-between py-2 px-3.5 rounded-lg bg-white border border-black/5 gap-3"
                         >
-                          <span className="text-xs text-[#6f6f6e]">{item.key}</span>
-                          <span className="text-xs font-medium text-[#292929] text-right max-w-[55%] truncate">{item.value}</span>
+                          <span className="text-xs text-[#6f6f6e] shrink-0 font-medium">{item.key}</span>
+                          <span className="text-xs font-mono text-[#141414] text-right break-words">{item.value}</span>
                         </motion.div>
                       ))}
                     </div>

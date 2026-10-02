@@ -139,26 +139,37 @@ export function PricingPage() {
       <PublicNavbar />
 
       {/* Hero */}
-      <section className="py-20 lg:py-28 bg-[#edede8] border-b border-black/10">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 text-left">
+      <section className="relative py-20 lg:py-28 border-b border-black/10 overflow-hidden bg-[#edede8]">
+        {/* Background Image with refined gradient overlay */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=2000&q=80"
+            alt="Agency Growth"
+            className="w-full h-full object-cover opacity-10"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#edede8]/90 via-[#edede8]/85 to-[#edede8]" />
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#4cc02b]/15 rounded-full blur-3xl pointer-events-none" />
+        </div>
+
+        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 text-left">
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#dbdbd2] text-xs mb-6"
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#eaf5e7] border border-[#4cc02b]/30 text-[#2a7a18] text-xs font-mono mb-6"
           >
-            <span className="w-2 h-2 rounded-full bg-[#4cc02b]" />
-            Pricing
+            <span className="w-2 h-2 rounded-full bg-[#4cc02b] shadow-[0_0_8px_rgba(76,192,43,0.8)]" />
+            <span>TRANSPARENT PLANS</span>
           </motion.div>
           <motion.h1
             variants={fadeUp} custom={0.05}
             initial="hidden" animate="visible"
-            className="text-4xl sm:text-5xl lg:text-[64px] font-normal tracking-[-0.01em] text-[#292929] font-heading leading-[1.05] max-w-3xl mb-6"
+            className="text-4xl sm:text-5xl lg:text-[64px] font-normal tracking-[-0.01em] text-[#141414] font-heading leading-[1.05] max-w-3xl mb-6"
           >
             Clear pricing. No surprises.
           </motion.h1>
           <motion.p
             variants={fadeUp} custom={0.15}
             initial="hidden" animate="visible"
-            className="text-lg text-[#6f6f6e] max-w-xl leading-relaxed mb-8"
+            className="text-lg text-[#5c5c5b] max-w-xl leading-relaxed mb-8"
           >
             Start free. Upgrade when you need more. Every plan includes a 14-day free trial on paid tiers.
           </motion.p>
@@ -207,22 +218,23 @@ export function PricingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.07, ease: [0.22, 1, 0.36, 1] }}
-                className={`relative p-[18px] rounded-lg border flex flex-col ${
+                whileHover={{ y: -4 }}
+                className={`relative p-6 sm:p-7 rounded-2xl border flex flex-col justify-between transition-all duration-200 ${
                   tier.featured
-                    ? 'bg-[#dbdbd2] border-black/12 shadow-sm'
-                    : 'bg-white border-black/8'
+                    ? 'bg-[#eaf5e7] border-[#4cc02b]/40 shadow-[0_8px_30px_rgba(76,192,43,0.12)]'
+                    : 'bg-white border-black/8 hover:border-black/15 shadow-sm'
                 }`}
               >
                 {tier.badge && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#141414] text-white text-[10px] font-medium whitespace-nowrap">
-                      <Zap className="w-2.5 h-2.5" />
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#141414] text-white text-[11px] font-medium tracking-wide shadow-md whitespace-nowrap">
+                      <Zap className="w-3 h-3 text-white fill-white" />
                       {tier.badge}
                     </span>
                   </div>
                 )}
 
-                <div className="mb-4">
+                <div>
                   <h3 className="text-lg font-normal text-[#292929] font-heading">{tier.name}</h3>
                   <div className="my-3">
                     <span className="text-3xl font-mono font-normal text-[#292929]">
@@ -235,27 +247,27 @@ export function PricingPage() {
                       <div className="text-[10px] text-[#6f6f6e] mt-0.5">billed annually</div>
                     )}
                   </div>
-                  <p className="text-xs text-[#6f6f6e]">{tier.sub}</p>
-                </div>
+                  <p className="text-xs text-[#6f6f6e] mb-5 leading-relaxed">{tier.sub}</p>
 
-                <ul className="space-y-2 mb-6 flex-1">
-                  {tier.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-xs text-[#292929]">
-                      <Check className="w-3.5 h-3.5 text-[#4cc02b] shrink-0 mt-0.5" />
-                      {f}
-                    </li>
-                  ))}
-                  {tier.missing.map((m) => (
-                    <li key={m} className="flex items-start gap-2 text-xs text-[#8f8f8e] line-through decoration-[#c0c0c0]">
-                      <div className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                      {m}
-                    </li>
-                  ))}
-                </ul>
+                  <ul className="space-y-2.5 mb-6">
+                    {tier.features.map((f) => (
+                      <li key={f} className="flex items-start gap-2 text-xs text-[#292929]">
+                        <Check className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${tier.featured ? 'text-[#2e7d1b]' : 'text-[#4cc02b]'}`} />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                    {tier.missing.map((m) => (
+                      <li key={m} className="flex items-start gap-2 text-xs text-[#8f8f8e] line-through decoration-[#c0c0c0]">
+                        <div className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                        <span>{m}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
                 <Link
                   to={tier.ctaLink}
-                  className={`w-full py-2.5 rounded-full text-xs font-normal text-center transition-all hover:scale-[1.02] active:scale-[0.98] ${
+                  className={`w-full py-2.5 rounded-full text-xs font-medium text-center transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] shadow-sm ${
                     tier.featured
                       ? 'bg-[#141414] text-white hover:bg-[#292929]'
                       : 'bg-[#dbdbd2] text-[#292929] hover:bg-[#d0d0c8]'

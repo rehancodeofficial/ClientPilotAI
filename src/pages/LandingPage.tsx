@@ -461,7 +461,7 @@ export function LandingPage() {
                   <div className="px-4 py-3 border-b border-black/8 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-[#4cc02b]" />
-                      <span className="text-xs font-medium text-[#292929]">Website Intelligence — acme-restaurant.com</span>
+                      <span className="text-xs font-medium text-[#292929]">Website Intelligence — apexstudio.io</span>
                     </div>
                     <span className="text-xs text-[#8f8f8e] font-mono">Score: 34/100</span>
                   </div>
@@ -500,17 +500,17 @@ export function LandingPage() {
                 </div>
               </motion.div>
 
-              {/* Real high-res Web Analysis Screen photo */}
+              {/* Team collaborating on website audit findings */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="rounded-xl overflow-hidden border border-black/10 shadow-md h-40"
+                className="rounded-xl overflow-hidden border border-black/10 shadow-md h-48"
               >
                 <img
-                  src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1000&q=80"
-                  alt="Real digital presence audit"
+                  src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80"
+                  alt="Agency team analyzing website performance and conversion paths"
                   className="w-full h-full object-cover"
                 />
               </motion.div>
@@ -744,7 +744,7 @@ export function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {/* Free */}
+            {/* Tiers */}
             {[
               {
                 name: 'Free', price: '$0', sub: 'For exploring ClientPilot.', features: ['Business discovery', 'Website analysis', 'Opportunities'],
@@ -773,38 +773,43 @@ export function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: tier.delay, ease: [0.22, 1, 0.36, 1] }}
-                className={`p-[50px] rounded-md border flex flex-col justify-between ${
+                whileHover={{ y: -4 }}
+                className={`relative p-6 sm:p-7 rounded-2xl border flex flex-col justify-between transition-all duration-200 ${
                   tier.featured
-                    ? 'bg-[#dbdbd2] border-black/10 shadow-sm'
-                    : 'bg-[#edede8] border-black/5'
+                    ? 'bg-[#eaf5e7] border-[#4cc02b]/40 shadow-[0_8px_30px_rgba(76,192,43,0.12)]'
+                    : 'bg-[#edede8] border-black/8 hover:border-black/15 shadow-sm'
                 }`}
               >
-                <div>
-                  {tier.badge && (
-                    <span className="text-[10px] font-mono text-[#292929] uppercase font-medium block mb-1">
+                {tier.badge && (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#141414] text-white text-[11px] font-medium tracking-wide shadow-md whitespace-nowrap">
+                      <Zap className="w-3 h-3 text-white fill-white" />
                       {tier.badge}
                     </span>
-                  )}
+                  </div>
+                )}
+
+                <div>
                   <h3 className="text-lg font-normal text-[#292929] font-heading">{tier.name}</h3>
                   <div className="text-3xl font-normal text-[#292929] font-mono my-3">
                     {tier.price}
                     {tier.price !== '$0' && tier.price !== 'Custom' && (
-                      <span className="text-xs text-[#6f6f6e] font-sans">/mo</span>
+                      <span className="text-xs text-[#6f6f6e] font-sans ml-0.5">/mo</span>
                     )}
                   </div>
-                  <p className="text-xs text-[#6f6f6e] mb-4">{tier.sub}</p>
-                  <ul className="space-y-2 text-xs text-[#6f6f6e] mb-6">
+                  <p className="text-xs text-[#6f6f6e] mb-5 leading-relaxed">{tier.sub}</p>
+                  <ul className="space-y-2.5 text-xs text-[#5c5c5b] mb-6">
                     {tier.features.map((f) => (
                       <li key={f} className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-[#4cc02b] shrink-0" />
-                        {f}
+                        <Check className={`w-3.5 h-3.5 shrink-0 ${tier.featured ? 'text-[#2e7d1b]' : 'text-[#4cc02b]'}`} />
+                        <span>{f}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
                 <Link
                   to={tier.ctaLink}
-                  className={`w-full py-2.5 rounded-full text-xs font-normal text-center transition-colors ${
+                  className={`w-full py-2.5 rounded-full text-xs font-medium text-center transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] shadow-sm ${
                     tier.featured
                       ? 'text-white bg-[#141414] hover:bg-[#292929]'
                       : 'text-[#292929] bg-[#dbdbd2] hover:bg-[#d0d0c8]'
@@ -819,7 +824,7 @@ export function LandingPage() {
           <motion.div
             initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
             transition={{ delay: 0.3 }}
-            className="mt-6 text-center text-xs text-[#8f8f8e]"
+            className="mt-8 text-center text-xs text-[#8f8f8e]"
           >
             All plans include a 14-day free trial. No credit card required.
           </motion.div>

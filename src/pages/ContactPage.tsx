@@ -1,7 +1,29 @@
 import React, { useState } from 'react'
+import { motion } from 'framer-motion'
 import { PublicNavbar } from '@/components/layout/PublicNavbar'
 import { PublicFooter } from '@/components/layout/PublicFooter'
-import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
+import {
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Send,
+  Sparkles,
+  Mail,
+  MapPin,
+  Clock,
+  ShieldCheck,
+  Building2,
+  PhoneCall
+} from 'lucide-react'
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (delay = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1], delay },
+  }),
+}
 
 export function ContactPage() {
   const [category, setCategory] = useState('Sales')
@@ -20,7 +42,7 @@ export function ContactPage() {
 
     if (!name.trim() || !email.trim() || !message.trim()) {
       setStatus('validation_error')
-      setErrorMessage('Please fill out all required fields.')
+      setErrorMessage('Please fill out all required fields (Name, Work Email, and Message).')
       return
     }
 
@@ -36,140 +58,286 @@ export function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans selection:bg-[#4cc02b] selection:text-white">
+    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans selection:bg-[#4cc02b] selection:text-white overflow-x-hidden">
       <PublicNavbar />
 
-      <section className="py-16 sm:py-24">
-        <div className="max-w-[800px] mx-auto px-4 sm:px-6 space-y-8">
-          
-          <div className="text-center space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[200px] bg-[#dbdbd2] text-[#292929] text-xs font-normal">
-              <span className="w-2 h-2 rounded-full bg-[#4cc02b]" />
-              <span>GET IN TOUCH</span>
-            </div>
-            <h1 className="text-4xl sm:text-5xl font-normal text-[#292929] tracking-[-0.01em] font-heading">
-              Let's talk.
-            </h1>
-            <p className="text-base text-[#6f6f6e]">
-              Have questions about ClientPilot, pricing, integrations, or partnerships? Reach out to our team.
-            </p>
-          </div>
+      {/* Hero Section with Ambient Green Glow */}
+      <section className="relative py-20 sm:py-28 border-b border-black/10 overflow-hidden bg-[#edede8]">
+        {/* Soft Ambient Background Elements */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#4cc02b]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-[#4cc02b]/5 rounded-full blur-2xl pointer-events-none" />
 
-          <div className="p-8 rounded-[12px] bg-white border border-black/10 text-left space-y-6 shadow-sm">
+        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6">
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#eaf5e7] border border-[#4cc02b]/30 text-[#2a7a18] text-xs font-mono"
+            >
+              <span className="w-2 h-2 rounded-full bg-[#4cc02b] shadow-[0_0_8px_rgba(76,192,43,0.8)] animate-pulse" />
+              <span>DIRECT AGENCY DESK</span>
+            </motion.div>
+
+            <motion.h1
+              variants={fadeUp}
+              custom={0.05}
+              initial="hidden"
+              animate="visible"
+              className="text-4xl sm:text-5xl lg:text-6xl font-normal text-[#141414] tracking-[-0.01em] font-heading leading-tight"
+            >
+              Let’s talk about your agency’s pipeline.
+            </motion.h1>
+
+            <motion.p
+              variants={fadeUp}
+              custom={0.15}
+              initial="hidden"
+              animate="visible"
+              className="text-base sm:text-lg text-[#5c5c5b] max-w-2xl mx-auto leading-relaxed"
+            >
+              Have questions about ClientPilot, our intelligence methodology, pricing tiers, or custom API volume? Connect directly with our team.
+            </motion.p>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Content: Form + Value & Direct Channels */}
+      <section className="py-16 sm:py-24 bg-[#edede8]">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             
-            {status === 'success' && (
-              <div className="p-4 rounded-[6px] bg-[#dbdbd2] text-[#292929] text-xs flex items-center gap-3">
-                <CheckCircle2 className="w-4 h-4 text-[#4cc02b] shrink-0" />
-                <span>Thank you! Your message has been sent successfully. We'll get back to you shortly.</span>
-              </div>
-            )}
-
-            {status === 'validation_error' && (
-              <div className="p-4 rounded-[6px] bg-red-50 text-red-700 border border-red-200 text-xs flex items-center gap-3">
-                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Category picker */}
-              <div>
-                <label className="block text-xs font-normal uppercase text-[#8f8f8e] mb-2">Category</label>
-                <div className="flex flex-wrap gap-2">
-                  {['Sales', 'Product questions', 'Technical support', 'Partnerships', 'Feedback'].map((cat) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setCategory(cat)}
-                      className={`px-3.5 py-1.5 rounded-[200px] text-xs font-normal transition-colors ${
-                        category === cat
-                          ? 'bg-[#141414] text-white'
-                          : 'bg-[#edede8] border border-black/5 text-[#292929] hover:bg-[#dbdbd2]'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
+            {/* Left Column: Form Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="lg:col-span-7 bg-white p-7 sm:p-10 rounded-2xl border border-black/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] relative"
+            >
+              {/* Subtle top indicator */}
+              <div className="flex items-center justify-between pb-6 mb-6 border-b border-black/8">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#4cc02b]" />
+                  <span className="text-sm font-semibold text-[#141414] font-heading">Send a Message</span>
                 </div>
+                <span className="text-[11px] font-mono text-[#8f8f8e]">Average response time: &lt; 2 hours</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Status alerts */}
+              {status === 'success' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 rounded-xl bg-[#eaf5e7] text-[#2a7a18] border border-[#4cc02b]/40 text-xs sm:text-sm flex items-start gap-3 shadow-xs"
+                >
+                  <CheckCircle2 className="w-5 h-5 text-[#4cc02b] shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold block text-[#1b5e10]">Thank you! Your message has been received.</span>
+                    <span className="text-[#2a7a18] text-xs">Our partnerships and sales team will review your note and get back to you shortly.</span>
+                  </div>
+                </motion.div>
+              )}
+
+              {status === 'validation_error' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 rounded-xl bg-red-50 text-red-700 border border-red-200 text-xs sm:text-sm flex items-center gap-3 shadow-xs"
+                >
+                  <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+                  <span>{errorMessage}</span>
+                </motion.div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Category selector */}
                 <div>
-                  <label className="block text-xs font-normal text-[#6f6f6e] mb-1">Full Name *</label>
-                  <input
-                    type="text"
+                  <label className="block text-xs font-mono uppercase text-[#70706e] mb-2 tracking-wider">
+                    Select Inquiry Category
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Sales', 'Product questions', 'Technical support', 'Partnerships', 'Feedback'].map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setCategory(cat)}
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                          category === cat
+                            ? 'bg-[#141414] text-white shadow-sm ring-2 ring-[#4cc02b]/40'
+                            : 'bg-[#f4f4ef] border border-black/8 text-[#4a4a49] hover:bg-[#e8e8df] hover:text-[#141414]'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Name & Email */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-[#4a4a49] mb-1.5">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Alex Rivera"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#f8f8f6] border border-black/10 text-sm text-[#141414] placeholder:text-[#a0a09e] focus:outline-none focus:border-[#4cc02b] focus:ring-2 focus:ring-[#4cc02b]/20 focus:bg-white transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[#4a4a49] mb-1.5">
+                      Work Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="alex@vertexagency.com"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#f8f8f6] border border-black/10 text-sm text-[#141414] placeholder:text-[#a0a09e] focus:outline-none focus:border-[#4cc02b] focus:ring-2 focus:ring-[#4cc02b]/20 focus:bg-white transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Company & Subject */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-[#4a4a49] mb-1.5">
+                      Agency / Company Name
+                    </label>
+                    <input
+                      type="text"
+                      value={company}
+                      onChange={(e) => setCompany(e.target.value)}
+                      placeholder="Vertex Interactive"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#f8f8f6] border border-black/10 text-sm text-[#141414] placeholder:text-[#a0a09e] focus:outline-none focus:border-[#4cc02b] focus:ring-2 focus:ring-[#4cc02b]/20 focus:bg-white transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[#4a4a49] mb-1.5">
+                      Subject
+                    </label>
+                    <input
+                      type="text"
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      placeholder="Scaling agency discovery volume"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#f8f8f6] border border-black/10 text-sm text-[#141414] placeholder:text-[#a0a09e] focus:outline-none focus:border-[#4cc02b] focus:ring-2 focus:ring-[#4cc02b]/20 focus:bg-white transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Message */}
+                <div>
+                  <label className="block text-xs font-medium text-[#4a4a49] mb-1.5">
+                    How can we help? <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
                     required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="John Doe"
-                    className="w-full px-3.5 py-2 rounded-[6px] bg-[#edede8] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                    rows={4}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Tell us about your agency, your team size, and what you're looking to achieve with ClientPilot..."
+                    className="w-full px-3.5 py-2.5 rounded-lg bg-[#f8f8f6] border border-black/10 text-sm text-[#141414] placeholder:text-[#a0a09e] focus:outline-none focus:border-[#4cc02b] focus:ring-2 focus:ring-[#4cc02b]/20 focus:bg-white transition-all resize-y"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-normal text-[#6f6f6e] mb-1">Work Email *</label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="john@agency.com"
-                    className="w-full px-3.5 py-2 rounded-[6px] bg-[#edede8] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
-                  />
+
+                {/* Submit button */}
+                <button
+                  type="submit"
+                  disabled={status === 'loading'}
+                  className="w-full h-12 rounded-xl bg-[#141414] hover:bg-[#252525] text-white font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:scale-[1.005] active:scale-[0.99] cursor-pointer group"
+                >
+                  {status === 'loading' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-[#4cc02b]" />
+                      <span>Sending inquiry...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Send Message</span>
+                      <Send className="w-4 h-4 text-[#4cc02b] transition-transform group-hover:translate-x-1" />
+                    </>
+                  )}
+                </button>
+              </form>
+            </motion.div>
+
+            {/* Right Column: Direct Info & Why Choose ClientPilot */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              className="lg:col-span-5 space-y-6"
+            >
+              {/* Highlight Card with Light Greenish Accent */}
+              <div className="p-7 rounded-2xl bg-[#eaf5e7] border border-[#4cc02b]/40 shadow-[0_8px_30px_rgba(76,192,43,0.1)] space-y-4">
+                <div className="flex items-center gap-2 text-xs font-mono text-[#2e7d1b] font-semibold uppercase">
+                  <Sparkles className="w-4 h-4 text-[#4cc02b]" />
+                  <span>Custom Agency Workflows</span>
+                </div>
+                <h3 className="text-xl font-normal text-[#141414] font-heading leading-snug">
+                  Need a tailored rollout for 10+ seats or custom API integrations?
+                </h3>
+                <p className="text-xs sm:text-sm text-[#4a4a49] leading-relaxed">
+                  We work closely with agency leadership to build customized discovery parameters, white-label developer briefs, and automated webhook pipelines.
+                </p>
+                <div className="pt-2 flex items-center gap-2 text-xs font-mono text-[#2a7a18]">
+                  <span className="w-2 h-2 rounded-full bg-[#4cc02b]" />
+                  <span>Dedicated solutions engineer assigned</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-normal text-[#6f6f6e] mb-1">Company / Agency Name</label>
-                  <input
-                    type="text"
-                    value={company}
-                    onChange={(e) => setCompany(e.target.value)}
-                    placeholder="Acme Digital"
-                    className="w-full px-3.5 py-2 rounded-[6px] bg-[#edede8] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-normal text-[#6f6f6e] mb-1">Subject</label>
-                  <input
-                    type="text"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Inquiry about Agency Plan"
-                    className="w-full px-3.5 py-2 rounded-[6px] bg-[#edede8] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
-                  />
+              {/* Direct Details Card */}
+              <div className="p-7 rounded-2xl bg-white border border-black/8 shadow-sm space-y-5">
+                <span className="text-[11px] font-mono uppercase text-[#8f8f8e] tracking-wider block">
+                  Direct Inquiries
+                </span>
+
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-9 h-9 rounded-xl bg-[#f4f4ef] border border-black/5 flex items-center justify-center text-[#292929] shrink-0">
+                      <Mail className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-[#8f8f8e]">General & Sales Email</div>
+                      <a href="mailto:support@clientpilot.ai" className="text-sm font-medium text-[#141414] hover:text-[#4cc02b] transition-colors">
+                        support@clientpilot.ai
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-9 h-9 rounded-xl bg-[#f4f4ef] border border-black/5 flex items-center justify-center text-[#292929] shrink-0">
+                      <Clock className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-[#8f8f8e]">Operating Hours</div>
+                      <div className="text-sm font-medium text-[#141414]">
+                        Monday – Friday, 8am – 7pm EST
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-9 h-9 rounded-xl bg-[#f4f4ef] border border-black/5 flex items-center justify-center text-[#292929] shrink-0">
+                      <ShieldCheck className="w-4 h-4 text-[#4cc02b]" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-[#8f8f8e]">Privacy Promise</div>
+                      <div className="text-xs text-[#5c5c5b] leading-relaxed">
+                        We never share your information or sell agency outreach data.
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
+            </motion.div>
 
-              <div>
-                <label className="block text-xs font-normal text-[#6f6f6e] mb-1">Message *</label>
-                <textarea
-                  required
-                  rows={5}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="How can we help your agency?"
-                  className="w-full px-3.5 py-2 rounded-[6px] bg-[#edede8] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={status === 'loading'}
-                className="w-full h-[44px] rounded-[200px] bg-[#141414] hover:bg-[#292929] text-white font-normal text-sm transition-all flex items-center justify-center gap-2"
-              >
-                {status === 'loading' ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Sending...</span>
-                  </>
-                ) : (
-                  <span>Send Message</span>
-                )}
-              </button>
-            </form>
           </div>
-
         </div>
       </section>
 

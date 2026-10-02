@@ -41,11 +41,13 @@ export function PublicFooter() {
           
           {/* Brand Column */}
           <div className="col-span-2 lg:col-span-2 space-y-3">
-            <Link to="/" className="flex items-center gap-2 text-[#292929]">
-              <div className="w-4 h-4 rounded-full bg-[#141414] flex items-center justify-center">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4cc02b]" />
-              </div>
-              <span className="text-lg font-normal tracking-tight font-heading">
+            <Link to="/" className="flex items-center gap-2.5 text-[#292929] group">
+              <img
+                src="/logo.png"
+                alt="ClientPilot AI Logo"
+                className="w-7 h-7 rounded-lg object-cover border border-black/10 shadow-xs"
+              />
+              <span className="text-lg font-semibold tracking-tight font-heading text-[#141414]">
                 ClientPilot AI
               </span>
             </Link>
