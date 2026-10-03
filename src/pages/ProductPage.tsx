@@ -135,7 +135,7 @@ export function ProductPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08 }}
-            className="text-4xl sm:text-6xl font-normal text-graphite-ink tracking-[-0.01em] font-heading max-w-4xl mx-auto leading-tight"
+            className="text-5xl sm:text-6xl lg:text-[72px] font-normal text-graphite-ink tracking-[-0.025em] font-heading max-w-4xl mx-auto leading-[1.04]"
           >
             The intelligence layer behind modern agency prospecting.
           </motion.h1>

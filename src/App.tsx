@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { CookieBanner } from '@/components/ui/CookieBanner'
 
 // ── Scroll to top on every route change ──────────────────────────────────────
 function ScrollToTop() {
@@ -53,6 +54,7 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
+      <CookieBanner />
       <Routes>
         {/* ── Public marketing pages ─────────────────────────── */}
         <Route path="/" element={<LandingPage />} />

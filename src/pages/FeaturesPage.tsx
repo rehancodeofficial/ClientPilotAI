@@ -156,7 +156,7 @@ export function FeaturesPage() {
           <motion.h1
             variants={fadeUp} custom={0.1}
             initial="hidden" animate="visible"
-            className="text-4xl sm:text-5xl lg:text-[64px] font-normal tracking-[-0.01em] text-charcoal-body font-heading leading-[1.05] max-w-3xl mb-6"
+            className="text-5xl sm:text-6xl lg:text-[72px] font-normal tracking-[-0.025em] text-charcoal-body font-heading leading-[1.04] max-w-3xl mb-6"
           >
             Everything your agency needs to win more clients.
           </motion.h1>

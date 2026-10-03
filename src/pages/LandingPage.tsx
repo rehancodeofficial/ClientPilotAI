@@ -275,9 +275,10 @@ export function LandingPage() {
                 custom={0.1}
                 initial="hidden"
                 animate="visible"
-                className="text-5xl sm:text-6xl lg:text-[68px] font-normal tracking-[-0.02em] text-graphite-ink leading-[1.08] font-heading"
+                className="text-5xl sm:text-6xl lg:text-[72px] font-extrabold tracking-[-0.03em] text-graphite-ink leading-[1.05] font-heading"
               >
-                Find the businesses<br className="hidden sm:block" /> that need your agency.
+                Find the businesses<br className="hidden sm:block" /> that{' '}
+                <span className="text-lime-pulse">need your agency.</span>
               </motion.h1>
 
               {/* Subheading */}
