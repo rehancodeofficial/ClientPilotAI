@@ -139,31 +139,31 @@ const features = [
 
 export function FeaturesPage() {
   return (
-    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans selection:bg-[#4cc02b] selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#edede8] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white overflow-x-hidden">
       <PublicNavbar />
 
       {/* Hero */}
       <section className="py-20 lg:py-28 bg-[#edede8] border-b border-black/10">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+        <div className="max-w-300 mx-auto px-4 sm:px-6">
           <motion.div
             variants={fadeUp} custom={0}
             initial="hidden" animate="visible"
-            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#dbdbd2] border border-black/8 text-[#5c5c5b] text-xs font-mono mb-6"
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-warm-stone border border-black/8 text-[#5c5c5b] text-xs font-mono mb-6"
           >
-            <span className="w-2 h-2 rounded-full bg-[#4cc02b]" />
+            <span className="w-2 h-2 rounded-full bg-lime-pulse" />
             Features
           </motion.div>
           <motion.h1
             variants={fadeUp} custom={0.1}
             initial="hidden" animate="visible"
-            className="text-4xl sm:text-5xl lg:text-[64px] font-normal tracking-[-0.01em] text-[#292929] font-heading leading-[1.05] max-w-3xl mb-6"
+            className="text-4xl sm:text-5xl lg:text-[64px] font-normal tracking-[-0.01em] text-charcoal-body font-heading leading-[1.05] max-w-3xl mb-6"
           >
             Everything your agency needs to win more clients.
           </motion.h1>
           <motion.p
             variants={fadeUp} custom={0.2}
             initial="hidden" animate="visible"
-            className="text-lg text-[#6f6f6e] max-w-2xl leading-relaxed mb-8"
+            className="text-lg text-slate-caption max-w-2xl leading-relaxed mb-8"
           >
             ClientPilot brings together business discovery, digital intelligence, AI opportunity analysis, qualification, outreach, and pipeline management into one intelligent workspace.
           </motion.p>
@@ -174,14 +174,14 @@ export function FeaturesPage() {
           >
             <Link
               to="/signup"
-              className="inline-flex items-center justify-center gap-2 px-6 h-11 rounded-full text-sm text-white bg-[#141414] hover:bg-[#292929] transition-all"
+              className="inline-flex items-center justify-center gap-2 px-6 h-11 rounded-full text-sm text-white bg-graphite-ink hover:bg-charcoal-body transition-all"
             >
               Start Free
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               to="/pricing"
-              className="inline-flex items-center justify-center gap-2 px-6 h-11 rounded-full text-sm text-[#292929] bg-[#dbdbd2] hover:bg-[#d0d0c8] transition-all"
+              className="inline-flex items-center justify-center gap-2 px-6 h-11 rounded-full text-sm text-charcoal-body bg-warm-stone hover:bg-quartz transition-all"
             >
               View Pricing
             </Link>
@@ -194,9 +194,9 @@ export function FeaturesPage() {
         {/* Dot-grid background */}
         <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, #29292914 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
         {/* Ambient top glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-48 bg-[#4cc02b]/6 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-175 h-48 bg-lime-pulse/6 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6">
+        <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {features.map((f, idx) => {
               const accent = accents[idx] || '#4cc02b'
@@ -237,7 +237,7 @@ export function FeaturesPage() {
                       </span>
                     </div>
                     <div>
-                      <h3 className="text-base font-medium text-[#141414] font-heading mb-2">{f.title}</h3>
+                      <h3 className="text-base font-medium text-graphite-ink font-heading mb-2">{f.title}</h3>
                       <p className="text-sm text-[#5c5c5b] leading-relaxed mb-4">{f.desc}</p>
                     </div>
                   </div>
@@ -255,7 +255,7 @@ export function FeaturesPage() {
 
                   {/* Animated bottom accent bar */}
                   <div
-                    className="absolute bottom-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     style={{ background: `linear-gradient(to right, ${accent}30, ${accent}, ${accent}30)` }}
                   />
                 </motion.div>
@@ -267,13 +267,13 @@ export function FeaturesPage() {
 
       {/* CTA band */}
       <section className="py-20 bg-[#edede8]">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+        <div className="max-w-300 mx-auto px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="p-10 sm:p-16 rounded-2xl bg-[#141414] text-white text-center space-y-6"
+            className="p-10 sm:p-16 rounded-2xl bg-graphite-ink text-white text-center space-y-6"
           >
             <h2 className="text-3xl sm:text-4xl font-normal tracking-tight font-heading">
               Ready to find opportunities your competitors are missing?
@@ -283,7 +283,7 @@ export function FeaturesPage() {
             </p>
             <Link
               to="/signup"
-              className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-[#141414] bg-white hover:bg-[#edede8] transition-all"
+              className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-graphite-ink bg-white hover:bg-[#edede8] transition-all"
             >
               Get Started Free
               <ArrowRight className="w-4 h-4" />

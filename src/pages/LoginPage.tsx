@@ -165,13 +165,15 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
   }, [location.pathname])
 
   useEffect(() => {
-    let interval: NodeJS.Timeout
+    let interval: ReturnType<typeof setInterval> | undefined
     if (resendCooldown > 0) {
       interval = setInterval(() => {
         setResendCooldown((prev) => prev - 1)
       }, 1000)
     }
-    return () => clearInterval(interval)
+    return () => {
+      if (interval) clearInterval(interval)
+    }
   }, [resendCooldown])
 
   const validateEmail = (val: string) =>
@@ -737,7 +739,8 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
               border: '1px solid rgba(0,0,0,0.08)',
               boxShadow: '0 20px 50px rgba(0,0,0,0.06)',
             }}
-              <AnimatePresence mode="wait">
+          >
+            <AnimatePresence mode="wait">
               {otpStep ? (
                 <motion.div
                   key="otp-step"
@@ -785,7 +788,9 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
                         {otpCode.map((digit, idx) => (
                           <input
                             key={idx}
-                            ref={(el) => (otpInputRefs.current[idx] = el)}
+                            ref={(el) => {
+                              otpInputRefs.current[idx] = el
+                            }}
                             type="text"
                             inputMode="numeric"
                             maxLength={idx === 0 ? 6 : 1}

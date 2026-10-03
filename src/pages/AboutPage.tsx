@@ -95,18 +95,18 @@ export function AboutPage() {
         </div>
       </section>
 
-      {/* The Minds Behind ClientPilot (Founder Story Section) */}
+      The Minds Behind ClientPilot (Founder Story Section)
       <section className="py-24 bg-[#edede8] border-b border-black/10">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 space-y-16">
+        <div className="max-w-300 mx-auto px-4 sm:px-6 space-y-16">
           {/* Section Heading & Context */}
           <div className="max-w-2xl">
             <motion.div
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#dbdbd2] text-[11px] font-mono uppercase tracking-wider text-[#4a4a49] mb-4 border border-black/5"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-warm-stone text-[11px] font-mono uppercase tracking-wider text-[#4a4a49] mb-4 border border-black/5"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4cc02b]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-lime-pulse" />
               Minds Behind the Product
             </motion.div>
             <motion.h2
@@ -115,7 +115,7 @@ export function AboutPage() {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="text-3xl sm:text-4xl lg:text-5xl font-normal text-[#141414] font-heading tracking-tight mb-4"
+              className="text-3xl sm:text-4xl lg:text-5xl font-normal text-graphite-ink font-heading tracking-tight mb-4"
             >
               The Minds Behind ClientPilot
             </motion.h2>
@@ -125,7 +125,7 @@ export function AboutPage() {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="text-lg font-medium text-[#292929] mb-2"
+              className="text-lg font-medium text-charcoal-body mb-2"
             >
               Built from an idea. Driven by a shared vision.
             </motion.p>
@@ -164,18 +164,18 @@ export function AboutPage() {
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-[#4cc02b] border-2 border-white shadow-sm" />
+                      <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-lime-pulse border-2 border-white shadow-sm" />
                     </div>
 
                     <div>
-                      <h3 className="text-xl sm:text-2xl font-normal text-[#141414] font-heading tracking-tight">
+                      <h3 className="text-xl sm:text-2xl font-normal text-graphite-ink font-heading tracking-tight">
                         {founder.name}
                       </h3>
-                      <p className="text-xs sm:text-sm font-medium text-[#4cc02b] font-mono mt-0.5">
+                      <p className="text-xs sm:text-sm font-medium text-lime-pulse font-mono mt-0.5">
                         {founder.role}
                       </p>
-                      <div className="flex items-center gap-1.5 mt-2 text-[11px] text-[#8f8f8e]">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#141414]" />
+                      <div className="flex items-center gap-1.5 mt-2 text-[11px] text-ash-subheading">
+                        <span className="w-1.5 h-1.5 rounded-full bg-graphite-ink" />
                         <span>ClientPilot Co-Founder</span>
                       </div>
                     </div>
@@ -184,22 +184,22 @@ export function AboutPage() {
                   {/* Bio Paragraphs */}
                   <div className="space-y-3 pt-2 text-sm text-[#5c5c5b] leading-relaxed border-t border-black/5">
                     <p>{founder.bio}</p>
-                    <p className="text-[#6f6f6e]">{founder.secondaryBio}</p>
+                    <p className="text-slate-caption">{founder.secondaryBio}</p>
                   </div>
                 </div>
 
                 {/* Focus Areas */}
                 <div className="pt-6 mt-6 border-t border-black/5">
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-[#8f8f8e] block mb-3">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-ash-subheading block mb-3">
                     Focus Areas
                   </span>
                   <div className="flex flex-wrap gap-2">
                     {founder.focusAreas.map((area) => (
                       <span
                         key={area}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-normal text-[#292929] bg-[#edede8] border border-black/5 hover:bg-[#dbdbd2] transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-normal text-charcoal-body bg-[#edede8] border border-black/5 hover:bg-warm-stone transition-colors"
                       >
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#4cc02b]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-lime-pulse" />
                         {area}
                       </span>
                     ))}
@@ -215,21 +215,21 @@ export function AboutPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="relative rounded-2xl bg-[#141414] text-white p-8 sm:p-12 lg:p-14 overflow-hidden border border-black/20 shadow-xl"
+            className="relative rounded-2xl bg-graphite-ink text-white p-8 sm:p-12 lg:p-14 overflow-hidden border border-black/20 shadow-xl"
           >
             {/* Subtle background gradient glow */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-[#4cc02b]/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-96 h-96 bg-lime-pulse/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-8 space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-mono text-[#4cc02b] border border-white/10">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#4cc02b] animate-pulse" />
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-mono text-lime-pulse border border-white/10">
+                  <span className="w-1.5 h-1.5 rounded-full bg-lime-pulse animate-pulse" />
                   One Vision
                 </div>
                 <h3 className="text-2xl sm:text-3xl lg:text-4xl font-normal font-heading tracking-tight text-white leading-tight">
                   Two minds. One mission.
                 </h3>
-                <p className="text-lg sm:text-xl font-normal text-[#4cc02b] font-heading">
+                <p className="text-lg sm:text-xl font-normal text-lime-pulse font-heading">
                   Giving every business a digital identity.
                 </p>
                 <p className="text-sm sm:text-base text-white/70 leading-relaxed max-w-2xl">
@@ -240,7 +240,7 @@ export function AboutPage() {
                 <div className="pt-3 flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm font-mono text-white/80">
                   {['Discover.', 'Understand.', 'Connect.', 'Build.'].map((pillar) => (
                     <span key={pillar} className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#4cc02b]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-lime-pulse" />
                       <span>{pillar}</span>
                     </span>
                   ))}
@@ -250,7 +250,7 @@ export function AboutPage() {
               <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col items-start lg:items-end justify-center gap-4">
                 <Link
                   to="/features"
-                  className="group inline-flex items-center justify-center gap-2 px-6 h-12 rounded-full text-sm font-medium text-[#141414] bg-white hover:bg-[#edede8] transition-all duration-200 shadow-md w-full sm:w-auto"
+                  className="group inline-flex items-center justify-center gap-2 px-6 h-12 rounded-full text-sm font-medium text-graphite-ink bg-white hover:bg-[#edede8] transition-all duration-200 shadow-md w-full sm:w-auto"
                 >
                   <span>Explore ClientPilot</span>
                   <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
@@ -259,7 +259,7 @@ export function AboutPage() {
                   to="/how-it-works"
                   className="inline-flex items-center justify-center gap-2 px-6 h-12 rounded-full text-sm font-normal text-white border border-white/20 hover:border-white/40 hover:bg-white/5 transition-all duration-200 w-full sm:w-auto text-center"
                 >
-                  See How It Works
+                  <span>See How It Works</span>
                 </Link>
               </div>
             </div>
@@ -269,7 +269,7 @@ export function AboutPage() {
 
       {/* Mission */}
       <section className="py-20 bg-white border-b border-black/10">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+        <div className="max-w-300 mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -278,14 +278,14 @@ export function AboutPage() {
               transition={{ duration: 0.6 }}
               className="space-y-5"
             >
-              <span className="text-xs font-mono uppercase text-[#8f8f8e] block">Our Mission</span>
-              <h2 className="text-3xl sm:text-4xl font-normal text-[#292929] font-heading tracking-tight">
+              <span className="text-xs font-mono uppercase text-ash-subheading block">Our Mission</span>
+              <h2 className="text-3xl sm:text-4xl font-normal text-charcoal-body font-heading tracking-tight">
                 AI finds the opportunity. Human expertise turns it into the solution.
               </h2>
-              <p className="text-base text-[#6f6f6e] leading-relaxed">
+              <p className="text-base text-slate-caption leading-relaxed">
                 We built ClientPilot because we watched great agencies waste hours cold-emailing businesses who didn't need them — and miss the ones who did. The problem wasn't effort. It was intelligence.
               </p>
-              <p className="text-base text-[#6f6f6e] leading-relaxed">
+              <p className="text-base text-slate-caption leading-relaxed">
                 ClientPilot gives agencies the intelligence layer they've always needed: a way to find businesses with real digital problems, understand those problems in depth, and start conversations grounded in evidence rather than guesswork.
               </p>
             </motion.div>
@@ -318,11 +318,11 @@ export function AboutPage() {
                 },
               ].map((item) => (
                 <div key={item.title} className="p-6 sm:p-7 rounded-2xl bg-[#edede8] border border-black/5 space-y-3">
-                  <div className="w-10 h-10 rounded-full bg-[#dbdbd2] flex items-center justify-center text-[#353535] shadow-xs">
+                  <div className="w-10 h-10 rounded-full bg-warm-stone flex items-center justify-center text-iron-nav shadow-xs">
                     <item.icon className="w-5 h-5" />
                   </div>
-                  <h3 className="text-base font-normal text-[#292929] font-heading">{item.title}</h3>
-                  <p className="text-sm text-[#6f6f6e] leading-relaxed">{item.desc}</p>
+                  <h3 className="text-base font-normal text-charcoal-body font-heading">{item.title}</h3>
+                  <p className="text-sm text-slate-caption leading-relaxed">{item.desc}</p>
                 </div>
               ))}
             </motion.div>
@@ -339,22 +339,22 @@ export function AboutPage() {
             alt="Agency collaboration"
             className="w-full h-full object-cover opacity-[0.07]"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#edede8] via-[#edede8]/95 to-[#edede8]" />
+          <div className="absolute inset-0 bg-linear-to-b from-[#edede8] via-[#edede8]/95 to-[#edede8]" />
           {/* Dot grid pattern */}
           <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, #4cc02b22 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
           {/* Ambient green glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-64 bg-[#4cc02b]/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-150 h-64 bg-lime-pulse/10 rounded-full blur-3xl pointer-events-none" />
         </div>
 
-        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6">
+        <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6">
           <div className="mb-14">
             <motion.div
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#dbdbd2] border border-black/8 text-[#5c5c5b] text-xs font-mono mb-4"
+              className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-warm-stone border border-black/8 text-[#5c5c5b] text-xs font-mono mb-4"
             >
-              <span className="w-2 h-2 rounded-full bg-[#4cc02b]" />
+              <span className="w-2 h-2 rounded-full bg-lime-pulse" />
               OUR PRINCIPLES
             </motion.div>
             <motion.h2
@@ -362,7 +362,7 @@ export function AboutPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.55 }}
-              className="text-3xl sm:text-4xl font-normal text-[#292929] font-heading"
+              className="text-3xl sm:text-4xl font-normal text-charcoal-body font-heading"
             >
               What we stand for
             </motion.h2>
@@ -444,8 +444,8 @@ export function AboutPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-base font-medium text-[#141414] font-heading mb-1.5">{val.title}</h3>
-                  <p className="text-sm text-[#6f6f6e] leading-relaxed">{val.desc}</p>
+                  <h3 className="text-base font-medium text-graphite-ink font-heading mb-1.5">{val.title}</h3>
+                  <p className="text-sm text-slate-caption leading-relaxed">{val.desc}</p>
                 </div>
 
                 {/* Bottom accent bar on hover */}
@@ -461,13 +461,13 @@ export function AboutPage() {
 
       {/* CTA */}
       <section className="py-20 bg-[#edede8]">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+        <div className="max-w-300 mx-auto px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="p-10 sm:p-16 rounded-2xl bg-[#141414] text-white text-center space-y-6"
+            className="p-10 sm:p-16 rounded-2xl bg-graphite-ink text-white text-center space-y-6"
           >
             <h2 className="text-3xl sm:text-4xl font-normal tracking-tight font-heading">
               Join the agencies finding better clients.
@@ -478,7 +478,7 @@ export function AboutPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
                 to="/signup"
-                className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-[#141414] bg-white hover:bg-[#edede8] transition-all"
+                className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-graphite-ink bg-white hover:bg-[#edede8] transition-all"
               >
                 Start Free
                 <ArrowRight className="w-4 h-4" />

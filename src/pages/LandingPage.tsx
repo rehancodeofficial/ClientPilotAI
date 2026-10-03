@@ -104,7 +104,7 @@ function WorkflowCircleCard({
       className="relative aspect-square rounded-2xl bg-white/90 backdrop-blur-sm border border-black/8 p-5 flex flex-col justify-center items-center text-center group cursor-default shadow-xs hover:shadow-md hover:border-lime-pulse/40 transition-all duration-300 overflow-hidden"
     >
       {/* Subtle greenish hover tint glow */}
-      <div className="absolute inset-0 bg-gradient-to-b from-lime-pulse/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-to-b from-lime-pulse/4 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       
       {/* Step badge top pill */}
       <div className="mb-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-lime-pulse/10 border border-lime-pulse/25 text-slate-caption group-hover:border-lime-pulse/40 transition-colors">
@@ -338,7 +338,7 @@ export function LandingPage() {
       {/* ── 3. PROBLEM / WORKFLOW SECTION ───────────────────────────────── */}
       <section className="relative py-20 bg-linear-to-b from-linen-canvas via-[#ebf4e7]/40 to-linen-canvas border-b border-black/10 overflow-hidden">
         {/* Soft greenish ambient background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[360px] bg-lime-pulse/8 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-180 h-90 bg-lime-pulse/8 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6">
           <Section className="">

@@ -106,7 +106,7 @@ const sections = [
 
 export function ProductPage() {
   return (
-    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans selection:bg-[#4cc02b] selection:text-white">
+    <div className="min-h-screen bg-[#edede8] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white">
       <PublicNavbar />
 
       {/* Hero */}
@@ -117,25 +117,25 @@ export function ProductPage() {
             alt="Product Digital Presence Workspace"
             className="w-full h-full object-cover opacity-10"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#edede8]/90 via-[#edede8]/85 to-[#edede8]" />
-          <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#4cc02b]/15 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[#4cc02b]/8 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute inset-0 bg-linear-to-b from-[#edede8]/90 via-[#edede8]/85 to-[#edede8]" />
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-lime-pulse/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-lime-pulse/8 rounded-full blur-2xl pointer-events-none" />
         </div>
 
-        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 space-y-6">
+        <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6 space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#eaf5e7] border border-[#4cc02b]/30 text-[#2a7a18] text-xs font-mono"
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#eaf5e7] border border-lime-pulse/30 text-[#2a7a18] text-xs font-mono"
           >
-            <span className="w-2 h-2 rounded-full bg-[#4cc02b] shadow-[0_0_8px_rgba(76,192,43,0.8)] animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-lime-pulse shadow-[0_0_8px_rgba(76,192,43,0.8)] animate-pulse" />
             <span>PRODUCT ARCHITECTURE</span>
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08 }}
-            className="text-4xl sm:text-6xl font-normal text-[#141414] tracking-[-0.01em] font-heading max-w-4xl mx-auto leading-tight"
+            className="text-4xl sm:text-6xl font-normal text-graphite-ink tracking-[-0.01em] font-heading max-w-4xl mx-auto leading-tight"
           >
             The intelligence layer behind modern agency prospecting.
           </motion.h1>
@@ -153,11 +153,11 @@ export function ProductPage() {
             transition={{ delay: 0.22 }}
             className="pt-2 flex justify-center gap-3"
           >
-            <Link to="/signup" className="inline-flex items-center gap-2 px-7 h-12 rounded-full text-sm font-medium text-white bg-[#141414] hover:bg-[#292929] transition-all shadow-sm">
+            <Link to="/signup" className="inline-flex items-center gap-2 px-7 h-12 rounded-full text-sm font-medium text-white bg-graphite-ink hover:bg-charcoal-body transition-all shadow-sm">
               <span>Start Free</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link to="/how-it-works" className="inline-flex items-center gap-2 px-7 h-12 rounded-full text-sm font-medium text-[#292929] bg-white border border-black/10 hover:bg-[#f4f4ef] transition-all shadow-xs">
+            <Link to="/how-it-works" className="inline-flex items-center gap-2 px-7 h-12 rounded-full text-sm font-medium text-charcoal-body bg-white border border-black/10 hover:bg-[#f4f4ef] transition-all shadow-xs">
               <span>See How It Works</span>
             </Link>
           </motion.div>
@@ -166,7 +166,7 @@ export function ProductPage() {
 
       {/* Detailed Product Sections — alternating layout with images */}
       <section className="py-10 sm:py-16">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 space-y-8">
+        <div className="max-w-300 mx-auto px-4 sm:px-6 space-y-8">
           {sections.map((sec, idx) => {
             const isEven = idx % 2 === 0
             return (
@@ -178,7 +178,7 @@ export function ProductPage() {
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                 whileHover={{ y: -2 }}
-                className={`relative rounded-3xl overflow-hidden border border-black/8 shadow-sm bg-gradient-to-br ${sec.bg} transition-all duration-300 hover:shadow-md hover:border-black/12`}
+                className={`relative rounded-3xl overflow-hidden border border-black/8 shadow-sm bg-linear-to-br ${sec.bg} transition-all duration-300 hover:shadow-md hover:border-black/12`}
               >
                 {/* Decorative corner glow */}
                 <div
@@ -186,7 +186,7 @@ export function ProductPage() {
                   style={{ background: sec.accent }}
                 />
 
-                <div className={`flex flex-col ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-stretch min-h-[280px]`}>
+                <div className={`flex flex-col ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-stretch min-h-70`}>
                   {/* Text side */}
                   <div className="flex-1 p-8 sm:p-10 flex flex-col justify-center space-y-5 relative z-10">
                     {/* Number + icon row */}
@@ -206,8 +206,8 @@ export function ProductPage() {
                     </div>
 
                     <div>
-                      <p className="text-[11px] font-mono uppercase tracking-wider text-[#8f8f8e] mb-1.5">{sec.subtitle}</p>
-                      <h2 className="text-2xl sm:text-3xl font-normal text-[#141414] font-heading tracking-tight leading-snug">{sec.title}</h2>
+                      <p className="text-[11px] font-mono uppercase tracking-wider text-ash-subheading mb-1.5">{sec.subtitle}</p>
+                      <h2 className="text-2xl sm:text-3xl font-normal text-graphite-ink font-heading tracking-tight leading-snug">{sec.title}</h2>
                     </div>
 
                     <p className="text-sm sm:text-base text-[#5c5c5b] leading-relaxed max-w-lg">{sec.desc}</p>
@@ -228,7 +228,7 @@ export function ProductPage() {
                   </div>
 
                   {/* Image side */}
-                  <div className="lg:w-[380px] xl:w-[440px] shrink-0 relative overflow-hidden min-h-[220px] lg:min-h-0">
+                  <div className="lg:w-95 xl:w-110 shrink-0 relative overflow-hidden min-h-55 lg:min-h-0">
                     <img
                       src={sec.img}
                       alt={sec.title}
@@ -239,8 +239,8 @@ export function ProductPage() {
                     <div
                       className={`absolute inset-0 ${
                         isEven
-                          ? 'bg-gradient-to-r from-transparent via-transparent to-transparent lg:bg-gradient-to-l'
-                          : 'bg-gradient-to-l from-transparent via-transparent to-transparent lg:bg-gradient-to-r'
+                          ? 'bg-linear-to-r from-transparent via-transparent to-transparent lg:bg-linear-to-l'
+                          : 'bg-linear-to-l from-transparent via-transparent to-transparent lg:bg-linear-to-r'
                       }`}
                       style={{
                         background: isEven
@@ -249,12 +249,12 @@ export function ProductPage() {
                       }}
                     />
                     {/* Bottom overlay for mobile */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-white/30 to-transparent lg:hidden" />
+                    <div className="absolute inset-0 bg-linear-to-t from-white/30 to-transparent lg:hidden" />
 
                     {/* Floating stat badge */}
                     <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm border border-black/8 rounded-xl px-3.5 py-2.5 shadow-sm">
-                      <span className="text-[10px] font-mono uppercase text-[#8f8f8e] block">Module</span>
-                      <span className="text-sm font-medium text-[#141414]">{sec.title}</span>
+                      <span className="text-[10px] font-mono uppercase text-ash-subheading block">Module</span>
+                      <span className="text-sm font-medium text-graphite-ink">{sec.title}</span>
                     </div>
                   </div>
                 </div>
@@ -266,20 +266,20 @@ export function ProductPage() {
 
       {/* CTA */}
       <section className="py-16 sm:py-20 px-4 sm:px-6">
-        <div className="max-w-[1200px] mx-auto">
+        <div className="max-w-300 mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="relative rounded-3xl bg-[#141414] text-white p-10 sm:p-16 text-center overflow-hidden"
+            className="relative rounded-3xl bg-graphite-ink text-white p-10 sm:p-16 text-center overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-96 h-96 bg-[#4cc02b]/15 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#4cc02b]/8 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-96 h-96 bg-lime-pulse/15 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-lime-pulse/8 rounded-full blur-2xl pointer-events-none" />
             <div className="relative z-10 space-y-5">
               <h2 className="text-3xl sm:text-4xl font-normal tracking-tight font-heading">Ready to see it in action?</h2>
               <p className="text-white/60 max-w-md mx-auto text-base">Start free. No credit card required.</p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                <Link to="/signup" className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-[#141414] bg-white hover:bg-[#edede8] transition-all">
+                <Link to="/signup" className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-graphite-ink bg-white hover:bg-[#edede8] transition-all">
                   Start Free <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link to="/how-it-works" className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-white border border-white/20 hover:border-white/40 transition-all">
