@@ -235,6 +235,23 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
     }
   }
 
+  const handleOAuthLogin = async (provider: 'google' | 'apple') => {
+    setLoading(true)
+    setError(null)
+    try {
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/app`,
+        },
+      })
+      if (oauthError) throw oauthError
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
+      setLoading(false)
+    }
+  }
+
   const handleStateToggle = (targetMode: 'login' | 'signup') => {
     setError(null)
     setMode(targetMode)
@@ -338,6 +355,23 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
         }
         .auth-btn-primary:active:not(:disabled) { transform: translateY(0px) scale(0.99); }
         .auth-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+        .auth-social-btn {
+          flex: 1; height: 46px; border-radius: 13px; font-size: 13px; font-weight: 600;
+          font-family: var(--font-sans); cursor: pointer;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          background: #ffffff; border: 1.5px solid rgba(0,0,0,0.1); color: #141414;
+          transition: all 200ms ease;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .auth-social-btn:hover:not(:disabled) {
+          background: #fafaf8;
+          border-color: rgba(0,0,0,0.2);
+          transform: translateY(-1px);
+          box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        }
+        .auth-social-btn:active:not(:disabled) {
+          transform: translateY(0);
+        }
         .auth-demo-btn {
           flex: 1; height: 44px; border-radius: 12px; font-size: 12px; font-weight: 600;
           font-family: var(--font-sans); cursor: pointer;
@@ -357,9 +391,9 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
         }
         .auth-toggle-btn:hover { opacity: 0.7; }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
           .auth-left { display: none !important; }
-          .auth-right { width: 100% !important; background: var(--bg) !important; }
+          .auth-right { width: 100% !important; background: var(--bg) !important; padding: 24px 16px !important; }
         }
       `}</style>
 
@@ -367,7 +401,7 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
       <div
         className="auth-left"
         style={{
-          width: '52%', height: '100%',
+          width: '46%', height: '100%',
           background: '#edebe4',
           position: 'relative',
           display: 'flex', flexDirection: 'column',
@@ -463,7 +497,7 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
               </TagChip>
 
               <h1 style={{
-                fontSize: 'clamp(3rem, 5vw, 5rem)',
+                fontSize: 'clamp(3rem, 5vw, 4.5rem)',
                 fontWeight: 900, lineHeight: 0.95, letterSpacing: '-0.05em',
                 color: '#141414', margin: '0 0 20px',
                 fontFamily: 'var(--font-heading)',
@@ -539,11 +573,11 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
         </motion.div>
       </div>
 
-      {/* RIGHT PANEL */}
+      {/* RIGHT PANEL - Expanded Width */}
       <div
         className="auth-right"
         style={{
-          width: '48%', height: '100%',
+          width: '54%', height: '100%',
           background: 'var(--bg)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: '40px 32px', overflowY: 'auto',
@@ -557,10 +591,12 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.5, ease: EASE }}
             style={{
-              width: '100%', maxWidth: 420,
+              width: '100%',
+              minWidth: '340px',
+              maxWidth: 500,
               background: '#ffffff',
               borderRadius: 28,
-              padding: '40px 36px',
+              padding: '44px 40px',
               border: '1px solid rgba(0,0,0,0.08)',
               boxShadow: '0 20px 50px rgba(0,0,0,0.06)',
             }}
@@ -578,10 +614,10 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05 }}
-                  style={{ marginBottom: 28 }}
+                  style={{ marginBottom: 24 }}
                 >
                   <h2 style={{
-                    fontSize: 26, fontWeight: 800, color: '#141414',
+                    fontSize: 28, fontWeight: 800, color: '#141414',
                     letterSpacing: '-0.04em', margin: '0 0 6px',
                     fontFamily: 'var(--font-heading)',
                   }}>
@@ -593,6 +629,45 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
                       : 'Enter your credentials to continue.'}
                   </p>
                 </motion.div>
+
+                {/* Social Auth Buttons (Google & Apple) */}
+                <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+                  <button
+                    type="button"
+                    className="auth-social-btn"
+                    onClick={() => handleOAuthLogin('google')}
+                    disabled={loading}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                    </svg>
+                    <span>Google</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="auth-social-btn"
+                    onClick={() => handleOAuthLogin('apple')}
+                    disabled={loading}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#141414">
+                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.86c.62-.77 1.05-1.84.93-2.92-.93.04-2.02.63-2.66 1.4-.57.67-1.07 1.76-.94 2.81 1.03.08 2.06-.52 2.67-1.29z" />
+                    </svg>
+                    <span>Apple</span>
+                  </button>
+                </div>
+
+                {/* Or divider */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                  <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.08)' }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#8f8f8e', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                    or continue with email
+                  </span>
+                  <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.08)' }} />
+                </div>
 
                 {/* Form */}
                 <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: 14 }} noValidate>
@@ -668,12 +743,12 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
                         onClick={() => setShowPassword(!showPassword)}
                         style={{
                           position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
-                          background: 'none', border: 'none', color: 'rgba(245,245,243,0.3)',
+                          background: 'none', border: 'none', color: '#8f8f8e',
                           cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0,
                           transition: 'color 200ms',
                         }}
                         onMouseEnter={(e) => (e.currentTarget.style.color = '#4cc02b')}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(245,245,243,0.3)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = '#8f8f8e')}
                       >
                         {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                       </button>
@@ -718,7 +793,7 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
                 </form>
 
                 {/* Toggle */}
-                <div style={{ textAlign: 'center', marginTop: 18, fontSize: 13, color: 'rgba(245,245,243,0.35)', fontWeight: 400 }}>
+                <div style={{ textAlign: 'center', marginTop: 18, fontSize: 13, color: '#6f6f6e', fontWeight: 400 }}>
                   {mode === 'signup' ? (
                     <>Already have an account?{' '}
                       <button className="auth-toggle-btn" onClick={() => handleStateToggle('login')}>Sign in</button>
