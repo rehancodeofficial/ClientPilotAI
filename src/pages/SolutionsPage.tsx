@@ -270,16 +270,11 @@ export function SolutionsPage() {
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.08, duration: 0.65, ease: EASE }}
-                style={{
-                  fontSize: 'clamp(3rem, 7vw, 6rem)',
-                  fontWeight: 800, letterSpacing: '-0.05em', lineHeight: 0.95,
-                  color: '#141414', margin: '0 0 24px',
-                  fontFamily: 'var(--font-heading)',
-                }}
+                className="text-5xl sm:text-6xl lg:text-[72px] font-normal tracking-[-0.025em] leading-[1.04] text-charcoal-body font-heading mb-6"
               >
-                Built for<br />
-                <span style={{ color: '#4cc02b' }}>every kind</span><br />
-                of agency.
+                Built for{' '}
+                <span className="text-lime-pulse">every kind</span>
+                {' '}of agency.
               </motion.h1>
 
               <motion.p
