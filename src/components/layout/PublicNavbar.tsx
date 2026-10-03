@@ -56,17 +56,17 @@ export function PublicNavbar() {
 
   return (
     <header
-      className={`sticky top-0 z-100 transition-colors duration-300 font-sans ${
+      className={`sticky top-0 z-50 transition-colors duration-300 font-sans ${
         scrolled
-          ? 'bg-linen-canvas border-b border-black/10 shadow-[0_2px_16px_rgba(0,0,0,0.05)] py-2'
-          : 'bg-linen-canvas border-b border-black/8 py-3'
+          ? 'bg-[#edede8]/98 backdrop-blur-md border-b border-black/10 shadow-[0_2px_16px_rgba(0,0,0,0.05)] py-2.5'
+          : 'bg-[#edede8] border-b border-black/8 py-3.5'
       }`}
     >
       <div className="max-w-310 mx-auto px-4 sm:px-6 flex items-center justify-between">
         {/* Brand Logo with Live Pulse Indicator */}
         <Link
           to="/"
-          className="flex items-center gap-2.5 group text-charcoal-body select-none"
+          className="flex items-center gap-2.5 group text-charcoal-body select-none shrink-0"
         >
           <div className="relative flex items-center justify-center">
             <motion.div
@@ -96,10 +96,10 @@ export function PublicNavbar() {
           </div>
         </Link>
 
-        {/* Desktop Animated Navigation with Floating Backdrop Pill */}
+        {/* Desktop Animated Navigation (>= xl or lg with compact padding) */}
         <nav
           onMouseLeave={() => setHoveredPath(null)}
-          className="hidden lg:flex items-center gap-1 bg-black/3 p-1.5 rounded-full border border-black/5"
+          className="hidden xl:flex items-center gap-1 bg-black/3 p-1.5 rounded-full border border-black/5"
         >
           {navLinks.map((link) => {
             const active = isActive(link.href)
@@ -110,7 +110,7 @@ export function PublicNavbar() {
                 key={link.href}
                 to={link.href}
                 onMouseEnter={() => setHoveredPath(link.href)}
-                className={`relative px-3.5 py-1.5 text-[13px] font-medium transition-colors duration-150 rounded-full select-none ${
+                className={`relative px-3 py-1.5 text-[13px] font-medium transition-colors duration-150 rounded-full select-none ${
                   active
                     ? 'text-graphite-ink'
                     : isHovered
@@ -144,8 +144,8 @@ export function PublicNavbar() {
           })}
         </nav>
 
-        {/* Desktop Actions (Sign In + Animated Glow CTA Button) */}
-        <div className="hidden lg:flex items-center gap-3">
+        {/* Desktop Actions (Sign In + Start Free) */}
+        <div className="hidden xl:flex items-center gap-3 shrink-0">
           <Link
             to="/login"
             className="px-3.5 py-1.5 text-xs font-medium text-[#4a4a49] hover:text-graphite-ink hover:bg-black/5 rounded-full transition-all duration-150"
@@ -169,18 +169,29 @@ export function PublicNavbar() {
           </motion.div>
         </div>
 
-        {/* Mobile Hamburger & Quick CTA */}
-        <div className="flex items-center gap-2 lg:hidden">
+        {/* Tablet & Mobile Right Bar (< xl) */}
+        <div className="flex items-center gap-2.5 xl:hidden">
+          {/* Quick Sign In link on tablet */}
+          <Link
+            to="/login"
+            className="hidden sm:inline-block px-3 py-1.5 text-xs font-medium text-[#4a4a49] hover:text-graphite-ink hover:bg-black/5 rounded-full transition-colors"
+          >
+            Sign In
+          </Link>
+
+          {/* Quick CTA button on tablet & mobile */}
           <Link
             to="/signup"
-            className="px-3 py-1.5 rounded-full text-xs font-medium text-white bg-graphite-ink active:scale-95 transition-transform"
+            className="px-3.5 py-1.5 rounded-full text-xs font-medium text-white bg-graphite-ink active:scale-95 transition-transform shadow-xs"
           >
             Start Free
           </Link>
+
+          {/* Menu Hamburger / Close Toggle */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-full text-charcoal-body bg-black/5 hover:bg-black/10 transition-colors"
+            className="p-2 rounded-full text-charcoal-body bg-black/5 hover:bg-black/10 transition-colors cursor-pointer"
             aria-label="Toggle menu"
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -210,7 +221,7 @@ export function PublicNavbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer with Staggered Animations */}
+      {/* Mobile & Tablet Drawer (< xl) */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
@@ -218,10 +229,10 @@ export function PublicNavbar() {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="lg:hidden bg-linen-canvas border-b border-black/10 overflow-hidden shadow-lg"
+            className="xl:hidden bg-[#edede8] border-b border-black/10 overflow-hidden shadow-lg"
           >
-            <div className="px-5 pt-3 pb-6 space-y-4">
-              {/* Navigation items list */}
+            <div className="max-w-310 mx-auto px-4 sm:px-6 pt-3 pb-6 space-y-4">
+              {/* Responsive Navigation Grid (1 col on mobile, 3 cols on tablet) */}
               <motion.div
                 initial="hidden"
                 animate="visible"
@@ -229,10 +240,10 @@ export function PublicNavbar() {
                   hidden: { opacity: 0 },
                   visible: {
                     opacity: 1,
-                    transition: { staggerChildren: 0.04 },
+                    transition: { staggerChildren: 0.03 },
                   },
                 }}
-                className="flex flex-col space-y-1"
+                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5"
               >
                 {navLinks.map((link) => {
                   const active = isActive(link.href)
@@ -240,8 +251,8 @@ export function PublicNavbar() {
                     <motion.div
                       key={link.href}
                       variants={{
-                        hidden: { opacity: 0, x: -10 },
-                        visible: { opacity: 1, x: 0 },
+                        hidden: { opacity: 0, y: -6 },
+                        visible: { opacity: 1, y: 0 },
                       }}
                     >
                       <Link
@@ -249,15 +260,15 @@ export function PublicNavbar() {
                         onClick={() => setMobileMenuOpen(false)}
                         className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
                           active
-                            ? 'bg-white text-graphite-ink shadow-sm border border-black/5 font-semibold'
+                            ? 'bg-white text-graphite-ink shadow-xs border border-black/8 font-semibold'
                             : 'text-[#444443] hover:text-graphite-ink hover:bg-black/5'
                         }`}
                       >
                         <span className="flex items-center gap-2">
                           {link.label}
-                          {link.label === 'About' && (
+                          {link.badge && (
                             <span className="text-[10px] px-1.5 py-0.2 rounded bg-lime-pulse/15 text-[#2e7d1b] font-mono">
-                              Story
+                              {link.badge}
                             </span>
                           )}
                         </span>
@@ -268,40 +279,41 @@ export function PublicNavbar() {
                     </motion.div>
                   )
                 })}
+              </motion.div>
 
-                {/* Extra links */}
-                <div className="pt-2 grid grid-cols-2 gap-2 border-t border-black/8">
+              {/* Extra links & Quick CTAs */}
+              <div className="pt-3 border-t border-black/8 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   {extraMobileLinks.map((item) => (
                     <Link
                       key={item.href}
                       to={item.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-[#5c5c5b] hover:text-graphite-ink bg-black/2 hover:bg-black/5 transition-colors"
+                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium text-[#5c5c5b] hover:text-graphite-ink bg-white/60 hover:bg-white border border-black/5 transition-colors"
                     >
                       <item.icon className="w-3.5 h-3.5 text-ash-subheading" />
                       <span>{item.label}</span>
                     </Link>
                   ))}
                 </div>
-              </motion.div>
 
-              {/* Mobile CTAs */}
-              <div className="pt-3 border-t border-black/10 grid grid-cols-2 gap-2.5">
-                <Link
-                  to="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2.5 rounded-xl text-xs font-medium text-charcoal-body bg-warm-stone hover:bg-quartz transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/signup"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full inline-flex items-center justify-center gap-1.5 text-center py-2.5 rounded-xl text-xs font-medium text-white bg-graphite-ink hover:bg-charcoal-body transition-colors shadow-sm"
-                >
-                  <span>Start Free</span>
-                  <ArrowRight className="w-3 h-3" />
-                </Link>
+                <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-5 py-2.5 rounded-xl text-xs font-medium text-charcoal-body bg-warm-stone hover:bg-quartz transition-colors text-center"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-medium text-white bg-graphite-ink hover:bg-charcoal-body transition-colors shadow-xs text-center"
+                  >
+                    <span>Start Free</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
               </div>
             </div>
           </motion.div>
