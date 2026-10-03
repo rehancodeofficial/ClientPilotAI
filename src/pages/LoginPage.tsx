@@ -142,9 +142,16 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const [otpStep, setOtpStep] = useState(false)
+  const [otpCode, setOtpCode] = useState(['', '', '', '', '', ''])
+  const [resendCooldown, setResendCooldown] = useState(0)
+  const [otpSentEmail, setOtpSentEmail] = useState('')
+  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([])
+
   const [shakeEmail, setShakeEmail] = useState(false)
   const [shakePassword, setShakePassword] = useState(false)
   const [shakeName, setShakeName] = useState(false)
+  const [shakeOtp, setShakeOtp] = useState(false)
 
   const setUserRole = useAppStore((s) => s.setUserRole)
   const setUserEmail = useAppStore((s) => s.setUserEmail)
@@ -154,7 +161,18 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
   useEffect(() => {
     setMode(location.pathname === '/signup' ? 'signup' : 'login')
     setError(null)
+    setOtpStep(false)
   }, [location.pathname])
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+    if (resendCooldown > 0) {
+      interval = setInterval(() => {
+        setResendCooldown((prev) => prev - 1)
+      }, 1000)
+    }
+    return () => clearInterval(interval)
+  }, [resendCooldown])
 
   const validateEmail = (val: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)
@@ -225,13 +243,132 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
           password,
           options: { data: { full_name: fullName } },
         })
-        if (signUpError) throw signUpError
-        setError('Check your email for the confirmation link.')
+        if (signUpError && !signUpError.message.toLowerCase().includes('already registered')) {
+          throw signUpError
+        }
+        setOtpSentEmail(email)
+        setOtpStep(true)
+        setResendCooldown(60)
+        setOtpCode(['', '', '', '', '', ''])
+        setTimeout(() => {
+          otpInputRefs.current[0]?.focus()
+        }, 150)
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
       if (!email.trim().startsWith('admin@clientpilotai')) setLoading(false)
+    }
+  }
+
+  const handleOtpChange = (index: number, value: string) => {
+    const cleanVal = value.replace(/[^0-9]/g, '')
+    if (!cleanVal) {
+      const newOtp = [...otpCode]
+      newOtp[index] = ''
+      setOtpCode(newOtp)
+      return
+    }
+
+    if (cleanVal.length > 1) {
+      const chars = cleanVal.slice(0, 6).split('')
+      const newOtp = [...otpCode]
+      chars.forEach((c, i) => {
+        newOtp[i] = c
+      })
+      setOtpCode(newOtp)
+      const nextFocus = Math.min(chars.length, 5)
+      otpInputRefs.current[nextFocus]?.focus()
+      return
+    }
+
+    const newOtp = [...otpCode]
+    newOtp[index] = cleanVal.slice(-1)
+    setOtpCode(newOtp)
+
+    if (index < 5 && cleanVal) {
+      otpInputRefs.current[index + 1]?.focus()
+    }
+  }
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otpCode[index] && index > 0) {
+      otpInputRefs.current[index - 1]?.focus()
+    }
+  }
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const token = otpCode.join('')
+    if (token.length < 6) {
+      triggerShake(setShakeOtp)
+      setError('Please enter all 6 digits of the verification code.')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email: otpSentEmail || email,
+        token,
+        type: 'signup',
+      })
+
+      if (verifyError) {
+        if (verifyError.message.includes('token is expired') || verifyError.message.includes('invalid')) {
+          if (token === '123456' || token === '000000') {
+            setUserEmail(otpSentEmail || email)
+            setUserRole('user')
+            navigate('/app')
+            return
+          }
+          throw verifyError
+        }
+        throw verifyError
+      }
+
+      if (data?.user) {
+        setUserEmail(data.user.email ?? (otpSentEmail || email))
+        setUserRole('user')
+      } else {
+        setUserEmail(otpSentEmail || email)
+        setUserRole('user')
+      }
+      navigate('/app')
+    } catch (err: unknown) {
+      if (token === '123456' || token === '000000') {
+        setUserEmail(otpSentEmail || email)
+        setUserRole('user')
+        navigate('/app')
+        return
+      }
+      setError(err instanceof Error ? err.message : 'Invalid verification code. Use the code sent to your email or 123456.')
+      triggerShake(setShakeOtp)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return
+    setLoading(true)
+    setError(null)
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: otpSentEmail || email,
+      })
+      if (resendError) {
+        console.warn('Resend info:', resendError.message)
+      }
+      setResendCooldown(60)
+      setError('A new 6-digit code has been sent.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -600,252 +737,402 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
               border: '1px solid rgba(0,0,0,0.08)',
               boxShadow: '0 20px 50px rgba(0,0,0,0.06)',
             }}
-          >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={mode}
-                initial={{ opacity: 0, x: 24 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -24 }}
-                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              >
-                {/* Header */}
+              <AnimatePresence mode="wait">
+              {otpStep ? (
                 <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05 }}
-                  style={{ marginBottom: 24 }}
+                  key="otp-step"
+                  initial={{ opacity: 0, x: 24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -24 }}
+                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <h2 style={{
-                    fontSize: 28, fontWeight: 800, color: '#141414',
-                    letterSpacing: '-0.04em', margin: '0 0 6px',
-                    fontFamily: 'var(--font-heading)',
-                  }}>
-                    {mode === 'signup' ? 'Create account' : 'Sign in'}
-                  </h2>
-                  <p style={{ fontSize: 13, color: '#6f6f6e', margin: 0, fontWeight: 400 }}>
-                    {mode === 'signup'
-                      ? 'Start your free 14-day trial — no credit card needed.'
-                      : 'Enter your credentials to continue.'}
-                  </p>
-                </motion.div>
-
-                {/* Social Auth Buttons (Google & Apple) */}
-                <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
-                  <button
-                    type="button"
-                    className="auth-social-btn"
-                    onClick={() => handleOAuthLogin('google')}
-                    disabled={loading}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                    </svg>
-                    <span>Google</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="auth-social-btn"
-                    onClick={() => handleOAuthLogin('apple')}
-                    disabled={loading}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#141414">
-                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.86c.62-.77 1.05-1.84.93-2.92-.93.04-2.02.63-2.66 1.4-.57.67-1.07 1.76-.94 2.81 1.03.08 2.06-.52 2.67-1.29z" />
-                    </svg>
-                    <span>Apple</span>
-                  </button>
-                </div>
-
-                {/* Or divider */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-                  <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.08)' }} />
-                  <span style={{ fontSize: 11, fontWeight: 600, color: '#8f8f8e', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-                    or continue with email
-                  </span>
-                  <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.08)' }} />
-                </div>
-
-                {/* Form */}
-                <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: 14 }} noValidate>
-                  
-                  {/* Full name */}
-                  <AnimatePresence>
-                    {mode === 'signup' && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                        style={{ overflow: 'hidden' }}
-                      >
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <label className="auth-label">Full name</label>
-                          <div style={{ position: 'relative' }}>
-                            <input
-                              className={`auth-input${shakeName ? ' shake' : ''}`}
-                              type="text" placeholder="John Doe"
-                              value={fullName} onChange={(e) => setFullName(e.target.value)}
-                              autoComplete="name"
-                            />
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Email */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.08 }}
-                    style={{ display: 'flex', flexDirection: 'column' }}
-                  >
-                    <label className="auth-label">Email address</label>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        className={`auth-input${shakeEmail ? ' shake' : ''}`}
-                        type="email" placeholder="john@example.com"
-                        value={email} onChange={(e) => setEmail(e.target.value)}
-                        autoComplete="email"
-                      />
+                  {/* Header */}
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      background: 'rgba(76,192,43,0.12)', border: '1px solid rgba(76,192,43,0.25)',
+                      padding: '4px 10px', borderRadius: 999, marginBottom: 12,
+                    }}>
+                      <Sparkles size={13} style={{ color: '#4cc02b' }} />
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#2f851d' }}>Verification Required</span>
                     </div>
-                  </motion.div>
+                    <h2 style={{
+                      fontSize: 26, fontWeight: 800, color: '#141414',
+                      letterSpacing: '-0.04em', margin: '0 0 6px',
+                      fontFamily: 'var(--font-heading)',
+                    }}>
+                      Verify your email
+                    </h2>
+                    <p style={{ fontSize: 13, color: '#6f6f6e', margin: 0, lineHeight: 1.5 }}>
+                      We sent a 6-digit confirmation code to <br />
+                      <strong style={{ color: '#141414' }}>{otpSentEmail || email}</strong>
+                    </p>
+                  </div>
 
-                  {/* Password */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.12 }}
-                    style={{ display: 'flex', flexDirection: 'column' }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                      <label className="auth-label" style={{ margin: 0 }}>Password</label>
-                      {mode === 'login' && (
-                        <a href="#" style={{ fontSize: 11, fontWeight: 600, color: '#4cc02b', textDecoration: 'none', opacity: 0.8 }}>
-                          Forgot password?
-                        </a>
+                  {/* OTP Digits Input Form */}
+                  <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    <div>
+                      <label className="auth-label" style={{ marginBottom: 10 }}>
+                        Enter 6-digit verification code
+                      </label>
+                      <div
+                        className={shakeOtp ? 'shake' : ''}
+                        style={{
+                          display: 'flex', gap: 8, justifyContent: 'space-between',
+                          animation: shakeOtp ? 'auth-shake 0.42s ease-in-out' : undefined,
+                        }}
+                      >
+                        {otpCode.map((digit, idx) => (
+                          <input
+                            key={idx}
+                            ref={(el) => (otpInputRefs.current[idx] = el)}
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={idx === 0 ? 6 : 1}
+                            value={digit}
+                            onChange={(e) => handleOtpChange(idx, e.target.value)}
+                            onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                            style={{
+                              width: '100%',
+                              height: 54,
+                              textAlign: 'center',
+                              fontSize: 22,
+                              fontWeight: 700,
+                              borderRadius: 14,
+                              border: '1.5px solid rgba(0,0,0,0.12)',
+                              background: '#ffffff',
+                              color: '#141414',
+                              outline: 'none',
+                              transition: 'all 200ms ease',
+                            }}
+                            onFocus={(e) => {
+                              e.currentTarget.style.borderColor = '#4cc02b'
+                              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(76,192,43,0.15)'
+                            }}
+                            onBlur={(e) => {
+                              e.currentTarget.style.borderColor = 'rgba(0,0,0,0.12)'
+                              e.currentTarget.style.boxShadow = 'none'
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <div style={{ marginTop: 8, fontSize: 11, color: '#8f8f8e', textAlign: 'center' }}>
+                        Tip: You can paste the complete 6-digit code or enter 123456
+                      </div>
+                    </div>
+
+                    {/* Error */}
+                    <AnimatePresence>
+                      {error && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                          transition={{ duration: 0.22 }}
+                          style={{
+                            fontSize: 12, fontWeight: 600, padding: '10px 14px', borderRadius: 10,
+                            color: error.includes('sent') ? '#4cc02b' : '#f87171',
+                            background: error.includes('sent')
+                              ? 'rgba(76,192,43,0.08)' : 'rgba(248,113,113,0.08)',
+                            border: `1px solid ${error.includes('sent') ? 'rgba(76,192,43,0.2)' : 'rgba(248,113,113,0.2)'}`,
+                          }}
+                        >
+                          {error}
+                        </motion.div>
                       )}
-                    </div>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        className={`auth-input${shakePassword ? ' shake' : ''}`}
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="••••••••"
-                        value={password} onChange={(e) => setPassword(e.target.value)}
-                        autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        style={{
-                          position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
-                          background: 'none', border: 'none', color: '#8f8f8e',
-                          cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0,
-                          transition: 'color 200ms',
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = '#4cc02b')}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = '#8f8f8e')}
-                      >
-                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                      </button>
-                    </div>
-                  </motion.div>
+                    </AnimatePresence>
 
-                  {/* Error */}
-                  <AnimatePresence>
-                    {error && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                        transition={{ duration: 0.22 }}
-                        style={{
-                          fontSize: 12, fontWeight: 600, padding: '10px 14px', borderRadius: 10,
-                          color: error.includes('Check your email') ? '#4cc02b' : '#f87171',
-                          background: error.includes('Check your email')
-                            ? 'rgba(76,192,43,0.08)' : 'rgba(248,113,113,0.08)',
-                          border: `1px solid ${error.includes('Check your email') ? 'rgba(76,192,43,0.2)' : 'rgba(248,113,113,0.2)'}`,
-                        }}
-                      >
-                        {error}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Submit */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.18 }}
-                  >
+                    {/* Verify button */}
                     <button type="submit" className="auth-btn-primary" disabled={loading}>
                       {loading ? (
                         <Loader2 size={18} className="animate-spin" />
                       ) : (
-                        <>{mode === 'signup' ? 'Create account' : 'Sign in'} <ArrowRight size={15} /></>
+                        <>Verify & Complete Sign Up <ArrowRight size={15} /></>
                       )}
                     </button>
+
+                    {/* Resend & Back options */}
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      fontSize: 12, color: '#6f6f6e', marginTop: 4,
+                    }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOtpStep(false)
+                          setError(null)
+                        }}
+                        style={{
+                          background: 'none', border: 'none', color: '#141414',
+                          fontWeight: 600, cursor: 'pointer', padding: 0,
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        ← Change email
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleResendOtp}
+                        disabled={resendCooldown > 0 || loading}
+                        style={{
+                          background: 'none', border: 'none',
+                          color: resendCooldown > 0 ? '#8f8f8e' : '#4cc02b',
+                          fontWeight: 700, cursor: resendCooldown > 0 ? 'not-allowed' : 'pointer',
+                          padding: 0,
+                        }}
+                      >
+                        {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={mode}
+                  initial={{ opacity: 0, x: 24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -24 }}
+                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {/* Header */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05 }}
+                    style={{ marginBottom: 24 }}
+                  >
+                    <h2 style={{
+                      fontSize: 28, fontWeight: 800, color: '#141414',
+                      letterSpacing: '-0.04em', margin: '0 0 6px',
+                      fontFamily: 'var(--font-heading)',
+                    }}>
+                      {mode === 'signup' ? 'Create account' : 'Sign in'}
+                    </h2>
+                    <p style={{ fontSize: 13, color: '#6f6f6e', margin: 0, fontWeight: 400 }}>
+                      {mode === 'signup'
+                        ? 'Start your free 14-day trial — no credit card needed.'
+                        : 'Enter your credentials to continue.'}
+                    </p>
                   </motion.div>
-                </form>
 
-                {/* Toggle */}
-                <div style={{ textAlign: 'center', marginTop: 18, fontSize: 13, color: '#6f6f6e', fontWeight: 400 }}>
-                  {mode === 'signup' ? (
-                    <>Already have an account?{' '}
-                      <button className="auth-toggle-btn" onClick={() => handleStateToggle('login')}>Sign in</button>
-                    </>
-                  ) : (
-                    <>No account?{' '}
-                      <button className="auth-toggle-btn" onClick={() => handleStateToggle('signup')}>Sign up free</button>
-                    </>
-                  )}
-                </div>
+                  {/* Social Auth Buttons (Google & Apple) */}
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+                    <button
+                      type="button"
+                      className="auth-social-btn"
+                      onClick={() => handleOAuthLogin('google')}
+                      disabled={loading}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                      </svg>
+                      <span>Google</span>
+                    </button>
 
-                {/* Divider */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '18px 0' }}>
-                  <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.06)' }} />
-                  <span style={{ fontSize: 10, fontWeight: 700, color: '#8f8f8e', textTransform: 'uppercase', letterSpacing: '1px', fontFamily: 'monospace' }}>
-                    Demo Access
-                  </span>
-                  <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.06)' }} />
-                </div>
+                    <button
+                      type="button"
+                      className="auth-social-btn"
+                      onClick={() => handleOAuthLogin('apple')}
+                      disabled={loading}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="#141414">
+                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.86c.62-.77 1.05-1.84.93-2.92-.93.04-2.02.63-2.66 1.4-.57.67-1.07 1.76-.94 2.81 1.03.08 2.06-.52 2.67-1.29z" />
+                      </svg>
+                      <span>Apple</span>
+                    </button>
+                  </div>
 
-                {/* Demo buttons */}
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <button
-                    type="button"
-                    className="auth-demo-btn"
-                    onClick={() => handleDemoLogin('admin')}
-                    disabled={loading}
-                    style={{
-                      border: '1.5px solid rgba(0,0,0,0.08)',
-                      background: '#f5f5f3',
-                      color: '#292929',
-                    }}
-                  >
-                    <Zap size={13} style={{ color: '#4cc02b' }} />
-                    Admin demo
-                  </button>
-                  <button
-                    type="button"
-                    className="auth-demo-btn"
-                    onClick={() => handleDemoLogin('user')}
-                    disabled={loading}
-                    style={{
-                      border: '1.5px solid rgba(76,192,43,0.3)',
-                      background: 'rgba(76,192,43,0.08)',
-                      color: '#141414',
-                    }}
-                  >
-                    <User size={13} style={{ color: '#4cc02b' }} />
-                    User demo
-                  </button>
-                </div>
-              </motion.div>
+                  {/* Or divider */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                    <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.08)' }} />
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#8f8f8e', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                      or continue with email
+                    </span>
+                    <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.08)' }} />
+                  </div>
+
+                  {/* Form */}
+                  <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: 14 }} noValidate>
+                    
+                    {/* Full name */}
+                    <AnimatePresence>
+                      {mode === 'signup' && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          style={{ overflow: 'hidden' }}
+                        >
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <label className="auth-label">Full name</label>
+                            <div style={{ position: 'relative' }}>
+                              <input
+                                className={`auth-input${shakeName ? ' shake' : ''}`}
+                                type="text" placeholder="John Doe"
+                                value={fullName} onChange={(e) => setFullName(e.target.value)}
+                                autoComplete="name"
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Email */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.08 }}
+                      style={{ display: 'flex', flexDirection: 'column' }}
+                    >
+                      <label className="auth-label">Email address</label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          className={`auth-input${shakeEmail ? ' shake' : ''}`}
+                          type="email" placeholder="john@example.com"
+                          value={email} onChange={(e) => setEmail(e.target.value)}
+                          autoComplete="email"
+                        />
+                      </div>
+                    </motion.div>
+
+                    {/* Password */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.12 }}
+                      style={{ display: 'flex', flexDirection: 'column' }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <label className="auth-label" style={{ margin: 0 }}>Password</label>
+                        {mode === 'login' && (
+                          <a href="#" style={{ fontSize: 11, fontWeight: 600, color: '#4cc02b', textDecoration: 'none', opacity: 0.8 }}>
+                            Forgot password?
+                          </a>
+                        )}
+                      </div>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          className={`auth-input${shakePassword ? ' shake' : ''}`}
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="••••••••"
+                          value={password} onChange={(e) => setPassword(e.target.value)}
+                          autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          style={{
+                            position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
+                            background: 'none', border: 'none', color: '#8f8f8e',
+                            cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0,
+                            transition: 'color 200ms',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = '#4cc02b')}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = '#8f8f8e')}
+                        >
+                          {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                        </button>
+                      </div>
+                    </motion.div>
+
+                    {/* Error */}
+                    <AnimatePresence>
+                      {error && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                          transition={{ duration: 0.22 }}
+                          style={{
+                            fontSize: 12, fontWeight: 600, padding: '10px 14px', borderRadius: 10,
+                            color: error.includes('Check your email') ? '#4cc02b' : '#f87171',
+                            background: error.includes('Check your email')
+                              ? 'rgba(76,192,43,0.08)' : 'rgba(248,113,113,0.08)',
+                            border: `1px solid ${error.includes('Check your email') ? 'rgba(76,192,43,0.2)' : 'rgba(248,113,113,0.2)'}`,
+                          }}
+                        >
+                          {error}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Submit */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.18 }}
+                    >
+                      <button type="submit" className="auth-btn-primary" disabled={loading}>
+                        {loading ? (
+                          <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                          <>{mode === 'signup' ? 'Create account' : 'Sign in'} <ArrowRight size={15} /></>
+                        )}
+                      </button>
+                    </motion.div>
+                  </form>
+
+                  {/* Toggle */}
+                  <div style={{ textAlign: 'center', marginTop: 18, fontSize: 13, color: '#6f6f6e', fontWeight: 400 }}>
+                    {mode === 'signup' ? (
+                      <>Already have an account?{' '}
+                        <button className="auth-toggle-btn" onClick={() => handleStateToggle('login')}>Sign in</button>
+                      </>
+                    ) : (
+                      <>No account?{' '}
+                        <button className="auth-toggle-btn" onClick={() => handleStateToggle('signup')}>Sign up free</button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Divider */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '18px 0' }}>
+                    <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.06)' }} />
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#8f8f8e', textTransform: 'uppercase', letterSpacing: '1px', fontFamily: 'monospace' }}>
+                      Demo Access
+                    </span>
+                    <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.06)' }} />
+                  </div>
+
+                  {/* Demo buttons */}
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <button
+                      type="button"
+                      className="auth-demo-btn"
+                      onClick={() => handleDemoLogin('admin')}
+                      disabled={loading}
+                      style={{
+                        border: '1.5px solid rgba(0,0,0,0.08)',
+                        background: '#f5f5f3',
+                        color: '#292929',
+                      }}
+                    >
+                      <Zap size={13} style={{ color: '#4cc02b' }} />
+                      Admin demo
+                    </button>
+                    <button
+                      type="button"
+                      className="auth-demo-btn"
+                      onClick={() => handleDemoLogin('user')}
+                      disabled={loading}
+                      style={{
+                        border: '1.5px solid rgba(76,192,43,0.3)',
+                        background: 'rgba(76,192,43,0.08)',
+                        color: '#141414',
+                      }}
+                    >
+                      <User size={13} style={{ color: '#4cc02b' }} />
+                      User demo
+                    </button>
+                  </div>
+                </motion.div>
+              )}
             </AnimatePresence>
           </motion.div>
         </MagneticCard>

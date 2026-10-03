@@ -49,7 +49,7 @@ const founders = [
 
 export function AboutPage() {
   return (
-    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans selection:bg-[#4cc02b] selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#edede8] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white overflow-x-hidden">
       <PublicNavbar />
 
       {/* Hero */}
@@ -61,17 +61,17 @@ export function AboutPage() {
             alt="Agency Modern Workspace"
             className="w-full h-full object-cover opacity-15"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#edede8]/90 via-[#edede8]/80 to-[#edede8]" />
+          <div className="absolute inset-0 bg-linear-to-b from-[#edede8]/90 via-[#edede8]/80 to-[#edede8]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(76,192,43,0.08),transparent_50%)]" />
         </div>
 
-        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6">
+        <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#dbdbd2] border border-black/8 text-[#5c5c5b] text-xs font-mono mb-6"
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-warm-stone border border-black/8 text-[#5c5c5b] text-xs font-mono mb-6"
           >
-            <span className="w-2 h-2 rounded-full bg-[#4cc02b]" />
+            <span className="w-2 h-2 rounded-full bg-lime-pulse" />
             <span className="font-mono text-[11px] text-[#4a4a49]">About ClientPilot</span>
           </motion.div>
           <motion.h1
@@ -79,7 +79,7 @@ export function AboutPage() {
             custom={0.05}
             initial="hidden"
             animate="visible"
-            className="text-4xl sm:text-5xl lg:text-[64px] font-normal tracking-[-0.01em] text-[#292929] font-heading leading-[1.05] max-w-3xl mb-6"
+            className="text-4xl sm:text-5xl lg:text-[64px] font-normal tracking-[-0.01em] text-charcoal-body font-heading leading-[1.05] max-w-3xl mb-6"
           >
             Giving every business a digital identity.
           </motion.h1>
