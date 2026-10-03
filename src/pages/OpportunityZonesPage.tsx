@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import L from 'leaflet';
 import {
   MapPin, Radar, Filter, RefreshCw, Layers, Compass, Building2,
-  CheckCircle2, ArrowUpRight, Target, Sparkles
+  CheckCircle2, ArrowUpRight, Target, Wand2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Select, Slider } from '@/components/ui';
 import { getOpportunityZones, getAllLeads } from '@/lib/apiClient';

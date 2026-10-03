@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import {
   Award, CheckCircle2, TrendingUp, ShieldCheck, HelpCircle,
   BarChart2, RefreshCw, FileText, Check, AlertCircle, ArrowUpRight,
-  Sparkles, Database
+  Wand2, Database
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Skeleton } from '@/components/ui';
 import { getModelEvaluation } from '@/lib/apiClient';
@@ -68,7 +68,7 @@ export function IntelligenceEvaluationPage() {
       {/* Academic Research Questions Card */}
       <div className="clay-raised p-6 space-y-4">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-(--primary)" />
+          <Wand2 className="h-5 w-5 text-(--primary)" />
           <h2 className="text-base font-bold text-(--text-primary)">
             FYP Research Hypotheses & Experimental Architecture
           </h2>

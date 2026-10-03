@@ -2,7 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Radar, Kanban, Users, Settings, ChevronLeft, ChevronRight,
-  FileText, MessageSquare, Map, BarChart3, FlaskConical, Sparkles, ShieldCheck,
+  FileText, MessageSquare, Map, BarChart3, FlaskConical, Wand2, ShieldCheck,
 } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { cn } from '@/lib/utils'
@@ -181,7 +181,7 @@ export function Sidebar() {
               className="mx-4 mb-4 px-4 py-3 clay-inset"
             >
               <div className="flex items-center gap-1.5 mb-1">
-                <Sparkles className="h-3 w-3 text-(--primary)" />
+                <Wand2 className="h-3 w-3 text-(--primary)" />
                 <p className="text-[10px] font-bold text-(--text-secondary) uppercase tracking-widest">Powered by</p>
               </div>
               <p className="text-[12px] font-bold text-(--text-primary) truncate">Gemini 2.5 Flash</p>

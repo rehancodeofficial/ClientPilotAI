@@ -5,7 +5,7 @@ import { PublicFooter } from '@/components/layout/PublicFooter'
 import {
   BookOpen,
   ArrowRight,
-  Sparkles,
+  Wand2,
   FileCode2,
   TrendingUp,
   Search,
@@ -96,7 +96,7 @@ export function ResourcesPage() {
             <span className="w-2 h-2 rounded-full bg-[#4cc02b] shadow-[0_0_8px_rgba(76,192,43,0.8)]" />
             <span>AGENCY KNOWLEDGE CENTER</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-normal text-[#141414] tracking-[-0.01em] font-heading max-w-3xl mx-auto">
+          <h1 className="text-5xl sm:text-6xl lg:text-[72px] font-normal text-[#141414] tracking-[-0.025em] font-heading max-w-3xl mx-auto leading-[1.04]">
             Resources, Guides & Frameworks
           </h1>
           <p className="text-base sm:text-lg text-[#5c5c5b] max-w-2xl mx-auto leading-relaxed">
@@ -175,7 +175,7 @@ export function ResourcesPage() {
           <div className="p-8 sm:p-12 rounded-2xl bg-[#141414] text-white flex flex-col lg:flex-row items-center justify-between gap-8 shadow-xl">
             <div className="space-y-2 max-w-xl text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-mono text-[#4cc02b]">
-                <Sparkles className="w-3.5 h-3.5" />
+                <Wand2 className="w-3.5 h-3.5" />
                 <span>LIVE PLATFORM ACCESS</span>
               </div>
               <h3 className="text-2xl sm:text-3xl font-normal font-heading tracking-tight">

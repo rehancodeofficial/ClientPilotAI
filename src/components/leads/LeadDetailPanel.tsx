@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  X, MapPin, Phone, Globe, ExternalLink, Sparkles,
+  X, MapPin, Phone, Globe, ExternalLink, Wand2,
   Send, Save, CheckCircle2, Store, Mail, AlertCircle,
   Loader2, AtSign, Shield, Smartphone, ShoppingCart, Calendar,
   FileText, Activity, Users, Zap,
@@ -100,7 +100,7 @@ function evidenceSourceBadge(source: EvidenceItem['source'], isAiInference: bool
   if (isAiInference || source === 'ai_inference') {
     return (
       <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700">
-        <Sparkles className="h-2.5 w-2.5" />
+        <Wand2 className="h-2.5 w-2.5" />
         ✦ AI INFERENCE
       </span>
     )
@@ -312,7 +312,7 @@ function OverviewTab({ lead }: { lead: Lead }) {
       <div className="rounded-xl border border-(--border) bg-(--surface-raised) p-4 space-y-3">
         <div className="flex items-center gap-2">
           <div className="h-6 w-6 rounded-lg bg-(--primary-soft) flex items-center justify-center">
-            <Sparkles className="h-3.5 w-3.5 text-(--primary)" />
+            <Wand2 className="h-3.5 w-3.5 text-(--primary)" />
           </div>
           <span className="text-xs font-bold text-(--text-primary) uppercase tracking-wider">
             Why This Opportunity?
@@ -961,7 +961,7 @@ function OutreachTab({ lead }: { lead: Lead }) {
             Outreach is generated automatically during intelligence preparation. Click the button below to regenerate.
           </p>
           <Button onClick={handleRegenerate} isLoading={isRegenerating} size="sm" className="mt-3 gap-1.5">
-            <Sparkles className="h-4 w-4" /> Generate with AI
+            <Wand2 className="h-4 w-4" /> Generate with AI
           </Button>
         </div>
       )}
@@ -1053,7 +1053,7 @@ function ProposalTab({ lead }: { lead: Lead }) {
         </div>
       ) : (
         <div className="rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-700 px-4 py-6 text-center">
-          <Sparkles className="h-8 w-8 text-indigo-300 mx-auto mb-2" />
+          <Wand2 className="h-8 w-8 text-indigo-300 mx-auto mb-2" />
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
             Proposal is generated automatically during intelligence preparation.
           </p>
@@ -1216,7 +1216,7 @@ export function LeadDetailPanel() {
                     isLoading={lead.isPreparing}
                     className="text-xs h-8 px-3 gap-1.5 shadow-sm"
                   >
-                    <Sparkles className="h-3.5 w-3.5" />
+                    <Wand2 className="h-3.5 w-3.5" />
                     <span>Prepare Opportunity</span>
                   </Button>
                   <button

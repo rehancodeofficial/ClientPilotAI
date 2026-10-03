@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { PublicNavbar } from '@/components/layout/PublicNavbar'
 import { PublicFooter } from '@/components/layout/PublicFooter'
-import { ArrowRight, Heart, Globe, Sparkles, Layers, Cpu, Compass, CheckCircle2, Search, Shield, Zap, Star } from 'lucide-react'
+import { ArrowRight, Heart, Globe, Wand2, Layers, Cpu, Compass, CheckCircle2, Search, Shield, Zap, Star } from 'lucide-react'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -378,7 +378,7 @@ export function AboutPage() {
                 accent: '#2f851d',
               },
               {
-                icon: Sparkles,
+                icon: Wand2,
                 num: '03',
                 title: 'Transparency in AI',
                 desc: 'Every AI finding in ClientPilot is traceable. We show agencies exactly what signals we found and why we scored opportunities the way we did.',

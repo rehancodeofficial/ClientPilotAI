@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { PublicNavbar } from '@/components/layout/PublicNavbar'
 import { PublicFooter } from '@/components/layout/PublicFooter'
-import { Search, Globe, Sparkles, Target, Mail, Code2, ShieldCheck, Brain, ArrowRight } from 'lucide-react'
+import { Search, Globe, Wand2, Target, Mail, Code2, ShieldCheck, Brain, ArrowRight } from 'lucide-react'
 
 const sections = [
   {
@@ -36,7 +36,7 @@ const sections = [
     title: 'Opportunity Intelligence',
     subtitle: 'Convert findings into agency deliverables.',
     desc: 'ClientPilot doesn\'t just show errors — it maps technical deficiencies directly to commercial agency deliverables like custom web development, booking flows, or SEO revamps.',
-    icon: Sparkles,
+    icon: Wand2,
     accent: '#4cc02b',
     bg: 'from-[#eaf5e7] to-[#f4f7f2]',
     tags: ['Gap mapping', 'Service matching', 'Revenue estimate', 'Priority ranking'],

@@ -162,7 +162,7 @@ export function PricingPage() {
           <motion.h1
             variants={fadeUp} custom={0.05}
             initial="hidden" animate="visible"
-            className="text-4xl sm:text-5xl lg:text-[64px] font-normal tracking-[-0.01em] text-[#141414] font-heading leading-[1.05] max-w-3xl mb-6"
+            className="text-5xl sm:text-6xl lg:text-[72px] font-normal tracking-[-0.025em] text-[#141414] font-heading leading-[1.04] max-w-3xl mb-6"
           >
             Clear pricing. No surprises.
           </motion.h1>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Sparkles,
+  Wand2,
   Search,
   Bell,
   MessageSquare,
@@ -249,7 +249,7 @@ export function ClayDashboardPage() {
             <div className="w-full max-w-xl p-10 clay-card-dark">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-[#52B788] to-[#2D6A4F] flex items-center justify-center shadow-md">
-                  <Sparkles className="w-6 h-6 text-white" />
+                  <Wand2 className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h1 className="text-2xl font-black tracking-tight text-white">GrowthVault 3D Dashboard</h1>
@@ -324,7 +324,7 @@ export function ClayDashboardPage() {
                   boxShadow: 'inset 8px 8px 16px rgba(255, 255, 255, 0.3), inset -8px -8px 16px rgba(0,0,0,0.5), 0 10px 24px rgba(13, 43, 31, 0.4)'
                 }}
               >
-                <Sparkles className="w-10 h-10 text-white animate-pulse" />
+                <Wand2 className="w-10 h-10 text-white animate-pulse" />
               </motion.div>
             </div>
 
@@ -368,7 +368,7 @@ export function ClayDashboardPage() {
                 {/* Branding Logo */}
                 <div className="flex items-center gap-3 pb-4 border-b-2 border-[#2D6A4F]/30">
                   <div className="w-11 h-11 rounded-xl bg-linear-to-br from-[#74C69D] to-[#40916C] flex items-center justify-center shadow-md">
-                    <Sparkles className="w-5 h-5 text-white" />
+                    <Wand2 className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <h3 className="font-black text-white text-base leading-none">GrowthVault</h3>
@@ -875,7 +875,7 @@ export function ClayDashboardPage() {
                   <div>
                     <div className="flex justify-between items-center pb-3 border-b border-[#2D6A4F]/20 mb-4">
                       <h4 className="text-sm font-black text-white flex items-center gap-1.5">
-                        <Sparkles className="w-4 h-4 text-[#52B788]" /> Pilot AI Copilot
+                        <Wand2 className="w-4 h-4 text-[#52B788]" /> Pilot AI Copilot
                       </h4>
                       <button onClick={() => setShowChatDrawer(false)} className="text-xs font-extrabold text-[#74C69D]">Close</button>
                     </div>

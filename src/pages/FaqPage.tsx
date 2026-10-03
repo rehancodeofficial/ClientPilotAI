@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PublicNavbar } from '@/components/layout/PublicNavbar'
 import { PublicFooter } from '@/components/layout/PublicFooter'
-import { ChevronDown, HelpCircle, Sparkles, MessageCircle, ArrowRight, ShieldCheck, Zap } from 'lucide-react'
+import { ChevronDown, HelpCircle, Wand2, MessageCircle, ArrowRight, ShieldCheck, Zap } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export function FaqPage() {
@@ -83,7 +83,7 @@ export function FaqPage() {
             <span className="w-2 h-2 rounded-full bg-[#4cc02b] shadow-[0_0_8px_rgba(76,192,43,0.8)]" />
             <span>HELP & KNOWLEDGE DESK</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-normal text-[#141414] tracking-[-0.01em] font-heading max-w-3xl mx-auto">
+          <h1 className="text-5xl sm:text-6xl lg:text-[72px] font-normal text-[#141414] tracking-[-0.025em] font-heading max-w-3xl mx-auto leading-[1.04]">
             Frequently Asked Questions
           </h1>
           <p className="text-base sm:text-lg text-[#5c5c5b] max-w-2xl mx-auto leading-relaxed">

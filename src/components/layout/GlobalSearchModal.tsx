@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Search, X, Building2, Target, FileText, ArrowRight, ShieldCheck, MapPin, Sparkles
+  Search, X, Building2, Target, FileText, ArrowRight, ShieldCheck, MapPin, Wand2
 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { cn, getCategoryLabel, getScoreColor } from '@/lib/utils';
@@ -162,7 +162,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                         >
                           <div className="flex items-center gap-3 min-w-0">
                             <div className="h-8 w-8 rounded-lg bg-(--surface-raised) border border-(--border) flex items-center justify-center shrink-0">
-                              <Sparkles className="h-4 w-4 text-(--accent)" />
+                              <Wand2 className="h-4 w-4 text-(--accent)" />
                             </div>
                             <div className="min-w-0">
                               <p className="text-xs font-bold text-(--text-primary) truncate group-hover:text-(--primary) transition-colors">

@@ -6,7 +6,7 @@ import {
   ResponsiveContainer, Cell, PieChart, Pie, Legend,
 } from 'recharts'
 import {
-  TrendingUp, TrendingDown, Users, Star, Send, BarChart2, Activity, Sparkles,
+  TrendingUp, TrendingDown, Users, Star, Send, BarChart2, Activity, Wand2,
   CheckCircle2, Zap, ArrowUpRight, Radar, ChevronRight, Target, ShieldCheck,
   Building2, ArrowRight
 } from 'lucide-react'
@@ -174,7 +174,7 @@ export function DashboardPage() {
       value: `${s.avgConfidenceScore ?? 84.2}%`,
       trend: 6.8,
       sparkline: [70, 72, 74, 75, 78, 80, 81, 82, 83, 84, 84, 85, 84, 85],
-      icon: <Sparkles className="h-5 w-5 text-white" />,
+      icon: <Wand2 className="h-5 w-5 text-white" />,
       accent: 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2]',
     },
     {
@@ -311,7 +311,7 @@ export function DashboardPage() {
 
                   <div className="flex items-center justify-between gap-2 pt-2 border-t border-(--border)">
                     <div className="flex items-center gap-1.5 text-xs text-(--text-muted) truncate">
-                      <Sparkles className="h-3 w-3 text-(--primary) shrink-0" />
+                      <Wand2 className="h-3 w-3 text-(--primary) shrink-0" />
                       <span className="truncate">{recommendedService}</span>
                     </div>
 
@@ -384,7 +384,7 @@ export function DashboardPage() {
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="h-8 w-8 rounded-full clay-inset flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-(--warning)" />
+              <Wand2 className="h-4 w-4 text-(--warning)" />
             </div>
             <h2 className="clay-card-title">Score Distribution</h2>
           </div>

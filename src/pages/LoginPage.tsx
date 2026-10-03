@@ -3,7 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
 import { supabase } from '@/lib/supabaseClient'
 import { useAppStore } from '@/store/useAppStore'
-import { Loader2, Eye, EyeOff, Zap, User, ArrowRight, Shield, Sparkles } from 'lucide-react'
+import { Loader2, Eye, EyeOff, Zap, User, ArrowRight, Shield, Wand2 } from 'lucide-react'
 
 interface LoginPageProps {
   initialMode?: 'login' | 'signup'
@@ -756,7 +756,7 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
                       background: 'rgba(76,192,43,0.12)', border: '1px solid rgba(76,192,43,0.25)',
                       padding: '4px 10px', borderRadius: 999, marginBottom: 12,
                     }}>
-                      <Sparkles size={13} style={{ color: '#4cc02b' }} />
+                      <Wand2 size={13} style={{ color: '#4cc02b' }} />
                       <span style={{ fontSize: 11, fontWeight: 700, color: '#2f851d' }}>Verification Required</span>
                     </div>
                     <h2 style={{

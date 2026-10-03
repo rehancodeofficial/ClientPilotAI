@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Check, ChevronDown, FlaskConical, AlertTriangle } from 'lucide-react';
+import { Wand2, Check, ChevronDown, FlaskConical, AlertTriangle } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { cn } from '@/lib/utils';
 

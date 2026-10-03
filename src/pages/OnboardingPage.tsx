@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PublicNavbar } from '@/components/layout/PublicNavbar'
 import { PublicFooter } from '@/components/layout/PublicFooter'
-import { Check, ArrowRight, Sparkles, Rocket } from 'lucide-react'
+import { Check, ArrowRight, Wand2, Rocket } from 'lucide-react'
 
 export function OnboardingPage() {
   const [step, setStep] = useState(1)
@@ -207,7 +207,7 @@ export function OnboardingPage() {
                     'Streamline developer handoff workflow'
                   ].map((goal, idx) => (
                     <div key={idx} className="p-3 rounded-[6px] bg-[#edede8] border border-black/5 flex items-center gap-3 text-xs text-[#292929]">
-                      <Sparkles className="w-3.5 h-3.5 text-[#353535] shrink-0" />
+                      <Wand2 className="w-3.5 h-3.5 text-[#353535] shrink-0" />
                       <span>{goal}</span>
                     </div>
                   ))}

@@ -7,7 +7,7 @@ import {
   AlertCircle,
   Loader2,
   Send,
-  Sparkles,
+  Wand2,
   Mail,
   MapPin,
   Clock,
@@ -83,7 +83,7 @@ export function ContactPage() {
               custom={0.05}
               initial="hidden"
               animate="visible"
-              className="text-4xl sm:text-5xl lg:text-6xl font-normal text-[#141414] tracking-[-0.01em] font-heading leading-tight"
+              className="text-5xl sm:text-6xl lg:text-[72px] font-normal text-[#141414] tracking-[-0.025em] font-heading leading-[1.04]"
             >
               Let’s talk about your agency’s pipeline.
             </motion.h1>
@@ -276,7 +276,7 @@ export function ContactPage() {
               {/* Highlight Card with Light Greenish Accent */}
               <div className="p-7 rounded-2xl bg-[#eaf5e7] border border-[#4cc02b]/40 shadow-[0_8px_30px_rgba(76,192,43,0.1)] space-y-4">
                 <div className="flex items-center gap-2 text-xs font-mono text-[#2e7d1b] font-semibold uppercase">
-                  <Sparkles className="w-4 h-4 text-[#4cc02b]" />
+                  <Wand2 className="w-4 h-4 text-[#4cc02b]" />
                   <span>Custom Agency Workflows</span>
                 </div>
                 <h3 className="text-xl font-normal text-[#141414] font-heading leading-snug">

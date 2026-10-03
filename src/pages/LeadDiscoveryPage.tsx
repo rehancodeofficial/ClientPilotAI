@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import L from 'leaflet'
 import {
   Radar, CheckCircle2, Loader2, MapPin, Phone, Globe, Clock,
-  Filter, ArrowUpDown, Search, Sparkles, Map as MapIcon, List, X,
+  Filter, ArrowUpDown, Search, Wand2, Map as MapIcon, List, X,
   Utensils, ShoppingBag, Scissors, Activity, Wrench, Pill, Coffee, Monitor, Star, Home, Store
 } from 'lucide-react'
 import {
@@ -474,7 +474,7 @@ export function LeadDiscoveryPage() {
             </span>
           )}
           <Button onClick={handleDiscover} isLoading={isRunning} size="md" className="gap-2 ml-auto">
-            <Sparkles className="h-4 w-4" />
+            <Wand2 className="h-4 w-4" />
             {isRunning ? 'Discovering…' : 'Discover Leads'}
           </Button>
         </div>
