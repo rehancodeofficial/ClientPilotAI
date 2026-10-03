@@ -78,11 +78,13 @@ function StatCard({ value, label, delay }: { value: string; label: string; delay
 
 // ─── Workflow Circle card (Section 3) ────────────────────────────────────────
 function WorkflowCircleCard({
+  num,
   icon: Icon,
   title,
   desc,
   delay = 0
 }: {
+  num: string
   icon: React.ElementType
   title: string
   desc: string
@@ -97,14 +99,23 @@ function WorkflowCircleCard({
       custom={delay}
       initial="hidden"
       animate={inView ? 'visible' : 'hidden'}
-      whileHover={{ scale: 1.03, y: -2 }}
+      whileHover={{ scale: 1.03, y: -3 }}
       transition={{ type: 'spring', stiffness: 280, damping: 22 }}
-      className="aspect-square rounded-full bg-white border border-black/8 p-5 flex flex-col justify-center items-center text-center group cursor-default shadow-sm hover:border-black/16 transition-colors"
+      className="relative aspect-square rounded-2xl bg-white/90 backdrop-blur-sm border border-black/8 p-5 flex flex-col justify-center items-center text-center group cursor-default shadow-xs hover:shadow-md hover:border-lime-pulse/40 transition-all duration-300 overflow-hidden"
     >
-      <div className="w-9 h-9 rounded-full bg-linen-canvas flex items-center justify-center text-iron-nav shrink-0 mb-2 group-hover:bg-warm-stone transition-colors">
+      {/* Subtle greenish hover tint glow */}
+      <div className="absolute inset-0 bg-gradient-to-b from-lime-pulse/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      
+      {/* Step badge top pill */}
+      <div className="mb-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-lime-pulse/10 border border-lime-pulse/25 text-slate-caption group-hover:border-lime-pulse/40 transition-colors">
+        <span className="w-1 h-1 rounded-full bg-lime-pulse" />
+        <span className="font-mono text-[10px] font-semibold text-graphite-ink">{num}</span>
+      </div>
+
+      <div className="w-10 h-10 rounded-xl bg-linen-canvas border border-black/5 flex items-center justify-center text-graphite-ink shrink-0 mb-2 group-hover:bg-lime-pulse/15 group-hover:text-[#1e6112] group-hover:border-lime-pulse/30 transition-all duration-200">
         <Icon className="w-4.5 h-4.5" />
       </div>
-      <h3 className="text-sm font-normal text-charcoal-body mb-1 font-heading leading-tight">{title}</h3>
+      <h3 className="text-sm font-medium text-charcoal-body mb-1 font-heading leading-tight">{title}</h3>
       <p className="text-[11px] text-slate-caption leading-snug max-w-35">{desc}</p>
     </motion.div>
   )
@@ -176,13 +187,13 @@ function StepCard({ num, title, desc, delay }: { num: string; title: string; des
       custom={delay}
       initial="hidden"
       animate={inView ? 'visible' : 'hidden'}
-      className="flex gap-4"
+      className="flex gap-4 group"
     >
-      <div className="shrink-0 w-9 h-9 rounded-full border border-black/10 flex items-center justify-center font-mono text-xs text-slate-caption">
+      <div className="shrink-0 w-9 h-9 rounded-xl bg-linen-canvas border border-black/8 group-hover:bg-lime-pulse/15 group-hover:border-lime-pulse/30 group-hover:text-[#1e6112] flex items-center justify-center font-mono text-xs text-graphite-ink font-semibold transition-colors duration-200">
         {num}
       </div>
       <div className="pt-1">
-        <h3 className="text-base font-normal text-charcoal-body font-heading mb-1">{title}</h3>
+        <h3 className="text-base font-medium text-charcoal-body font-heading mb-1">{title}</h3>
         <p className="text-sm text-slate-caption leading-relaxed">{desc}</p>
       </div>
     </motion.div>
@@ -325,12 +336,16 @@ export function LandingPage() {
       </section>
 
       {/* ── 3. PROBLEM / WORKFLOW SECTION ───────────────────────────────── */}
-      <section className="py-20 bg-linen-canvas border-b border-black/10">
-        <div className="max-w-300 mx-auto px-4 sm:px-6">
+      <section className="relative py-20 bg-linear-to-b from-linen-canvas via-[#ebf4e7]/40 to-linen-canvas border-b border-black/10 overflow-hidden">
+        {/* Soft greenish ambient background glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[360px] bg-lime-pulse/8 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6">
           <Section className="">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center mb-14">
               <div className="lg:col-span-7">
-                <motion.span variants={fadeUp} custom={0} className="text-xs font-mono text-ash-subheading uppercase block mb-3">
+                <motion.span variants={fadeUp} custom={0} className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-lime-pulse/15 border border-lime-pulse/30 text-[11px] font-mono font-medium text-[#246314] uppercase mb-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-lime-pulse" />
                   The Workflow
                 </motion.span>
                 <motion.h2
@@ -349,12 +364,13 @@ export function LandingPage() {
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6 }}
-                  className="rounded-2xl overflow-hidden border border-black/10 shadow-lg"
+                  className="rounded-2xl overflow-hidden border border-lime-pulse/25 shadow-lg relative group"
                 >
+                  <div className="absolute inset-0 bg-linear-to-t from-lime-pulse/15 via-transparent to-transparent pointer-events-none z-1" />
                   <img
                     src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1000&q=80"
                     alt="Agency workflow collaboration"
-                    className="w-full h-56 sm:h-64 object-cover"
+                    className="w-full h-56 sm:h-64 object-cover group-hover:scale-103 transition-transform duration-500"
                   />
                 </motion.div>
               </div>
@@ -362,13 +378,13 @@ export function LandingPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               {[
-                { title: 'Business Discovery', desc: "Discover businesses that match your agency's target market using AI-powered search.", icon: Search, delay: 0 },
-                { title: 'Digital Intelligence', desc: 'Analyze websites across 40+ technical, SEO, performance, and UX signals.', icon: Globe, delay: 0.05 },
-                { title: 'Opportunity Detection', desc: 'Identify meaningful digital gaps and rank opportunities by impact.', icon: Brain, delay: 0.1 },
-                { title: 'Smart Qualification', desc: 'Separate interesting businesses from genuinely relevant opportunities.', icon: Target, delay: 0.15 },
-                { title: 'Personalized Outreach', desc: 'Turn verified findings into highly relevant, evidence-backed outreach.', icon: Mail, delay: 0.2 },
+                { num: '01', title: 'Business Discovery', desc: "Discover businesses that match your agency's target market using AI-powered search.", icon: Search, delay: 0 },
+                { num: '02', title: 'Digital Intelligence', desc: 'Analyze websites across 40+ technical, SEO, performance, and UX signals.', icon: Globe, delay: 0.05 },
+                { num: '03', title: 'Opportunity Detection', desc: 'Identify meaningful digital gaps and rank opportunities by impact.', icon: Brain, delay: 0.1 },
+                { num: '04', title: 'Smart Qualification', desc: 'Separate interesting businesses from genuinely relevant opportunities.', icon: Target, delay: 0.15 },
+                { num: '05', title: 'Personalized Outreach', desc: 'Turn verified findings into highly relevant, evidence-backed outreach.', icon: Mail, delay: 0.2 },
               ].map((card) => (
-                <WorkflowCircleCard key={card.title} icon={card.icon} title={card.title} desc={card.desc} delay={card.delay} />
+                <WorkflowCircleCard key={card.title} num={card.num} icon={card.icon} title={card.title} desc={card.desc} delay={card.delay} />
               ))}
             </div>
           </Section>

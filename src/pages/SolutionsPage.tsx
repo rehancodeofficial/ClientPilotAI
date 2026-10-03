@@ -41,9 +41,9 @@ const solutions = [
       'Find local businesses underserved by modern dev',
       'Prioritize leads by technical complexity and budget signals',
     ],
-    accent: '#3b82f6',
+    accent: '#2f851d',
     stat: { value: '40+', label: 'signals analyzed per site' },
-    bg: '#0d1b2b',
+    bg: '#0e2417',
   },
   {
     num: '03',
@@ -58,9 +58,9 @@ const solutions = [
       'Benchmark prospects against industry leaders',
       'Build pipeline from businesses losing search visibility',
     ],
-    accent: '#f59e0b',
+    accent: '#4cc02b',
     stat: { value: '87%', label: 'prospect email open rate' },
-    bg: '#2b1d0d',
+    bg: '#0d2b1f',
   },
   {
     num: '04',
@@ -75,9 +75,9 @@ const solutions = [
       'Work independently on your own schedule',
       'Scale discovery as your practice grows',
     ],
-    accent: '#8b5cf6',
+    accent: '#2f851d',
     stat: { value: '100%', label: 'evidence-backed outreach' },
-    bg: '#1a0d2b',
+    bg: '#0e2417',
   },
   {
     num: '05',
@@ -92,9 +92,9 @@ const solutions = [
       'Build calls around specific, research-backed observations',
       'Shorten sales cycles with better pre-call preparation',
     ],
-    accent: '#ef4444',
+    accent: '#4cc02b',
     stat: { value: '2x', label: 'shorter sales cycles' },
-    bg: '#2b0d0d',
+    bg: '#0d2b1f',
   },
 ]
 

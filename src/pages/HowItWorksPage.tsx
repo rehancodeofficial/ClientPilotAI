@@ -33,7 +33,7 @@ const steps = [
   {
     num: '02',
     icon: Globe,
-    accent: '#3b82f6',
+    accent: '#2f851d',
     title: 'AI Discovers Businesses',
     short: 'Discovery',
     desc: 'Our engine searches directories, maps, and the public web — returning complete records with website URLs, contact info, and location data. Hundreds of matches in seconds.',
@@ -52,7 +52,7 @@ const steps = [
   {
     num: '03',
     icon: Brain,
-    accent: '#8b5cf6',
+    accent: '#4cc02b',
     title: 'Analyze Digital Presence',
     short: 'Audit',
     desc: 'Every discovered business gets a comprehensive website audit across performance, SEO, mobile experience, accessibility, UX quality, and content signals. 40+ dimensions per site.',
@@ -71,7 +71,7 @@ const steps = [
   {
     num: '04',
     icon: Target,
-    accent: '#f59e0b',
+    accent: '#2f851d',
     title: 'Score and Qualify',
     short: 'Scoring',
     desc: 'AI reviews analysis findings and scores each prospect on fit — problem severity, service alignment, budget signals, and readiness to invest. Separate hot leads from the noise.',
@@ -90,7 +90,7 @@ const steps = [
   {
     num: '05',
     icon: Mail,
-    accent: '#ef4444',
+    accent: '#4cc02b',
     title: 'Generate Outreach',
     short: 'Outreach',
     desc: "Turn findings into highly specific, evidence-backed email drafts that reference actual problems on each prospect's website. Not templates — real, contextual messages.",
@@ -109,7 +109,7 @@ const steps = [
   {
     num: '06',
     icon: Code2,
-    accent: '#0ea5e9',
+    accent: '#2f851d',
     title: 'Hand Off to Your Team',
     short: 'Handoff',
     desc: 'When a prospect says yes, convert opportunity findings into a structured technical brief — priority ordering, effort estimates, and requirements ready for your dev team.',
