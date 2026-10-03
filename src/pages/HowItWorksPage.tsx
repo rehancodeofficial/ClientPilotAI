@@ -321,10 +321,9 @@ export function HowItWorksPage() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08, duration: 0.65, ease: EASE }}
-            className="text-5xl sm:text-6xl lg:text-[72px] font-normal tracking-[-0.025em] leading-[1.04] text-charcoal-body font-heading mb-5 max-w-4xl"
+            className="text-5xl sm:text-6xl lg:text-[72px] font-normal tracking-tight leading-[1.04] text-charcoal-body font-heading mb-5 max-w-4xl"
           >
-            Six steps.{' '}
-            <span className="text-lime-pulse">One</span>{' '}intelligent workflow.
+            Six steps. One intelligent workflow.
           </motion.h1>
 
           <motion.p

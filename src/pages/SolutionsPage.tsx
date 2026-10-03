@@ -270,11 +270,9 @@ export function SolutionsPage() {
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.08, duration: 0.65, ease: EASE }}
-                className="text-5xl sm:text-6xl lg:text-[72px] font-normal tracking-[-0.025em] leading-[1.04] text-charcoal-body font-heading mb-6"
+                className="text-5xl sm:text-6xl lg:text-[72px] font-normal tracking-tight leading-[1.04] text-charcoal-body font-heading mb-6"
               >
-                Built for{' '}
-                <span className="text-lime-pulse">every kind</span>
-                {' '}of agency.
+                Built for every kind of agency.
               </motion.h1>
 
               <motion.p

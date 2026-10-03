@@ -62,7 +62,7 @@ export function FaqPage() {
   const filteredFaqs = activeCategory === 'All' ? faqs : faqs.filter(f => f.cat === activeCategory)
 
   return (
-    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans selection:bg-[#4cc02b] selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#edede8] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white overflow-x-hidden">
       <PublicNavbar />
 
       {/* Hero Section with Ambient Glow & Workspace Photo Overlay */}
@@ -74,16 +74,16 @@ export function FaqPage() {
             alt="Agency Support"
             className="w-full h-full object-cover opacity-10"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#edede8]/90 via-[#edede8]/85 to-[#edede8]" />
-          <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#4cc02b]/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute inset-0 bg-linear-to-b from-[#edede8]/90 via-[#edede8]/85 to-[#edede8]" />
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-lime-pulse/15 rounded-full blur-3xl pointer-events-none" />
         </div>
 
-        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#eaf5e7] border border-[#4cc02b]/30 text-[#2a7a18] text-xs font-mono">
-            <span className="w-2 h-2 rounded-full bg-[#4cc02b] shadow-[0_0_8px_rgba(76,192,43,0.8)]" />
+        <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6 text-center space-y-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#eaf5e7] border border-lime-pulse/30 text-[#2a7a18] text-xs font-mono">
+            <span className="w-2 h-2 rounded-full bg-lime-pulse shadow-[0_0_8px_rgba(76,192,43,0.8)]" />
             <span>HELP & KNOWLEDGE DESK</span>
           </div>
-          <h1 className="text-5xl sm:text-6xl lg:text-[72px] font-normal text-[#141414] tracking-[-0.025em] font-heading max-w-3xl mx-auto leading-[1.04]">
+          <h1 className="text-5xl sm:text-6xl lg:text-[72px] font-normal text-graphite-ink tracking-tight font-heading max-w-3xl mx-auto leading-[1.04]">
             Frequently Asked Questions
           </h1>
           <p className="text-base sm:text-lg text-[#5c5c5b] max-w-2xl mx-auto leading-relaxed">
@@ -98,8 +98,8 @@ export function FaqPage() {
                 onClick={() => setActiveCategory(cat)}
                 className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                   activeCategory === cat
-                    ? 'bg-[#141414] text-white shadow-xs ring-2 ring-[#4cc02b]/40'
-                    : 'bg-white/80 border border-black/8 text-[#4a4a49] hover:bg-white hover:text-[#141414]'
+                    ? 'bg-graphite-ink text-white shadow-xs ring-2 ring-lime-pulse/40'
+                    : 'bg-white/80 border border-black/8 text-[#4a4a49] hover:bg-white hover:text-graphite-ink'
                 }`}
               >
                 {cat}
@@ -111,7 +111,7 @@ export function FaqPage() {
 
       {/* Accordion List */}
       <section className="py-16 sm:py-20 bg-[#edede8]">
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 space-y-4">
+        <div className="max-w-215 mx-auto px-4 sm:px-6 space-y-4">
           {filteredFaqs.map((faq, idx) => {
             const isOpen = openIndex === idx
             return (
@@ -122,21 +122,21 @@ export function FaqPage() {
                 transition={{ duration: 0.3, delay: idx * 0.04 }}
                 className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
                   isOpen
-                    ? 'bg-white border-[#4cc02b]/40 shadow-[0_4px_20px_rgba(76,192,43,0.08)]'
+                    ? 'bg-white border-lime-pulse/40 shadow-[0_4px_20px_rgba(76,192,43,0.08)]'
                     : 'bg-white border-black/8 shadow-xs hover:border-black/15'
                 }`}
               >
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
-                  className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 font-medium text-base text-[#141414] hover:text-[#4cc02b] transition-colors cursor-pointer"
+                  className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 font-medium text-base text-graphite-ink hover:text-lime-pulse transition-colors cursor-pointer"
                 >
                   <span className="font-heading text-[16px] sm:text-[17px] flex items-center gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#4cc02b]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-lime-pulse" />
                     {faq.q}
                   </span>
                   <ChevronDown
-                    className={`w-4 h-4 text-[#8f8f8e] shrink-0 transition-transform duration-200 ${
-                      isOpen ? 'rotate-180 text-[#4cc02b]' : ''
+                    className={`w-4 h-4 text-ash-subheading shrink-0 transition-transform duration-200 ${
+                      isOpen ? 'rotate-180 text-lime-pulse' : ''
                     }`}
                   />
                 </button>
@@ -159,14 +159,14 @@ export function FaqPage() {
           })}
 
           {/* Quick Help Box */}
-          <div className="mt-12 p-8 rounded-2xl bg-[#eaf5e7] border border-[#4cc02b]/30 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
+          <div className="mt-12 p-8 rounded-2xl bg-[#eaf5e7] border border-lime-pulse/30 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
             <div className="space-y-1 text-center sm:text-left">
               <div className="inline-flex items-center gap-1.5 text-xs font-mono text-[#2e7d1b] font-semibold">
                 <MessageCircle className="w-4 h-4" />
                 <span>Still have questions?</span>
               </div>
-              <h3 className="text-lg font-normal text-[#141414] font-heading">
-                Can’t find the answer you’re looking for?
+              <h3 className="text-lg font-normal text-graphite-ink font-heading">
+                Can't find the answer you're looking for?
               </h3>
               <p className="text-xs text-[#5c5c5b]">
                 Our solutions engineering team is always available to walk you through a live demonstration.
@@ -174,7 +174,7 @@ export function FaqPage() {
             </div>
             <Link
               to="/contact"
-              className="inline-flex items-center gap-2 px-6 h-11 rounded-full text-xs font-medium text-white bg-[#141414] hover:bg-[#292929] transition-all shrink-0 shadow-sm"
+              className="inline-flex items-center gap-2 px-6 h-11 rounded-full text-xs font-medium text-white bg-graphite-ink hover:bg-charcoal-body transition-all shrink-0 shadow-sm"
             >
               <span>Talk to Our Team</span>
               <ArrowRight className="w-3.5 h-3.5" />
