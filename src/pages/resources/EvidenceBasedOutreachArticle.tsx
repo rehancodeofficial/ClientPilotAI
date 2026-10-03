@@ -5,13 +5,10 @@ export function EvidenceBasedOutreachArticle() {
   return (
     <ResourceArticleLayout
       title="Evidence-Based Outreach: Turning Technical Gaps into Opportunities"
+      subtitle="How verified website audit findings transform generic cold prospecting into personalized, high-conversion agency conversations."
       category="AI Outreach"
       readTime="5 min read"
     >
-      <p className="text-lg text-[#5c5c5b] italic mb-8">
-        How verified website audit findings transform generic cold prospecting into personalized, high-conversion agency conversations.
-      </p>
-
       <p>
         Traditional cold email campaigns for agencies suffer from abysmal reply rates (&lt; 1-2%). The reason is simple: generic emails like <em>"We are an award-winning web agency and can help you revamp your website"</em> sound identical to hundreds of spam messages founders and marketing directors receive every week.
       </p>

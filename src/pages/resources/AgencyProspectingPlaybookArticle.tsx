@@ -5,12 +5,10 @@ export function AgencyProspectingPlaybookArticle() {
   return (
     <ResourceArticleLayout
       title="The Agency Prospecting Playbook"
+      subtitle="How modern agencies can discover better opportunities without relying on generic prospect lists."
       category="Agency Playbooks"
       readTime="8 min read"
     >
-      <p className="text-lg text-[#5c5c5b] italic mb-8">
-        How modern agencies can discover better opportunities without relying on generic prospect lists
-      </p>
 
       <p>Finding potential clients is easy.</p>
       <p>Finding <strong>businesses that actually have a reason to talk to your agency</strong> is much harder.</p>

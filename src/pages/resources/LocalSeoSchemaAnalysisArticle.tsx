@@ -5,15 +5,12 @@ export function LocalSeoSchemaAnalysisArticle() {
   return (
     <ResourceArticleLayout
       title="Local SEO & Schema Markup Deficit Analysis"
+      subtitle="A structured breakdown for discovering high-intent local business prospects with missing structured data and geo-relevance gaps."
       category="Technical SEO"
       readTime="4 min read"
     >
-      <p className="text-lg text-[#5c5c5b] italic mb-8">
-        A structured breakdown for discovering high-intent local business prospects with missing structured data and geo-relevance gaps.
-      </p>
-
       <p>
-        For local businesses such as dental clinics, legal firms, architectural studios, and commercial contractors, Google's Local Pack and Map searches drive up to 70% of inbound inbound calls and form submissions.
+        For local businesses such as dental clinics, legal firms, architectural studios, and commercial contractors, Google's Local Pack and Map searches drive up to 70% of inbound calls and form submissions.
       </p>
       <p>
         Yet over 65% of local commercial websites have incomplete, invalid, or entirely missing structured Schema.org JSON-LD markup. This presents an immense entry point for agencies to pitch quick, high-ROI search optimization services.

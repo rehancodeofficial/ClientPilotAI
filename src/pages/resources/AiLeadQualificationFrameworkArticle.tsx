@@ -5,13 +5,10 @@ export function AiLeadQualificationFrameworkArticle() {
   return (
     <ResourceArticleLayout
       title="AI Lead Qualification & Decision-Maker Reachability Framework"
+      subtitle="How automated intelligence scoring separates vanity prospect lists from high-converting, decision-maker-accessible opportunities."
       category="Agency Playbooks"
       readTime="6 min read"
     >
-      <p className="text-lg text-[#5c5c5b] italic mb-8">
-        How automated intelligence scoring separates vanity prospect lists from high-converting, decision-maker-accessible opportunities.
-      </p>
-
       <p>
         In modern agency growth operations, time is the single most constrained resource. Spending 30 minutes crafting bespoke video pitches for companies with non-responsive gatekeepers or negligible marketing budgets rapidly leads to pipeline fatigue.
       </p>

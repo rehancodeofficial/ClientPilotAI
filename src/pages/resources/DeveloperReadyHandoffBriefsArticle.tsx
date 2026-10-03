@@ -5,13 +5,10 @@ export function DeveloperReadyHandoffBriefsArticle() {
   return (
     <ResourceArticleLayout
       title="Structuring Developer-Ready Handoff Briefs from Audit Findings"
+      subtitle="How to translate high-level digital audit discoveries into structured, actionable engineering sprints and technical implementation specs."
       category="Conversion Optimization"
       readTime="7 min read"
     >
-      <p className="text-lg text-[#5c5c5b] italic mb-8">
-        How to translate high-level digital audit discoveries into structured, actionable engineering sprints and technical implementation specs.
-      </p>
-
       <p>
         One of the biggest bottlenecks digital agencies face when converting prospect audits into billable client retainers is the <strong>handoff gap</strong>. Sales and strategy teams uncover valuable technical weaknesses, but client engineering or external developers struggle to act without detailed specifications.
       </p>

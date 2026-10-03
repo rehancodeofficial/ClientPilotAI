@@ -5,13 +5,10 @@ export function TechnicalAuditSignalsArticle() {
   return (
     <ResourceArticleLayout
       title="40+ Technical Audit Signals Every Web Studio Should Scan"
+      subtitle="A comprehensive, multi-layer checklist for diagnosing performance, UX, accessibility, SEO, and structural deficits across prospect websites."
       category="Audit Frameworks"
       readTime="6 min read"
     >
-      <p className="text-lg text-[#5c5c5b] italic mb-8">
-        A comprehensive, multi-layer checklist for diagnosing performance, UX, accessibility, SEO, and structural deficits across prospect websites.
-      </p>
-
       <p>
         When evaluating prospective client websites, high-performing agencies do not rely on subjective opinions like "the design looks dated." Instead, they systematically analyze objective, measurable technical audit signals that directly impact business revenue, search rankings, conversion rates, and user retention.
       </p>
@@ -35,7 +32,9 @@ export function TechnicalAuditSignalsArticle() {
       <hr />
 
       <h2>2. Mobile Usability & Viewport Responsive Checks</h2>
-      <p>Over 60% of modern local and commercial traffic originates from mobile devices. Common failure points include:</p>
+      <p>
+        Over 60% of modern local and commercial traffic originates from mobile devices. Common failure points include:
+      </p>
       <ul>
         <li><strong>Tap Target Sizing & Spacing:</strong> Interactive elements smaller than 48x48px or placed too closely together, causing accidental clicks.</li>
         <li><strong>Horizontal Scroll Bleed:</strong> Fixed-width containers or unconstrained tables breaking mobile viewport boundaries.</li>
@@ -47,7 +46,9 @@ export function TechnicalAuditSignalsArticle() {
       <hr />
 
       <h2>3. Technical SEO & Indexation Architecture</h2>
-      <p>A website cannot generate leads if search engines struggle to parse or index its core service pages:</p>
+      <p>
+        A website cannot generate leads if search engines struggle to parse or index its core service pages:
+      </p>
       <ul>
         <li><strong>Canonical Tag Consistency:</strong> Missing, self-referential, or conflicting canonical declarations creating duplicate content penalties.</li>
         <li><strong>Robots.txt & Sitemap Hygiene:</strong> Outdated sitemaps containing 404 redirects, non-200 URLs, or blocking critical assets in robots.txt.</li>
