@@ -132,6 +132,7 @@ const faqs = [
 
 export function PricingPage() {
   const [annual, setAnnual] = useState(false)
+  const [selectedMobilePlan, setSelectedMobilePlan] = useState('Agency')
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   return (
@@ -283,24 +284,108 @@ export function PricingPage() {
         </div>
       </section>
 
-      {/* Feature comparison (abbreviated) */}
+      {/* Feature comparison (Responsive — No Horizontal Scroll on Mobile) */}
       <section className="py-20 bg-white border-b border-black/10">
         <div className="max-w-225 mx-auto px-4 sm:px-6">
           <motion.h2
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.55 }}
-            className="text-2xl sm:text-3xl font-normal text-charcoal-body font-heading mb-10 text-center"
+            className="text-2xl sm:text-3xl font-normal text-charcoal-body font-heading mb-8 sm:mb-10 text-center"
           >
             What's included in each plan
           </motion.h2>
 
-          <div className="overflow-x-auto">
+          {/* ── Mobile View: Plan Selector & Stacked Feature List (< md) ── */}
+          <div className="block md:hidden">
+            {/* Plan Selector Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-3 mb-6 no-scrollbar">
+              {tiers.map((t) => (
+                <button
+                  key={t.name}
+                  onClick={() => setSelectedMobilePlan(t.name)}
+                  className={`px-3.5 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+                    selectedMobilePlan === t.name
+                      ? 'bg-graphite-ink text-white shadow-xs'
+                      : 'bg-linen-canvas text-charcoal-body border border-black/8 hover:bg-warm-stone'
+                  }`}
+                >
+                  {t.name} {t.badge && '★'}
+                </button>
+              ))}
+            </div>
+
+            {/* Selected Plan Details Card */}
+            <div className="p-6 rounded-2xl bg-[#f8f8f5] border border-black/8 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-black/8">
+                <div>
+                  <span className="text-xs font-mono text-ash-subheading uppercase">Selected Plan</span>
+                  <h3 className="text-lg font-semibold text-graphite-ink font-heading">{selectedMobilePlan}</h3>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-mono font-bold text-graphite-ink">
+                    {annual
+                      ? tiers.find(t => t.name === selectedMobilePlan)?.price.annual
+                      : tiers.find(t => t.name === selectedMobilePlan)?.price.monthly}
+                  </div>
+                  <span className="text-[10px] text-slate-caption">
+                    {annual ? 'billed annually' : 'monthly'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Feature items */}
+              <div className="space-y-3 pt-1">
+                {[
+                  { label: 'Business discovery', key: 'discovery' },
+                  { label: 'Website intelligence', key: 'intel' },
+                  { label: 'Opportunity scoring', key: 'scoring' },
+                  { label: 'Outreach generation', key: 'outreach' },
+                  { label: 'Team workspaces', key: 'workspaces' },
+                  { label: 'Developer briefs', key: 'briefs' },
+                  { label: 'API access', key: 'api' },
+                  { label: 'Webhooks', key: 'webhooks' },
+                  { label: 'SSO / SAML', key: 'sso' },
+                  { label: 'Support', key: 'support' },
+                ].map((item, idx) => {
+                  const planIdx = ['Free', 'Starter', 'Agency', 'Pro', 'Enterprise'].indexOf(selectedMobilePlan)
+                  const values = [
+                    ['50 / month', 'Basic analysis', 'Included', 'Not included', 'Not included', 'Not included', 'Not included', 'Not included', 'Not included', 'Community support'],
+                    ['500 / month', 'Full 40+ signals', 'Included', 'Included', 'Not included', 'Not included', 'Not included', 'Not included', 'Not included', 'Standard email'],
+                    ['2,000 / month', 'Full 40+ signals', 'Included', 'Advanced AI drafts', 'Up to 5 seats', 'Included', 'Not included', 'Not included', 'Not included', 'Priority queue'],
+                    ['10,000 / month', 'Full 40+ signals', 'Included', 'Advanced AI drafts', 'Unlimited seats', 'Included', 'Full API access', 'Webhooks included', 'Not included', 'Priority queue'],
+                    ['Unlimited', 'Full 40+ signals', 'Included', 'Advanced AI drafts', 'Unlimited seats', 'Included', 'Custom rate limits', 'Custom pipelines', 'SSO / SAML', 'Dedicated manager'],
+                  ]
+                  const val = values[planIdx] ? values[planIdx][idx] : '—'
+                  const isIncluded = val !== 'Not included' && val !== '—'
+
+                  return (
+                    <div key={item.label} className="flex items-start justify-between gap-3 text-xs py-1.5 border-b border-black/4">
+                      <span className="text-[#5c5c5b]">{item.label}</span>
+                      <span className={`font-medium text-right ${isIncluded ? 'text-graphite-ink' : 'text-ash-subheading line-through'}`}>
+                        {val}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <Link
+                to={tiers.find(t => t.name === selectedMobilePlan)?.ctaLink || '/signup'}
+                className="block w-full py-3 rounded-xl text-center text-xs font-semibold bg-graphite-ink text-white hover:bg-charcoal-body transition-colors mt-4 no-underline"
+              >
+                Choose {selectedMobilePlan}
+              </Link>
+            </div>
+          </div>
+
+          {/* ── Desktop View: Full Table (>= md) ── */}
+          <div className="hidden md:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-black/8">
                   <th className="text-left py-3 pr-4 text-charcoal-body font-normal w-48">Feature</th>
                   {['Free', 'Starter', 'Agency', 'Pro', 'Enterprise'].map((t) => (
-                    <th key={t} className={`text-center py-3 px-2 font-normal ${t === 'Agency' ? 'text-charcoal-body bg-[#edede8] rounded-t-lg' : 'text-slate-caption'}`}>{t}</th>
+                    <th key={t} className={`text-center py-3 px-2 font-normal ${t === 'Agency' ? 'text-charcoal-body bg-[#edede8] rounded-t-lg font-semibold' : 'text-slate-caption'}`}>{t}</th>
                   ))}
                 </tr>
               </thead>
@@ -322,7 +407,7 @@ export function PricingPage() {
                     {row.vals.map((v, i) => (
                       <td key={i} className={`py-3 px-2 text-center text-xs ${
                         v === '—' ? 'text-pebble' : 'text-charcoal-body'
-                      } ${i === 2 ? 'bg-[#edede8]' : ''}`}>
+                      } ${i === 2 ? 'bg-[#edede8] font-medium' : ''}`}>
                         {v}
                       </td>
                     ))}

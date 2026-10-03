@@ -234,53 +234,111 @@ function StepRow({ step, idx }: { step: typeof steps[0]; idx: number }) {
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 48 }}
+      initial={{ opacity: 0, y: 32 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.7, ease: EASE }}
+      transition={{ duration: 0.6, ease: EASE }}
       id={`step-${step.num}`}
-      style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr', alignItems: 'start' }}
+      className="mb-12 md:mb-0"
     >
-      {isEven ? (
-        <div style={{ paddingRight: 40, paddingTop: 8, paddingBottom: 60 }}>
-          <StepContent step={step} align="right" />
-        </div>
-      ) : (
-        <StepImage step={step} inView={inView} />
-      )}
+      {/* ── Mobile Layout (< md) ── */}
+      <div className="block md:hidden bg-white p-6 sm:p-7 rounded-2xl border border-black/8 shadow-sm relative overflow-hidden">
+        {/* Step indicator header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span
+              style={{ color: step.accent, background: `${step.accent}14`, borderColor: `${step.accent}30` }}
+              className="font-mono text-xs font-bold tracking-wider px-2.5 py-1 rounded-full border"
+            >
+              STEP {step.num}
+            </span>
+            <span className="text-xs font-mono text-ash-subheading">{step.short}</span>
+          </div>
 
-      {/* Timeline centre */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={inView ? { scale: 1 } : {}}
-          transition={{ delay: 0.15, type: 'spring', stiffness: 300, damping: 22 }}
-          style={{
-            width: 52, height: 52, borderRadius: '50%',
-            background: `${step.accent}18`,
-            border: `2px solid ${step.accent}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: step.accent, flexShrink: 0, zIndex: 2,
-            boxShadow: `0 0 24px ${step.accent}30`,
-          }}
+          <div
+            style={{ background: `${step.accent}15`, color: step.accent, borderColor: `${step.accent}30` }}
+            className="w-9 h-9 rounded-xl flex items-center justify-center border shrink-0"
+          >
+            <step.icon size={18} />
+          </div>
+        </div>
+
+        <h3 className="text-xl font-semibold text-graphite-ink font-heading leading-tight mb-2">
+          {step.title}
+        </h3>
+
+        <p className="text-sm text-[#5c5c5b] leading-relaxed mb-4">
+          {step.desc}
+        </p>
+
+        {/* Stat highlight */}
+        <div
+          style={{ background: `${step.accent}10`, borderColor: `${step.accent}25` }}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border mb-5"
         >
-          <step.icon size={20} />
-        </motion.div>
-        {idx < steps.length - 1 && (
-          <div style={{
-            width: 2, flex: 1, minHeight: 80,
-            background: `linear-gradient(to bottom, ${step.accent}60, ${steps[idx + 1].accent}30)`,
-            marginTop: 4,
-          }} />
-        )}
+          <span style={{ color: step.accent }} className="text-lg font-extrabold font-heading">
+            {step.stat.value}
+          </span>
+          <span className="text-xs font-mono text-ash-subheading">{step.stat.sub}</span>
+        </div>
+
+        {/* Screenshot / Image */}
+        <div className="w-full h-48 rounded-xl overflow-hidden border border-black/5 relative shadow-2xs">
+          <img
+            src={step.img}
+            alt={step.imgAlt}
+            className="w-full h-full object-cover"
+          />
+          <div
+            style={{ background: `linear-gradient(to bottom, ${step.accent}15, transparent)` }}
+            className="absolute inset-0 pointer-events-none"
+          />
+        </div>
       </div>
 
-      {!isEven ? (
-        <div style={{ paddingLeft: 40, paddingTop: 8, paddingBottom: 60 }}>
-          <StepContent step={step} align="left" />
+      {/* ── Desktop Layout (>= md) ── */}
+      <div className="hidden md:grid md:grid-cols-[1fr_80px_1fr] items-start">
+        {isEven ? (
+          <div style={{ paddingRight: 40, paddingTop: 8, paddingBottom: 60 }}>
+            <StepContent step={step} align="right" />
+          </div>
+        ) : (
+          <StepImage step={step} inView={inView} />
+        )}
+
+        {/* Timeline centre */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={inView ? { scale: 1 } : {}}
+            transition={{ delay: 0.15, type: 'spring', stiffness: 300, damping: 22 }}
+            style={{
+              width: 52, height: 52, borderRadius: '50%',
+              background: `${step.accent}18`,
+              border: `2px solid ${step.accent}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: step.accent, flexShrink: 0, zIndex: 2,
+              boxShadow: `0 0 24px ${step.accent}30`,
+            }}
+          >
+            <step.icon size={20} />
+          </motion.div>
+          {idx < steps.length - 1 && (
+            <div style={{
+              width: 2, flex: 1, minHeight: 80,
+              background: `linear-gradient(to bottom, ${step.accent}60, ${steps[idx + 1].accent}30)`,
+              marginTop: 4,
+            }} />
+          )}
         </div>
-      ) : (
-        <div style={{ paddingBottom: 60 }} />
-      )}
+
+        {!isEven ? (
+          <div style={{ paddingLeft: 40, paddingTop: 8, paddingBottom: 60 }}>
+            <StepContent step={step} align="left" />
+          </div>
+        ) : (
+          <StepImage step={step} inView={inView} />
+        )}
+      </div>
     </motion.div>
   )
 }

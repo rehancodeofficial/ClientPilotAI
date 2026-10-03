@@ -320,13 +320,13 @@ export function SolutionsPage() {
             </span>
           </div>
 
-          {/* 3-col top row, 2-col bottom row */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginBottom: 20 }}>
+          {/* Responsive grid: 1 col on mobile, 2 col on tablet, 3 col on desktop */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             {solutions.slice(0, 3).map((sol, idx) => (
               <SolutionCard key={sol.num} sol={sol} idx={idx} />
             ))}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {solutions.slice(3).map((sol, idx) => (
               <SolutionCard key={sol.num} sol={sol} idx={idx + 3} />
             ))}

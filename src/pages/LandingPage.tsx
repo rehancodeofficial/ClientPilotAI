@@ -82,13 +82,15 @@ function WorkflowCircleCard({
   icon: Icon,
   title,
   desc,
-  delay = 0
+  delay = 0,
+  className = '',
 }: {
   num: string
   icon: React.ElementType
   title: string
   desc: string
   delay?: number
+  className?: string
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
@@ -101,22 +103,22 @@ function WorkflowCircleCard({
       animate={inView ? 'visible' : 'hidden'}
       whileHover={{ scale: 1.03, y: -3 }}
       transition={{ type: 'spring', stiffness: 280, damping: 22 }}
-      className="relative aspect-square rounded-2xl bg-white/90 backdrop-blur-sm border border-black/8 p-5 flex flex-col justify-center items-center text-center group cursor-default shadow-xs hover:shadow-md hover:border-lime-pulse/40 transition-all duration-300 overflow-hidden"
+      className={`relative rounded-2xl bg-white/95 backdrop-blur-sm border border-black/8 p-3.5 sm:p-5 flex flex-col justify-center items-center text-center group cursor-default shadow-2xs hover:shadow-md hover:border-lime-pulse/40 transition-all duration-300 overflow-hidden min-h-[175px] sm:min-h-[200px] sm:aspect-square ${className}`}
     >
       {/* Subtle greenish hover tint glow */}
       <div className="absolute inset-0 bg-linear-to-b from-lime-pulse/4 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       
       {/* Step badge top pill */}
-      <div className="mb-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-lime-pulse/10 border border-lime-pulse/25 text-slate-caption group-hover:border-lime-pulse/40 transition-colors">
+      <div className="mb-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-lime-pulse/10 border border-lime-pulse/25 text-slate-caption group-hover:border-lime-pulse/40 transition-colors">
         <span className="w-1 h-1 rounded-full bg-lime-pulse" />
-        <span className="font-mono text-[10px] font-semibold text-graphite-ink">{num}</span>
+        <span className="font-mono text-[9px] sm:text-[10px] font-semibold text-graphite-ink">{num}</span>
       </div>
 
-      <div className="w-10 h-10 rounded-xl bg-linen-canvas border border-black/5 flex items-center justify-center text-graphite-ink shrink-0 mb-2 group-hover:bg-lime-pulse/15 group-hover:text-[#1e6112] group-hover:border-lime-pulse/30 transition-all duration-200">
-        <Icon className="w-4.5 h-4.5" />
+      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-linen-canvas border border-black/5 flex items-center justify-center text-graphite-ink shrink-0 mb-2 group-hover:bg-lime-pulse/15 group-hover:text-[#1e6112] group-hover:border-lime-pulse/30 transition-all duration-200">
+        <Icon className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
       </div>
-      <h3 className="text-sm font-medium text-charcoal-body mb-1 font-heading leading-tight">{title}</h3>
-      <p className="text-[11px] text-slate-caption leading-snug max-w-35">{desc}</p>
+      <h3 className="text-xs sm:text-sm font-medium text-charcoal-body mb-1 font-heading leading-tight">{title}</h3>
+      <p className="text-[10px] sm:text-[11px] text-slate-caption leading-relaxed">{desc}</p>
     </motion.div>
   )
 }
@@ -377,15 +379,23 @@ export function LandingPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
               {[
                 { num: '01', title: 'Business Discovery', desc: "Discover businesses that match your agency's target market using AI-powered search.", icon: Search, delay: 0 },
                 { num: '02', title: 'Digital Intelligence', desc: 'Analyze websites across 40+ technical, SEO, performance, and UX signals.', icon: Globe, delay: 0.05 },
                 { num: '03', title: 'Opportunity Detection', desc: 'Identify meaningful digital gaps and rank opportunities by impact.', icon: Brain, delay: 0.1 },
                 { num: '04', title: 'Smart Qualification', desc: 'Separate interesting businesses from genuinely relevant opportunities.', icon: Target, delay: 0.15 },
                 { num: '05', title: 'Personalized Outreach', desc: 'Turn verified findings into highly relevant, evidence-backed outreach.', icon: Mail, delay: 0.2 },
-              ].map((card) => (
-                <WorkflowCircleCard key={card.title} num={card.num} icon={card.icon} title={card.title} desc={card.desc} delay={card.delay} />
+              ].map((card, idx) => (
+                <WorkflowCircleCard
+                  key={card.title}
+                  num={card.num}
+                  icon={card.icon}
+                  title={card.title}
+                  desc={card.desc}
+                  delay={card.delay}
+                  className={idx === 4 ? 'col-span-2 lg:col-span-1 max-w-xs lg:max-w-none mx-auto w-full' : ''}
+                />
               ))}
             </div>
           </Section>
@@ -849,45 +859,6 @@ export function LandingPage() {
             className="mt-8 text-center text-xs text-ash-subheading"
           >
             All plans include a 14-day free trial. No credit card required.
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── 9. FINAL CTA BAND ───────────────────────────────────────────── */}
-      <section className="py-20 bg-linen-canvas">
-        <div className="max-w-300 mx-auto px-4 sm:px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="p-10 sm:p-16 rounded-2xl bg-graphite-ink text-white text-center space-y-6"
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-normal">
-              <span className="w-1.5 h-1.5 rounded-full bg-lime-pulse" />
-              Trusted by agencies worldwide
-            </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-normal tracking-[-0.01em] font-heading max-w-2xl mx-auto">
-              Your next client is already out there.
-            </h2>
-            <p className="text-base text-white/60 max-w-lg mx-auto leading-relaxed">
-              Start discovering businesses with digital gaps your agency can solve — in the time it takes to make a coffee.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link
-                to="/signup"
-                className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm font-normal text-graphite-ink bg-white hover:bg-linen-canvas transition-all"
-              >
-                Start Free Today
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                to="/pricing"
-                className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm font-normal text-white border border-white/20 hover:border-white/40 transition-all"
-              >
-                View Pricing
-              </Link>
-            </div>
           </motion.div>
         </div>
       </section>

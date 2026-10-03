@@ -8,20 +8,20 @@ export function PublicFooter() {
       <div className="max-w-300 mx-auto px-4 sm:px-6">
         
         {/* Top CTA Banner in Footer - Gleap Warm Stone Card (#dbdbd2) */}
-        <div className="mb-16 p-8 sm:p-10 rounded-xl bg-warm-stone flex flex-col md:flex-row items-center justify-between gap-6 border border-black/5">
-          <div className="max-w-xl text-center md:text-left">
-            <h3 className="text-2xl sm:text-3xl font-normal text-charcoal-body font-heading tracking-tight mb-2">
+        <div className="mb-16 p-6 sm:p-10 md:p-12 rounded-2xl sm:rounded-3xl bg-warm-stone flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8 border border-black/8 shadow-sm">
+          <div className="max-w-xl text-center md:text-left space-y-2">
+            <h3 className="text-2xl sm:text-3xl font-normal text-charcoal-body font-heading tracking-tight leading-tight">
               Your next client may already be out there.
             </h3>
-            <p className="text-sm text-slate-caption">
+            <p className="text-sm text-slate-caption leading-relaxed">
               Discover businesses, understand their digital gaps, and win more clients with ClientPilot AI.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto shrink-0">
             {/* Dark Pill Primary Button */}
             <Link
               to="/signup"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 h-11 rounded-[200px] text-sm font-normal text-white bg-graphite-ink hover:bg-charcoal-body transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 h-12 rounded-full text-sm font-medium text-white bg-graphite-ink hover:bg-charcoal-body transition-all shadow-xs"
             >
               <span>Start Free</span>
               <ArrowRight className="w-4 h-4" />
@@ -29,7 +29,7 @@ export function PublicFooter() {
             {/* Stone Pill Secondary Button */}
             <Link
               to="/how-it-works"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 h-11 rounded-[200px] text-sm font-normal text-charcoal-body bg-frosted-white border border-black/10 hover:bg-[#fcfaf5] transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 h-12 rounded-full text-sm font-medium text-charcoal-body bg-frosted-white border border-black/10 hover:bg-[#fcfaf5] transition-all shadow-xs"
             >
               See How It Works
             </Link>
