@@ -29,6 +29,7 @@ export function ResourcesPage() {
       readTime: '8 min read',
       badge: 'Featured Guide',
       featured: true,
+      slug: '/resources/agency-prospecting-playbook',
     },
     {
       title: '40+ Technical Audit Signals Every Web Studio Should Scan',
@@ -37,6 +38,7 @@ export function ResourcesPage() {
       readTime: '6 min read',
       badge: 'Framework',
       featured: false,
+      slug: '/resources/technical-audit-signals',
     },
     {
       title: 'Evidence-Based Outreach: Turning Technical Gaps into Opportunities',
@@ -45,6 +47,7 @@ export function ResourcesPage() {
       readTime: '5 min read',
       badge: 'Case Study',
       featured: false,
+      slug: '/resources/evidence-based-outreach',
     },
     {
       title: 'Structuring Developer-Ready Handoff Briefs from Audit Findings',
@@ -53,6 +56,7 @@ export function ResourcesPage() {
       readTime: '7 min read',
       badge: 'Technical',
       featured: false,
+      slug: '/resources/developer-ready-handoff-briefs',
     },
     {
       title: 'Local SEO & Schema Markup Deficit Analysis',
@@ -61,6 +65,7 @@ export function ResourcesPage() {
       readTime: '4 min read',
       badge: 'Playbook',
       featured: false,
+      slug: '/resources/local-seo-schema-analysis',
     },
     {
       title: 'AI Lead Qualification & Decision-Maker Reachability Framework',
@@ -69,6 +74,7 @@ export function ResourcesPage() {
       readTime: '6 min read',
       badge: 'Guide',
       featured: false,
+      slug: '/resources/ai-lead-qualification-framework',
     }
   ]
 
@@ -145,23 +151,28 @@ export function ResourcesPage() {
                     <span className="text-[11px] font-mono text-ash-subheading">{res.readTime}</span>
                   </div>
 
-                  <h3 className="text-lg font-normal text-graphite-ink font-heading leading-snug mb-2.5">
-                    {res.title}
-                  </h3>
+                  <Link to={res.slug} className="block group">
+                    <h3 className="text-lg font-normal text-graphite-ink font-heading leading-snug mb-2.5 group-hover:text-lime-pulse transition-colors">
+                      {res.title}
+                    </h3>
+                  </Link>
                   <p className="text-xs sm:text-sm text-[#5c5c5b] leading-relaxed mb-6">
                     {res.desc}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-black/5 flex items-center justify-between text-xs font-medium text-graphite-ink group cursor-pointer">
+                <div className="pt-4 border-t border-black/5 flex items-center justify-between text-xs font-medium text-graphite-ink">
                   <span className="flex items-center gap-1.5 text-[#2e7d1b]">
                     <span className="w-1.5 h-1.5 rounded-full bg-lime-pulse" />
                     {res.category}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-graphite-ink group-hover:text-lime-pulse transition-colors">
+                  <Link
+                    to={res.slug}
+                    className="inline-flex items-center gap-1 text-graphite-ink hover:text-lime-pulse transition-colors group cursor-pointer"
+                  >
                     Read Guide
                     <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                  </span>
+                  </Link>
                 </div>
               </motion.div>
             ))}

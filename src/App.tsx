@@ -28,6 +28,12 @@ import { HowItWorksPage } from '@/pages/HowItWorksPage'
 import { PricingPage } from '@/pages/PricingPage'
 import { AboutPage } from '@/pages/AboutPage'
 import { ResourcesPage } from '@/pages/ResourcesPage'
+import { AgencyProspectingPlaybookArticle } from '@/pages/resources/AgencyProspectingPlaybookArticle'
+import { TechnicalAuditSignalsArticle } from '@/pages/resources/TechnicalAuditSignalsArticle'
+import { EvidenceBasedOutreachArticle } from '@/pages/resources/EvidenceBasedOutreachArticle'
+import { DeveloperReadyHandoffBriefsArticle } from '@/pages/resources/DeveloperReadyHandoffBriefsArticle'
+import { LocalSeoSchemaAnalysisArticle } from '@/pages/resources/LocalSeoSchemaAnalysisArticle'
+import { AiLeadQualificationFrameworkArticle } from '@/pages/resources/AiLeadQualificationFrameworkArticle'
 import { FaqPage } from '@/pages/FaqPage'
 import { ContactPage } from '@/pages/ContactPage'
 import { LoginPage } from '@/pages/LoginPage'
@@ -65,6 +71,12 @@ function App() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/resources/agency-prospecting-playbook" element={<AgencyProspectingPlaybookArticle />} />
+        <Route path="/resources/technical-audit-signals" element={<TechnicalAuditSignalsArticle />} />
+        <Route path="/resources/evidence-based-outreach" element={<EvidenceBasedOutreachArticle />} />
+        <Route path="/resources/developer-ready-handoff-briefs" element={<DeveloperReadyHandoffBriefsArticle />} />
+        <Route path="/resources/local-seo-schema-analysis" element={<LocalSeoSchemaAnalysisArticle />} />
+        <Route path="/resources/ai-lead-qualification-framework" element={<AiLeadQualificationFrameworkArticle />} />
         <Route path="/faq" element={<FaqPage />} />
         <Route path="/contact" element={<ContactPage />} />
 

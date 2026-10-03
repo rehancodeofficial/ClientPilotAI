@@ -33,7 +33,7 @@ export function ContactPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'validation_error' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage('')
 
@@ -44,14 +44,45 @@ export function ContactPage() {
     }
 
     setStatus('loading')
-    setTimeout(() => {
-      setStatus('success')
-      setName('')
-      setEmail('')
-      setCompany('')
-      setSubject('')
-      setMessage('')
-    }, 1000)
+
+    try {
+      const response = await fetch('https://formsubmit.co/ajax/rehancodeofficial@gmail.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          company: company.trim() || 'N/A',
+          category,
+          subject: subject.trim() || `Inquiry regarding ${category}`,
+          message: message.trim(),
+          _subject: `New ClientPilot Inquiry: [${category}] from ${name.trim()}`,
+          _template: 'table',
+          _captcha: 'false'
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok && (data.success === 'true' || data.success === true || response.status === 200)) {
+        setStatus('success')
+        setName('')
+        setEmail('')
+        setCompany('')
+        setSubject('')
+        setMessage('')
+      } else {
+        setStatus('error')
+        setErrorMessage(data.message || 'Failed to send message. Please try again or email us directly.')
+      }
+    } catch (err: any) {
+      console.error('Contact form submission error:', err)
+      setStatus('error')
+      setErrorMessage('Network error while sending your message. Please try again or email support@clientpilot.ai.')
+    }
   }
 
   return (
@@ -125,7 +156,7 @@ export function ContactPage() {
                 </motion.div>
               )}
 
-              {status === 'validation_error' && (
+              {(status === 'validation_error' || status === 'error') && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
