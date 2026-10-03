@@ -77,7 +77,7 @@ export function AboutPage() {
             custom={0.05}
             initial="hidden"
             animate="visible"
-            className="text-5xl sm:text-6xl lg:text-[72px] font-normal tracking-[-0.025em] text-charcoal-body font-heading leading-[1.04] max-w-3xl mb-6"
+            className="text-5xl sm:text-6xl lg:text-[72px] font-normal tracking-tight text-charcoal-body font-heading leading-[1.04] max-w-3xl mb-6"
           >
             Giving every business a digital identity.
           </motion.h1>
