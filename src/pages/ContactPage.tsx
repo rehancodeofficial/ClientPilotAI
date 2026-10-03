@@ -69,15 +69,6 @@ export function ContactPage() {
 
         <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6">
           <div className="text-center max-w-3xl mx-auto space-y-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#eaf5e7] border border-[#4cc02b]/30 text-[#2a7a18] text-xs font-mono"
-            >
-              <span className="w-2 h-2 rounded-full bg-[#4cc02b] shadow-[0_0_8px_rgba(76,192,43,0.8)] animate-pulse" />
-              <span>DIRECT AGENCY DESK</span>
-            </motion.div>
-
             <motion.h1
               variants={fadeUp}
               custom={0.05}

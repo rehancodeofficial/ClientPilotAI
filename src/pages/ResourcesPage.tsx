@@ -23,9 +23,9 @@ export function ResourcesPage() {
 
   const resources = [
     {
-      title: 'The 2026 Agency Prospecting Playbook',
+      title: 'The Agency Prospecting Playbook',
       category: 'Agency Playbooks',
-      desc: 'How modern web and software development studios are discovering 10x more high-intent client opportunities without spammy bulk email.',
+      desc: 'A practical framework for discovering high-intent businesses, identifying opportunities, and starting better client conversations.',
       readTime: '8 min read',
       badge: 'Featured Guide',
       featured: true,
@@ -33,15 +33,15 @@ export function ResourcesPage() {
     {
       title: '40+ Technical Audit Signals Every Web Studio Should Scan',
       category: 'Audit Frameworks',
-      desc: 'A comprehensive checklist for measuring Core Web Vitals, mobile UX leaks, missing schema markup, and accessibility gaps.',
+      desc: 'A practical checklist for identifying website performance, UX, SEO, accessibility, and technical gaps worth investigating.',
       readTime: '6 min read',
       badge: 'Framework',
       featured: false,
     },
     {
-      title: 'Evidence-Based Outreach: Converting Technical Gaps into Signed Retainers',
+      title: 'Evidence-Based Outreach: Turning Technical Gaps into Opportunities',
       category: 'AI Outreach',
-      desc: 'Why referencing verified website errors boosts cold outreach open and reply rates by over 340%.',
+      desc: 'How verified website findings can turn generic prospecting into specific, relevant conversations.',
       readTime: '5 min read',
       badge: 'Case Study',
       featured: false,
@@ -49,7 +49,7 @@ export function ResourcesPage() {
     {
       title: 'Structuring Developer-Ready Handoff Briefs from Audit Findings',
       category: 'Conversion Optimization',
-      desc: 'Eliminate scope creep by structuring client opportunities directly into prioritized engineering tasks and acceptance criteria.',
+      desc: 'Turn website findings into clear requirements, priorities, acceptance criteria, and actionable engineering tasks.',
       readTime: '7 min read',
       badge: 'Technical',
       featured: false,
@@ -57,7 +57,7 @@ export function ResourcesPage() {
     {
       title: 'Local SEO & Schema Markup Deficit Analysis',
       category: 'Technical SEO',
-      desc: 'How to diagnose missing structured data on local business websites and package schema repairs as recurring retainers.',
+      desc: 'Learn how to identify missing local SEO signals and structured-data opportunities across business websites.',
       readTime: '4 min read',
       badge: 'Playbook',
       featured: false,
@@ -65,7 +65,7 @@ export function ResourcesPage() {
     {
       title: 'AI Lead Qualification & Decision-Maker Reachability Framework',
       category: 'Agency Playbooks',
-      desc: 'Scoring prospect commercial intent before assigning valuable agency sales bandwidth.',
+      desc: 'A practical framework for evaluating lead fit, commercial opportunity, and the best path to relevant decision-makers.',
       readTime: '6 min read',
       badge: 'Guide',
       featured: false,

@@ -302,20 +302,6 @@ export function HowItWorksPage() {
         </div>
 
         <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              padding: '5px 14px', borderRadius: 999,
-              background: '#dbdbd2', border: '1px solid rgba(0,0,0,0.08)',
-              fontSize: 10, fontFamily: 'monospace', letterSpacing: '1px',
-              color: '#6f6f6e', marginBottom: 24,
-            }}
-          >
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#4cc02b', boxShadow: '0 0 8px #4cc02b' }} />
-            HOW IT WORKS
-          </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
@@ -371,20 +357,15 @@ export function HowItWorksPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.38 }}
-            style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 40 }}
+            className="flex flex-wrap gap-2 mt-10"
           >
             {steps.map((s) => (
               <a
                 key={s.num}
                 href={`#step-${s.num}`}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  padding: '5px 12px', borderRadius: 999,
-                  background: '#fff', border: '1px solid rgba(0,0,0,0.08)',
-                  fontSize: 11, color: '#6f6f6e', textDecoration: 'none',
-                }}
+                className="px-4 py-1.5 rounded-full text-xs font-medium bg-white/80 border border-black/8 text-[#4a4a49] hover:bg-white hover:text-graphite-ink transition-all no-underline inline-flex items-center gap-1.5"
               >
-                <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#8f8f8e' }}>{s.num}</span>
+                <span className="font-mono text-[10px] text-ash-subheading">{s.num}</span>
                 {s.short}
                 <ChevronRight size={10} />
               </a>
