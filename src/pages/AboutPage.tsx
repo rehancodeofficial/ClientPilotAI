@@ -50,19 +50,17 @@ const founders = [
 export function AboutPage() {
   return (
     <div className="min-h-screen bg-[#edede8] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white overflow-x-hidden">
-      <PublicNavbar />
-
-      {/* Hero */}
+      <PublicNavbar />      {/* Hero */}
       <section className="relative py-24 lg:py-32 border-b border-black/10 overflow-hidden bg-[#edede8]">
         {/* Background Image with refined gradient overlay */}
         <div className="absolute inset-0 z-0">
           <img
             src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=2000&q=80"
             alt="Agency Modern Workspace"
-            className="w-full h-full object-cover opacity-15"
+            className="w-full h-full object-cover opacity-35 brightness-95"
           />
-          <div className="absolute inset-0 bg-linear-to-b from-[#edede8]/90 via-[#edede8]/80 to-[#edede8]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(76,192,43,0.08),transparent_50%)]" />
+          <div className="absolute inset-0 bg-linear-to-b from-[#edede8]/70 via-[#edede8]/65 to-[#edede8]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(76,192,43,0.12),transparent_50%)]" />
         </div>
 
         <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6">
@@ -95,10 +93,11 @@ export function AboutPage() {
         </div>
       </section>
 
-      The Minds Behind ClientPilot (Founder Story Section)
+      {/* 
+      {/* The Minds Behind ClientPilot (Founder Story Section) - Commented out for FYP presentation */}
+      {/* 
       <section className="py-24 bg-[#edede8] border-b border-black/10">
         <div className="max-w-300 mx-auto px-4 sm:px-6 space-y-16">
-          {/* Section Heading & Context */}
           <div className="max-w-2xl">
             <motion.div
               initial={{ opacity: 0 }}
@@ -141,7 +140,6 @@ export function AboutPage() {
             </motion.p>
           </div>
 
-          {/* 2-Column Founder Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {founders.map((founder, idx) => (
               <motion.div
@@ -154,7 +152,6 @@ export function AboutPage() {
                 className="p-8 sm:p-10 rounded-2xl bg-white border border-black/10 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between transition-all"
               >
                 <div className="space-y-6">
-                  {/* Avatar & Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-5">
                     <div className="relative">
                       <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2 border-black/10 shadow-md bg-[#edede8] shrink-0">
@@ -181,14 +178,12 @@ export function AboutPage() {
                     </div>
                   </div>
 
-                  {/* Bio Paragraphs */}
                   <div className="space-y-3 pt-2 text-sm text-[#5c5c5b] leading-relaxed border-t border-black/5">
                     <p>{founder.bio}</p>
                     <p className="text-slate-caption">{founder.secondaryBio}</p>
                   </div>
                 </div>
 
-                {/* Focus Areas */}
                 <div className="pt-6 mt-6 border-t border-black/5">
                   <span className="text-[11px] font-mono uppercase tracking-wider text-ash-subheading block mb-3">
                     Focus Areas
@@ -209,7 +204,6 @@ export function AboutPage() {
             ))}
           </div>
 
-          {/* Full-Width Dark / High-Contrast Vision Banner */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -217,7 +211,6 @@ export function AboutPage() {
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             className="relative rounded-2xl bg-graphite-ink text-white p-8 sm:p-12 lg:p-14 overflow-hidden border border-black/20 shadow-xl"
           >
-            {/* Subtle background gradient glow */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-lime-pulse/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
@@ -236,7 +229,6 @@ export function AboutPage() {
                   ClientPilot is being built with a long-term vision: to give every business a digital identity and make the opportunities within that identity easier to discover. What started as an idea is being developed into a platform designed for the future of digital agencies.
                 </p>
 
-                {/* 4 Pillars */}
                 <div className="pt-3 flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm font-mono text-white/80">
                   {['Discover.', 'Understand.', 'Connect.', 'Build.'].map((pillar) => (
                     <span key={pillar} className="flex items-center gap-2">
@@ -266,6 +258,7 @@ export function AboutPage() {
           </motion.div>
         </div>
       </section>
+      */}
 
       {/* Mission */}
       <section className="py-20 bg-white border-b border-black/10">
