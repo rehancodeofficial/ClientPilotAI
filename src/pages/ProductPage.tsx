@@ -123,14 +123,6 @@ export function ProductPage() {
         </div>
 
         <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6 space-y-6">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#eaf5e7] border border-lime-pulse/30 text-[#2a7a18] text-xs font-mono"
-          >
-            <span className="w-2 h-2 rounded-full bg-lime-pulse shadow-[0_0_8px_rgba(76,192,43,0.8)] animate-pulse" />
-            <span>PRODUCT ARCHITECTURE</span>
-          </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

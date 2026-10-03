@@ -145,14 +145,6 @@ export function FeaturesPage() {
       {/* Hero */}
       <section className="py-20 lg:py-28 bg-[#edede8] border-b border-black/10">
         <div className="max-w-300 mx-auto px-4 sm:px-6">
-          <motion.div
-            variants={fadeUp} custom={0}
-            initial="hidden" animate="visible"
-            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-warm-stone border border-black/8 text-[#5c5c5b] text-xs font-mono mb-6"
-          >
-            <span className="w-2 h-2 rounded-full bg-lime-pulse" />
-            Features
-          </motion.div>
           <motion.h1
             variants={fadeUp} custom={0.1}
             initial="hidden" animate="visible"

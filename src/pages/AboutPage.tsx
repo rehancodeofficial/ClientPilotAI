@@ -64,14 +64,6 @@ export function AboutPage() {
         </div>
 
         <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-warm-stone border border-black/8 text-[#5c5c5b] text-xs font-mono mb-6"
-          >
-            <span className="w-2 h-2 rounded-full bg-lime-pulse" />
-            <span className="font-mono text-[11px] text-[#4a4a49]">About ClientPilot</span>
-          </motion.div>
           <motion.h1
             variants={fadeUp}
             custom={0.05}

@@ -92,10 +92,6 @@ export function ResourcesPage() {
         </div>
 
         <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6 text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#eaf5e7] border border-lime-pulse/30 text-[#2a7a18] text-xs font-mono">
-            <span className="w-2 h-2 rounded-full bg-lime-pulse shadow-[0_0_8px_rgba(76,192,43,0.8)]" />
-            <span>AGENCY KNOWLEDGE CENTER</span>
-          </div>
           <h1 className="text-5xl sm:text-6xl lg:text-[72px] font-normal text-graphite-ink tracking-tight font-heading max-w-3xl mx-auto leading-[1.04]">
             Resources, Guides & Frameworks
           </h1>
