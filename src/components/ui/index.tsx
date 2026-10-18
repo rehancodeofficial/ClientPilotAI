@@ -263,7 +263,7 @@ export const Sheet = ({ open, onClose, children, side = 'right', width = 'w-[520
       {/* Backdrop */}
       <div
         className={cn(
-          'fixed inset-0 z-40 bg-black/30 backdrop-blur-sm transition-opacity duration-200',
+          'fixed inset-0 z-[1000] bg-black/30 backdrop-blur-sm transition-opacity duration-200',
           open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
         onClick={onClose}
@@ -271,7 +271,7 @@ export const Sheet = ({ open, onClose, children, side = 'right', width = 'w-[520
       {/* Panel */}
       <div
         className={cn(
-          'fixed z-50 top-0 bottom-0 clay-floating shadow-2xl overflow-y-auto transition-transform duration-300 ease-out',
+          'fixed z-[1001] top-0 bottom-0 clay-floating shadow-2xl overflow-y-auto transition-transform duration-300 ease-out',
           width,
           side === 'right' ? 'right-4 top-4 bottom-4' : 'left-4 top-4 bottom-4',
           open

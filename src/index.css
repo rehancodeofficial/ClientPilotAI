@@ -141,6 +141,12 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   letter-spacing: -0.01em;
 }
 
+/* Ensure Leaflet container stays in its own stacking context below global drawers/modals */
+.leaflet-container {
+  z-index: 1 !important;
+}
+
+
 /* ============================================================
    SCROLLBAR
    ============================================================ */
