@@ -1,14 +1,18 @@
 import axios, { AxiosError } from 'axios';
 
 const DEFAULT_NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
-const DEFAULT_OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
-const DEFAULT_USER_AGENT = 'ClientPilotAI/1.0 (configure OSM_USER_AGENT with contact email)';
-const DEFAULT_TIMEOUT_MS = 30_000;
+const DEFAULT_OVERPASS_URLS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+];
+const DEFAULT_USER_AGENT = 'ClientPilotAI/1.0 (contact@clientpilotai.internal)';
+const DEFAULT_TIMEOUT_MS = 25_000;
 const DEFAULT_RETRIES = 2;
 const MAX_RADIUS_METERS = 50_000;
 
 const NOMINATIM_URL = process.env.NOMINATIM_URL || DEFAULT_NOMINATIM_URL;
-const OVERPASS_URL = process.env.OVERPASS_URL || DEFAULT_OVERPASS_URL;
+const OVERPASS_URLS = process.env.OVERPASS_URL ? [process.env.OVERPASS_URL, ...DEFAULT_OVERPASS_URLS] : DEFAULT_OVERPASS_URLS;
 const USER_AGENT = process.env.OSM_USER_AGENT || DEFAULT_USER_AGENT;
 const REQUEST_TIMEOUT_MS = Number(process.env.OSM_REQUEST_TIMEOUT_MS || DEFAULT_TIMEOUT_MS);
 
@@ -308,38 +312,145 @@ export const searchNearbyBusinesses = async (
   const limit = Math.max(1, Math.min(params.limit || 100, 250));
 
   let lastError: unknown;
-  for (let attempt = 0; attempt <= DEFAULT_RETRIES; attempt++) {
+
+  for (const endpoint of OVERPASS_URLS) {
     try {
-      const response = await axios.post<{ elements?: OverpassElement[] }>(OVERPASS_URL, `data=${encodeURIComponent(query)}`, {
+      const response = await axios.post<{ elements?: OverpassElement[] }>(endpoint, `data=${encodeURIComponent(query)}`, {
         headers: { ...requestHeaders(), 'Content-Type': 'application/x-www-form-urlencoded' },
-        timeout: REQUEST_TIMEOUT_MS,
+        timeout: 7_000,
       });
 
-      if (!response.data || !Array.isArray(response.data.elements)) {
-        throw new OSMOverpassError('Overpass returned an invalid response', 502);
+      if (response.data && Array.isArray(response.data.elements)) {
+        const seen = new Set<string>();
+        const businesses = response.data.elements
+          .map(normalizeBusiness)
+          .filter((business): business is NormalizedBusiness => Boolean(business))
+          .filter(business => {
+            if (seen.has(business.osmId)) return false;
+            seen.add(business.osmId);
+            return true;
+          })
+          .slice(0, limit);
+
+        if (businesses.length > 0) {
+          return { businesses, center: { lat, lng }, radiusMeters, categories };
+        }
       }
-
-      const seen = new Set<string>();
-      const businesses = response.data.elements
-        .map(normalizeBusiness)
-        .filter((business): business is NormalizedBusiness => Boolean(business))
-        .filter(business => {
-          if (seen.has(business.osmId)) return false;
-          seen.add(business.osmId);
-          return true;
-        })
-        .slice(0, limit);
-
-      return { businesses, center: { lat, lng }, radiusMeters, categories };
     } catch (error) {
       lastError = error;
-      if (error instanceof OSMOverpassError || attempt === DEFAULT_RETRIES) break;
-      await delay(750 * (attempt + 1));
+      // If client error (400), don't retry other endpoints
+      if (axios.isAxiosError(error) && error.response?.status === 400) {
+        throw new OSMOverpassError('Invalid query format', 400);
+      }
     }
   }
 
+  // Graceful fallback to Nominatim when Overpass mirrors are unavailable or rate-limited
+  try {
+    const fallbackResult = await searchNearbyBusinessesViaNominatim(params);
+    if (fallbackResult.businesses.length > 0) {
+      return fallbackResult;
+    }
+  } catch (fallbackError) {
+    // Continue to error throw if fallback also fails
+  }
+
   if (lastError instanceof OSMOverpassError) throw lastError;
-  throw new OSMOverpassError(`Overpass business search failed: ${axiosMessage(lastError)}`, 502);
+  throw new OSMOverpassError(`Overpass business search failed across mirrors: ${axiosMessage(lastError)}`, 502);
+};
+
+export const searchNearbyBusinessesViaNominatim = async (
+  params: NearbyBusinessSearchParams,
+): Promise<NearbyBusinessSearchResult> => {
+  const lat = toFiniteNumber(params.lat);
+  const lng = toFiniteNumber(params.lng);
+  if (lat === null || lng === null) throw new OSMOverpassError('Valid latitude and longitude are required', 400);
+
+  const radiusMeters = clampRadius(params.radiusMeters);
+  const categories = normalizeCategories(params.categories);
+  const limit = Math.max(1, Math.min(params.limit || 100, 250));
+
+  const latDelta = radiusMeters / 111000;
+  const lngDelta = radiusMeters / (111000 * Math.max(0.1, Math.cos((lat * Math.PI) / 180)));
+  const minLng = lng - lngDelta;
+  const maxLat = lat + latDelta;
+  const maxLng = lng + lngDelta;
+  const minLat = lat - latDelta;
+  const viewbox = `${minLng.toFixed(5)},${maxLat.toFixed(5)},${maxLng.toFixed(5)},${minLat.toFixed(5)}`;
+
+  const queryTerms = categories.length > 0 ? categories : ['restaurant', 'cafe', 'shop', 'clinic', 'bakery', 'business'];
+  const seen = new Set<string>();
+  const businesses: NormalizedBusiness[] = [];
+
+  for (const term of queryTerms.slice(0, 3)) {
+    try {
+      const response = await axios.get<Array<{
+        place_id?: number;
+        osm_type?: string;
+        osm_id?: number;
+        lat?: string;
+        lon?: string;
+        display_name?: string;
+        name?: string;
+        category?: string;
+        type?: string;
+        address?: Record<string, string>;
+      }>>(NOMINATIM_URL, {
+        params: {
+          q: term,
+          viewbox,
+          bounded: 1,
+          format: 'jsonv2',
+          addressdetails: 1,
+          limit: Math.min(limit, 30),
+        },
+        headers: requestHeaders(),
+        timeout: 8_000,
+      });
+
+      if (Array.isArray(response.data)) {
+        for (const place of response.data) {
+          const pLat = toFiniteNumber(place.lat);
+          const pLng = toFiniteNumber(place.lon);
+          const pName = place.name || place.display_name?.split(',')[0]?.trim();
+          const osmId = `${place.osm_type || 'node'}:${place.osm_id || place.place_id}`;
+
+          if (!pName || pLat === null || pLng === null || seen.has(osmId)) continue;
+          seen.add(osmId);
+
+          const addr = place.address || {};
+          const street = [addr.house_number, addr.road].filter(Boolean).join(' ').trim();
+          const city = addr.city || addr.town || addr.village || addr.county || '';
+          const area = addr.suburb || addr.neighbourhood || addr.quarter;
+          const address = [street, area, city].filter(Boolean).join(', ') || place.display_name || '';
+
+          businesses.push({
+            osmId,
+            osmType: (place.osm_type as 'node' | 'way' | 'relation') || 'node',
+            name: pName,
+            category: place.category || term,
+            type: place.type || term,
+            latitude: pLat,
+            longitude: pLng,
+            address,
+            city,
+            area,
+            rawTags: {
+              name: pName,
+              ...(place.category ? { [place.category]: place.type || '' } : {}),
+            },
+          });
+
+          if (businesses.length >= limit) break;
+        }
+      }
+    } catch {
+      // Continue to next query term
+    }
+    if (businesses.length >= limit) break;
+  }
+
+  return { businesses, center: { lat, lng }, radiusMeters, categories };
 };
 
 export const discoverBusinessesByLocation = async (params: {

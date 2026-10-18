@@ -160,32 +160,48 @@ export const useAppStore = create<AppState & {
   clearNotifications: () => set({ notifications: [] }),
 
   initRealtime: () => {
-    if (!isSupabaseConfigured) {
+    // Only connect WebSocket Realtime if explicitly enabled in environment
+    if (!isSupabaseConfigured || import.meta.env.VITE_ENABLE_REALTIME !== 'true') {
       return () => {};
     }
-    
-    // Subscribe to leads updates (e.g. stage changes by other users)
-    const leadsChannel = supabase.channel('leads_channel')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-           // Push or refetch
-        }
-      })
-      .subscribe();
 
-    // Subscribe to lead scores arriving asynchronously
-    const scoresChannel = supabase.channel('scores_channel')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'lead_scores' }, (payload) => {
-        const record = payload.new as Record<string, unknown>;
-        if (record && typeof record['lead_id'] === 'string') {
-          get().updateLeadScore(record['lead_id'], record);
-        }
-      })
-      .subscribe();
+    try {
+      // Subscribe to leads updates
+      const leadsChannel = supabase.channel('leads_channel')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, (_payload) => {
+          // Handled via refetch
+        })
+        .subscribe((status) => {
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            // Realtime is not active on this remote Supabase project - detach channel
+            supabase.removeChannel(leadsChannel);
+          }
+        });
 
-    return () => {
-      supabase.removeChannel(leadsChannel);
-      supabase.removeChannel(scoresChannel);
-    };
+      // Subscribe to lead scores arriving asynchronously
+      const scoresChannel = supabase.channel('scores_channel')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'lead_scores' }, (payload) => {
+          const record = payload.new as Record<string, unknown>;
+          if (record && typeof record['lead_id'] === 'string') {
+            get().updateLeadScore(record['lead_id'], record);
+          }
+        })
+        .subscribe((status) => {
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            supabase.removeChannel(scoresChannel);
+          }
+        });
+
+      return () => {
+        try {
+          supabase.removeChannel(leadsChannel);
+          supabase.removeChannel(scoresChannel);
+        } catch {
+          // ignore
+        }
+      };
+    } catch {
+      return () => {};
+    }
   }
 }))

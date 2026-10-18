@@ -15,9 +15,17 @@ if (!isSupabaseConfigured) {
 }
 
 // Initialize client with fallback values to prevent build/init time crashes
+// Realtime WebSocket connects only when explicitly requested; limits reconnect loops
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
-  (supabaseAnonKey || 'placeholder-anon-key').trim()
+  (supabaseAnonKey || 'placeholder-anon-key').trim(),
+  {
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
+    },
+  }
 );
 
 /**
