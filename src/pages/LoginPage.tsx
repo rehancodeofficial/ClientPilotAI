@@ -190,15 +190,12 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
     setError(null)
 
     let hasError = false
-    const isAdminMock =
-      email.trim() === 'admin@clientpilotai' ||
-      email.trim() === 'admin@clientpilotai.com'
 
     if (mode === 'signup' && !fullName.trim()) {
       triggerShake(setShakeName)
       hasError = true
     }
-    if (!email.trim() || (!validateEmail(email) && !isAdminMock)) {
+    if (!email.trim() || !validateEmail(email)) {
       triggerShake(setShakeEmail)
       hasError = true
     }
@@ -212,15 +209,11 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
 
     try {
       if (mode === 'login') {
-        if (isAdminMock && password === '123123') {
-          setTimeout(() => {
-            setUserEmail(email)
-            setUserRole('admin')
-            navigate('/app/admin')
-            setLoading(false)
-          }, 800)
-          return
-        }
+        // A hardcoded branch used to grant admin for one specific address and
+        // password, setting the role client-side with no server call. That pair
+        // shipped in the public JavaScript bundle, so anyone reading it could
+        // sign in as an administrator. All sign-ins now go through Supabase, and
+        // the role is read from the profiles row for the authenticated user.
 
         const { data: authData, error: signInError } =
           await supabase.auth.signInWithPassword({ email, password })
@@ -428,12 +421,15 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
       setUserRole(role)
       navigate(role === 'admin' ? '/app/admin' : '/app')
     } catch (err) {
-      console.warn('[DemoLogin] Backend unreachable, using role-only access:', err)
-      setUserEmail(
-        role === 'admin' ? 'admin@clientpilotai.com' : 'demo@clientpilotai.com'
+      // Previously this granted "role-only access" and navigated straight to
+      // the admin dashboard whenever the demo endpoint failed — entry with no
+      // token and no verification of any kind. A failed demo login is now
+      // simply a failed login.
+      setError(
+        err instanceof Error
+          ? `Demo sign-in unavailable: ${err.message}`
+          : 'Demo sign-in is unavailable right now.'
       )
-      setUserRole(role)
-      navigate(role === 'admin' ? '/app/admin' : '/app')
     } finally {
       setLoading(false)
     }

@@ -9,10 +9,11 @@ export function AuthGuard() {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Demo mode: if a role is set via the demo login buttons, bypass real auth
-  const userRole = useAppStore((s) => s.userRole)
   const setUserRole = useAppStore((s) => s.setUserRole)
   const setUserEmail = useAppStore((s) => s.setUserEmail)
+  // A demo session is represented by the token minted by POST /api/auth/demo.
+  // The token is the credential; a role value on its own is not.
+  const demoToken = useAppStore((s) => s.demoToken)
 
   useEffect(() => {
     let active = true;
@@ -68,12 +69,10 @@ export function AuthGuard() {
         } catch {
           if (active) setUserRole('user')
         }
-      } else {
-        const currentRole = useAppStore.getState().userRole
-        if (currentRole !== 'admin' && currentRole !== 'user') {
-          setUserEmail(null)
-          setUserRole(null)
-        }
+      } else if (!useAppStore.getState().demoToken) {
+        // Signed out and not in a demo session: clear the cached identity.
+        setUserEmail(null)
+        setUserRole(null)
       }
     })
 
@@ -83,8 +82,12 @@ export function AuthGuard() {
     }
   }, [setUserRole, setUserEmail])
 
-  // If a demo role is set, grant access immediately without waiting
-  if (userRole !== null) {
+  // Entry previously required only `userRole !== null`. Because the role is set
+  // client-side before any credential is verified, anything that wrote a role —
+  // the former hardcoded admin branch, or the demo login's failure path — let a
+  // caller straight through this guard. Access now requires an actual
+  // credential: a Supabase session, or a demo token issued by the backend.
+  if (demoToken) {
     return <Outlet />
   }
 

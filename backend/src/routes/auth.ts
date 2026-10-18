@@ -7,10 +7,16 @@
  *
  * SECURITY:
  * - Token is signed with SUPABASE_JWT_SECRET (same secret the middleware verifies)
- * - TTL is 4 hours (short-lived, read-only demo access)
- * - Demo workspace is isolated — RLS ensures cross-tenant isolation still applies
+ * - TTL is 4 hours
+ * - Demo workspace is isolated; the token is scoped to it and nothing else
  * - Never exposes any real credentials to the frontend
- * - Rate-limited at the app level (100 req/15min per IP)
+ *
+ * This endpoint is unauthenticated and mints a token the auth middleware
+ * accepts, so anyone who can reach it gets API access to the demo workspace.
+ * That is the point of a demo, but it must be a deliberate choice rather than a
+ * default: it is therefore DISABLED unless ENABLE_DEMO_AUTH=true. The `role` in
+ * the request body is caller-supplied and grants no privilege by itself — admin
+ * authorisation is still decided by the profiles row for the resolved user.
  */
 
 import { Router } from 'express';
@@ -20,13 +26,34 @@ import { env } from '../lib/env';
 
 const router = Router();
 
-// These stable UUIDs identify the demo workspace + demo users.
-// They are seeded in the database by migration 00014_demo_workspace.sql
+// The demo workspace id is fixed; the demo USER ids are not. They were
+// previously hardcoded to match rows that migration 00014 was supposed to
+// insert — but that migration could never run, so the ids referred to profiles
+// that did not exist and every demo request failed with "No workspace found".
+// The accounts are now real auth users created by `npm run seed:demo`, and are
+// resolved here by email.
 export const DEMO_WORKSPACE_ID = '00000000-0000-0000-0000-000000000001';
-export const DEMO_ADMIN_USER_ID = '00000000-0000-0000-0000-000000000002';
-export const DEMO_USER_USER_ID  = '00000000-0000-0000-0000-000000000003';
+
+const DEMO_EMAILS = {
+  admin: (process.env.DEMO_ADMIN_EMAIL || 'demo-admin@clientpilot.test').toLowerCase(),
+  user: (process.env.DEMO_USER_EMAIL || 'demo-user@clientpilot.test').toLowerCase(),
+} as const;
 
 const DEMO_TOKEN_TTL_SECONDS = 4 * 60 * 60; // 4 hours
+
+/** Demo auth is opt-in: it hands out API access without any credential. */
+const isDemoAuthEnabled = (): boolean =>
+  (process.env.ENABLE_DEMO_AUTH || '').trim().toLowerCase() === 'true';
+
+/** Looks up the seeded demo profile for a role. Returns null when not seeded. */
+async function resolveDemoProfile(role: 'admin' | 'user') {
+  const { data } = await supabaseAdmin
+    .from('profiles')
+    .select('id, email, role, workspace_id')
+    .eq('email', DEMO_EMAILS[role])
+    .maybeSingle();
+  return data;
+}
 
 /**
  * POST /api/auth/demo
@@ -34,9 +61,14 @@ const DEMO_TOKEN_TTL_SECONDS = 4 * 60 * 60; // 4 hours
  * Returns: { token: string, expiresIn: number, role: string }
  */
 router.post('/demo', async (req, res) => {
+  if (!isDemoAuthEnabled()) {
+    return res.status(404).json({
+      error: 'Demo sign-in is not enabled on this server.',
+      code: 'DEMO_AUTH_DISABLED',
+    });
+  }
+
   const role = req.body?.role === 'admin' ? 'admin' : 'user';
-  const userId = role === 'admin' ? DEMO_ADMIN_USER_ID : DEMO_USER_USER_ID;
-  const email = role === 'admin' ? 'admin@demo.clientpilotai' : 'user@demo.clientpilotai';
 
   const jwtSecret = env.supabaseJwtSecret;
   if (!jwtSecret) {
@@ -45,24 +77,29 @@ router.post('/demo', async (req, res) => {
     });
   }
 
-  // Ensure the demo workspace exists in the database (idempotent upsert)
-  try {
-    await supabaseAdmin.from('workspaces').upsert({
-      id: DEMO_WORKSPACE_ID,
-      name: 'Demo Workspace',
-    }, { onConflict: 'id', ignoreDuplicates: true });
+  // Resolve the seeded demo account rather than creating rows on the fly.
+  //
+  // The previous implementation upserted a workspace with no owner_id and a
+  // profile carrying an `email` column, inside a try/catch that logged any
+  // failure as "non-fatal" and continued. Both writes always failed —
+  // owner_id was NOT NULL and profiles had no email column — so this issued a
+  // perfectly valid token for a workspace and profile that did not exist, and
+  // every subsequent request answered 403 "No workspace found". Requiring the
+  // seed to have run turns that silent breakage into a clear error.
+  const profile = await resolveDemoProfile(role);
 
-    await supabaseAdmin.from('profiles').upsert({
-      id: userId,
-      workspace_id: DEMO_WORKSPACE_ID,
-      email,
-      role,
-      full_name: role === 'admin' ? 'Demo Admin' : 'Demo User',
-    }, { onConflict: 'id', ignoreDuplicates: true });
-  } catch (dbErr) {
-    // Non-fatal: the workspace might already exist. Continue.
-    console.warn('[DemoAuth] Workspace upsert warning:', dbErr instanceof Error ? dbErr.message : dbErr);
+  if (!profile) {
+    return res.status(503).json({
+      error:
+        'The demo workspace has not been seeded on this server. ' +
+        'Run `npm --prefix backend run seed:demo` to create the demo accounts.',
+      code: 'DEMO_NOT_SEEDED',
+    });
   }
+
+  const userId = profile.id as string;
+  const email = (profile.email as string) ?? DEMO_EMAILS[role];
+  const workspaceId = (profile.workspace_id as string) ?? DEMO_WORKSPACE_ID;
 
   // Issue JWT with the same claims Supabase uses so the auth middleware accepts it
   const payload = {
@@ -73,7 +110,7 @@ router.post('/demo', async (req, res) => {
     user_metadata: { full_name: role === 'admin' ? 'Demo Admin' : 'Demo User' },
     // Demo-specific flag so middleware can identify demo tokens
     is_demo: true,
-    demo_workspace_id: DEMO_WORKSPACE_ID,
+    demo_workspace_id: workspaceId,
     aud: 'authenticated',
     iss: 'demo.clientpilotai',
   };
@@ -86,7 +123,7 @@ router.post('/demo', async (req, res) => {
     token,
     expiresIn: DEMO_TOKEN_TTL_SECONDS,
     role,
-    workspaceId: DEMO_WORKSPACE_ID,
+    workspaceId,
   });
 });
 
