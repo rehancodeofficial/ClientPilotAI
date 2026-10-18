@@ -141,6 +141,7 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [accountType, setAccountType] = useState<'agency' | 'freelancer' | 'client'>('agency')
 
   const [otpStep, setOtpStep] = useState(false)
   const [otpCode, setOtpCode] = useState(['', '', '', '', '', ''])
@@ -233,10 +234,20 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
           navigate(role === 'admin' ? '/app/admin' : '/app')
         }
       } else {
+        const targetRole = accountType === 'client' ? 'client' : 'user'
+        const targetPlan = accountType === 'agency' ? 'agency' : 'free'
+
         const { error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: fullName } },
+          options: {
+            data: {
+              full_name: fullName,
+              account_type: accountType,
+              plan: targetPlan,
+              role: targetRole,
+            },
+          },
         })
         if (signUpError && !signUpError.message.toLowerCase().includes('already registered')) {
           throw signUpError
@@ -967,8 +978,42 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
                           animate={{ opacity: 1, height: 'auto' }}
                           exit={{ opacity: 0, height: 0 }}
                           transition={{ duration: 0.3 }}
-                          style={{ overflow: 'hidden' }}
+                          style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 14 }}
                         >
+                          {/* Upwork-style Account Type Selector */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <label className="auth-label" style={{ margin: 0 }}>Join as</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                              {[
+                                { id: 'agency' as const, label: 'Agency', desc: 'Grow client revenue & manage team' },
+                                { id: 'freelancer' as const, label: 'Freelancer', desc: 'Solo audit & prospecting' },
+                                { id: 'client' as const, label: 'Client', desc: 'Review audit & proposal' },
+                              ].map((t) => (
+                                <button
+                                  key={t.id}
+                                  type="button"
+                                  onClick={() => setAccountType(t.id)}
+                                  style={{
+                                    border: accountType === t.id ? '2px solid #4cc02b' : '1px solid rgba(0,0,0,0.1)',
+                                    background: accountType === t.id ? 'rgba(76,192,43,0.08)' : '#fdfdfc',
+                                    borderRadius: 12,
+                                    padding: '10px 8px',
+                                    textAlign: 'left',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                >
+                                  <div style={{ fontSize: 12, fontWeight: 700, color: accountType === t.id ? '#141414' : '#292929' }}>
+                                    {t.label}
+                                  </div>
+                                  <div style={{ fontSize: 10, color: '#6f6f6e', marginTop: 2, lineHeight: 1.25 }}>
+                                    {t.desc}
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
                           <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <label className="auth-label">Full name</label>
                             <div style={{ position: 'relative' }}>

@@ -134,62 +134,70 @@ export function AdminDashboardPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full text-(--text-primary)">
       {/* Platform Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 clay-raised rounded-2xl">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-(--danger)/10 text-(--danger)">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 clay-raised rounded-2xl relative overflow-hidden border border-(--border)">
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-(--accent-soft) text-(--accent) border border-(--accent)/30">
               Platform Administration
             </span>
             <span className="text-xs text-(--text-muted)">
-              Operator: <strong className="text-(--text-primary)">{currentEmail}</strong>
+              Signed in as: <strong className="text-(--text-primary)">{currentEmail}</strong>
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight">
             Trust & Operations Center
           </h1>
-          <p className="text-xs sm:text-sm text-(--text-secondary) mt-1">
+          <p className="text-xs sm:text-sm text-(--text-secondary) mt-1 font-medium">
             Global tenant health, platform resource metrics, and role governance.
           </p>
         </div>
 
-        <Button
-          variant="outline"
-          onClick={loadAdminData}
-          disabled={loading}
-          className="gap-2 h-10 px-4 text-xs sm:text-sm shrink-0"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh Metrics</span>
-        </Button>
+        <div className="relative z-10">
+          <Button
+            variant="outline"
+            onClick={loadAdminData}
+            disabled={loading}
+            className="gap-2 h-10 px-4 text-xs sm:text-sm shrink-0 clay-raised hover:bg-(--surface-hover)"
+          >
+            <RefreshCw className={`w-4 h-4 text-(--accent) ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh Metrics</span>
+          </Button>
+        </div>
       </div>
 
-      {/* System Health Strip (Real booleans from /api/admin/system) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 clay-inset rounded-xl">
-        <div className="flex items-center gap-3">
-          <Database className={`w-4 h-4 ${system?.database === 'connected' ? 'text-(--success)' : 'text-(--danger)'}`} />
+      {/* System Health Strip (Live telemetry from /api/admin/system) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 clay-inset rounded-2xl border border-(--border-subtle)">
+        <div className="flex items-center gap-3 p-2">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${system?.database === 'connected' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-500'}`}>
+            <Database className="w-4 h-4" />
+          </div>
           <div className="text-xs">
-            <span className="text-(--text-muted) block">Database:</span>
-            <strong className="capitalize text-(--text-primary)">
+            <span className="text-(--text-muted) block font-medium">Database Cluster:</span>
+            <strong className="capitalize text-(--text-primary) text-sm font-semibold">
               {system?.database || 'Connecting...'}
             </strong>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Cpu className={`w-4 h-4 ${system?.aiConfigured ? 'text-(--success)' : 'text-(--warning)'}`} />
+        <div className="flex items-center gap-3 p-2">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${system?.aiConfigured ? 'bg-(--accent-soft) text-(--accent)' : 'bg-amber-500/10 text-amber-500'}`}>
+            <Cpu className="w-4 h-4" />
+          </div>
           <div className="text-xs">
-            <span className="text-(--text-muted) block">AI Provider:</span>
-            <strong className="text-(--text-primary)">
+            <span className="text-(--text-muted) block font-medium">AI Intelligence:</span>
+            <strong className="text-(--text-primary) text-sm font-semibold">
               {system?.aiConfigured ? 'Configured & Active' : 'Not Configured'}
             </strong>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Mail className={`w-4 h-4 ${system?.emailConfigured ? 'text-(--success)' : 'text-(--warning)'}`} />
+        <div className="flex items-center gap-3 p-2">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${system?.emailConfigured ? 'bg-sky-500/10 text-sky-500' : 'bg-(--surface-raised) text-(--text-muted)'}`}>
+            <Mail className="w-4 h-4" />
+          </div>
           <div className="text-xs">
-            <span className="text-(--text-muted) block">Outreach Email:</span>
-            <strong className="text-(--text-primary)">
+            <span className="text-(--text-muted) block font-medium">Outreach Delivery:</span>
+            <strong className="text-(--text-primary) text-sm font-semibold">
               {system?.emailConfigured ? 'Live Sending Ready' : 'Disabled'}
             </strong>
           </div>
@@ -197,8 +205,9 @@ export function AdminDashboardPage() {
       </div>
 
       {actionMessage && (
-        <div className="p-3 text-xs rounded-lg bg-(--surface-raised) border border-(--border) text-(--text-primary)">
-          {actionMessage}
+        <div className="p-3 text-xs rounded-xl bg-(--accent-soft) border border-(--accent)/30 text-(--text-primary) flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-(--accent)" />
+          <span>{actionMessage}</span>
         </div>
       )}
 
