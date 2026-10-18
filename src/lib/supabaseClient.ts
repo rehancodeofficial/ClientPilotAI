@@ -1,24 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const DEFAULT_SUPABASE_URL = 'https://emmklsvrxxhhdkxcqvmu.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtbWtsc3ZyeHhoaGRreGNxdm11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNjQ2MjYsImV4cCI6MjEwNTg0MDYyNn0.EHKAezlz2rrd1aSD69R0HlMhnP7tx5sgr6NB_48XVeM';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
 
 export const isSupabaseConfigured = Boolean(
   supabaseUrl && 
   supabaseAnonKey && 
-  supabaseAnonKey !== 'placeholder-anon-key' &&
+  !supabaseUrl.includes('placeholder.supabase.co') &&
   !supabaseUrl.includes('localhost:54321')
 );
 
-if (!isSupabaseConfigured) {
-  // Silent or mild warning to avoid console spam in demo environments
-}
-
-// Initialize client with fallback values to prevent build/init time crashes
-// Realtime WebSocket connects only when explicitly requested; limits reconnect loops
+// Initialize client with project credentials
 export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  (supabaseAnonKey || 'placeholder-anon-key').trim(),
+  supabaseUrl,
+  supabaseAnonKey.trim(),
   {
     realtime: {
       params: {
