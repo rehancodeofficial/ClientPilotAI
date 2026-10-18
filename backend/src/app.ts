@@ -39,8 +39,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS: allow production Vercel frontend + configured FRONTEND_URL + local development
+// CORS: allow production custom domain + Vercel frontend + configured FRONTEND_URL + local development
 const allowedOrigins = [
+  'https://clientpilotai.rehanhussain.dev',
   'https://client-pilot-ai-psi.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
@@ -50,6 +51,8 @@ const allowedOrigins = [
 
 const isAllowedOrigin = (origin: string): boolean => {
   if (allowedOrigins.includes(origin)) return true;
+  // Allow custom production domain with or without trailing slash
+  if (/^https:\/\/clientpilotai\.rehanhussain\.dev\/?$/.test(origin)) return true;
   // Allow local development patterns
   if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return true;
   if (/^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) return true;
