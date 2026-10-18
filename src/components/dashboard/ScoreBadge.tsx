@@ -18,19 +18,19 @@ export function ScoreBadge({
 
   let band = 'Low'
   let color = 'var(--danger)'
-  let bg = 'rgba(239, 68, 68, 0.12)'
-  let border = 'rgba(239, 68, 68, 0.25)'
+  let bg = 'rgba(214, 69, 69, 0.12)'
+  let border = 'rgba(214, 69, 69, 0.25)'
 
   if (rounded >= 80) {
     band = 'High'
     color = 'var(--success)'
-    bg = 'rgba(76, 192, 43, 0.14)'
-    border = 'rgba(76, 192, 43, 0.3)'
+    bg = 'rgba(39, 131, 74, 0.12)'
+    border = 'rgba(39, 131, 74, 0.25)'
   } else if (rounded >= 50) {
     band = 'Moderate'
     color = 'var(--warning)'
-    bg = 'rgba(245, 158, 11, 0.14)'
-    border = 'rgba(245, 158, 11, 0.3)'
+    bg = 'rgba(230, 162, 60, 0.12)'
+    border = 'rgba(230, 162, 60, 0.25)'
   }
 
   const sizeClasses = {

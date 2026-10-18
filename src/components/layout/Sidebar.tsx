@@ -86,13 +86,13 @@ function NavGroup({
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-2xl font-semibold text-[13px] transition-all relative overflow-hidden',
                 isActive
-                  ? 'clay-inset bg-(--primary-soft) text-(--primary)'
-                  : 'text-(--text-secondary) hover:bg-(--surface-raised) hover:text-(--text-primary)'
+                  ? 'clay-inset bg-(--primary-soft) text-(--accent) font-bold'
+                  : 'text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
               )}
               title={collapsed ? itemLabel : undefined}
             >
               {isActive && (
-                <div className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-(--primary)" />
+                <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-(--accent)" />
               )}
               <Icon className={cn('h-[17px] w-[17px] shrink-0', isActive && 'ml-1')} />
               <AnimatePresence>
