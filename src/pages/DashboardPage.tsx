@@ -1,514 +1,560 @@
-import { useEffect, useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Cell, PieChart, Pie, Legend,
-} from 'recharts'
-import {
-  TrendingUp, TrendingDown, Users, Star, Send, BarChart2, Activity, Wand2,
-  CheckCircle2, Zap, ArrowUpRight, Radar, ChevronRight, Target, ShieldCheck,
-  Building2, ArrowRight
+  Radar,
+  Sparkles,
+  ArrowRight,
+  Send,
+  Users,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  UserPlus,
+  Layers,
+  FileText,
+  ChevronRight,
+  Filter,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Skeleton, Button, Badge } from '@/components/ui'
-import { getDashboardStats } from '@/lib/apiClient'
-import type { DashboardStats, ActivityEvent, Lead } from '@/types'
-import { formatRelativeTime, cn, getCategoryLabel, getScoreColor } from '@/lib/utils'
+import {
+  ScoreBadge,
+  SignalChip,
+  StatTile,
+  EmptyState,
+  ActivityFeedItem,
+} from '@/components/dashboard'
+import { Button, Card, Progress, Skeleton, Badge } from '@/components/ui'
+import { apiGet, apiPost } from '@/api/client'
 import { useAppStore } from '@/store/useAppStore'
+import { LeadDetailPanel } from '@/components/leads/LeadDetailPanel'
+import type { Lead } from '@/types'
 
-// ============================================================
-// Sparkline (tiny inline chart)
-// ============================================================
-function Sparkline({ data, color }: { data: number[]; color: string }) {
-  const max = Math.max(...data)
-  const min = Math.min(...data)
-  const range = max - min || 1
-  const w = 64, h = 28, pad = 2
-  const points = data.map((v, i) => {
-    const x = pad + (i / (data.length - 1)) * (w - pad * 2)
-    const y = h - pad - ((v - min) / range) * (h - pad * 2)
-    return `${x},${y}`
-  })
-  return (
-    <svg width={w} height={h} className="overflow-visible">
-      <polyline points={points.join(' ')} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx={points[points.length - 1].split(',')[0]} cy={points[points.length - 1].split(',')[1]} r="3" fill={color} />
-    </svg>
-  )
-}
-
-// ============================================================
-// Stat Card
-// ============================================================
-interface StatCardProps {
-  label: string
-  value: string | number
-  trend: number
-  sparkline: number[]
-  icon: React.ReactNode
-  accent: string
-  delay?: number
-}
-
-function StatCard({ label, value, trend, sparkline, icon, accent, delay = 0 }: StatCardProps) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, type: 'spring', stiffness: 300, damping: 20 }}
-      className="clay-raised p-5"
-    >
-      <div className="flex items-start justify-between mb-3">
-        <div className={cn('h-11 w-11 rounded-2xl clay-raised flex items-center justify-center text-white', accent)}>
-          {icon}
-        </div>
-        <div className="clay-inset px-2 py-1 rounded-xl border border-transparent">
-          <Sparkline data={sparkline} color={trend >= 0 ? 'var(--success)' : 'var(--warning)'} />
-        </div>
-      </div>
-      <div className="space-y-1">
-        <p className="text-[11px] text-(--text-muted) font-bold uppercase tracking-wider">{label}</p>
-        <p className="text-2xl font-extrabold text-(--text-primary) font-mono tracking-tight">{value}</p>
-        <div className="flex items-center gap-1">
-          {trend >= 0 ? (
-            <TrendingUp className="h-3 w-3 text-(--success)" />
-          ) : (
-            <TrendingDown className="h-3 w-3 text-(--warning)" />
-          )}
-          <span className={cn('text-[11px] font-bold', trend >= 0 ? 'text-(--success)' : 'text-(--warning)')}>
-            {trend >= 0 ? '+' : ''}{trend}% vs last week
-          </span>
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-// ============================================================
-// Activity event icons
-// ============================================================
-function ActivityIcon({ type }: { type: ActivityEvent['type'] }) {
-  const map = {
-    scored: { icon: <Star className="h-4 w-4" />, bg: 'bg-(--primary-soft) text-(--primary)' },
-    outreach_sent: { icon: <Send className="h-4 w-4" />, bg: 'bg-(--success) text-white' },
-    stage_changed: { icon: <CheckCircle2 className="h-4 w-4" />, bg: 'bg-(--warning) text-white' },
-    discovered: { icon: <Zap className="h-4 w-4" />, bg: 'bg-(--primary) text-white' },
+interface DashboardSummaryResponse {
+  metrics: {
+    discovered: number
+    qualified: number
+    contacted: number
+    won: number
   }
-  const { icon, bg } = map[type]
-  return <div className={cn('h-8 w-8 rounded-full flex items-center justify-center shrink-0 shadow-sm', bg)}>{icon}</div>
+  sparklines: {
+    discovered: Array<{ date: string; value: number }>
+  }
+  proposals: {
+    total: number
+    statusCounts: Record<string, number>
+    acceptRate: number
+    replyRate: number
+  }
 }
 
-// ============================================================
-// Custom chart colors
-// ============================================================
-const SCORE_COLORS = ['var(--success)', 'var(--warning)', 'var(--primary)']
-const FOREST_ACCENT = 'var(--primary)'
+interface ActivityResponse {
+  activities: Array<{
+    id: string
+    type: string
+    title: string
+    description?: string
+    timestamp: string
+    leadId?: string
+    leadName?: string
+  }>
+}
 
-// ============================================================
-// Dashboard Page
-// ============================================================
+interface WorkspaceInfo {
+  id: string
+  name: string
+  plan: 'free' | 'starter' | 'agency' | 'pro' | 'enterprise'
+  owner_id: string | null
+}
+
 export function DashboardPage() {
   const navigate = useNavigate()
+  const userRole = useAppStore((s) => s.userRole)
   const userEmail = useAppStore((s) => s.userEmail)
-  const leads = useAppStore((s) => s.leads)
-  const discoveryResults = useAppStore((s) => s.discoveryResults)
-  const setSelectedLeadId = useAppStore((s) => s.setSelectedLeadId)
 
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [activity, setActivity] = useState<ActivityEvent[]>([])
+  // State
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
+  const [summary, setSummary] = React.useState<DashboardSummaryResponse | null>(null)
+  const [activities, setActivities] = React.useState<ActivityResponse['activities']>([])
+  const [leads, setLeads] = React.useState<Lead[]>([])
+  const [workspace, setWorkspace] = React.useState<WorkspaceInfo | null>(null)
+  const [members, setMembers] = React.useState<any[]>([])
+  
+  // Filtering & Interactivity
+  const [selectedStageFilter, setSelectedStageFilter] = React.useState<string | null>(null)
+  const [selectedLead, setSelectedLead] = React.useState<Lead | null>(null)
 
-  useEffect(() => {
-    getDashboardStats().then((s) => {
-      setStats(s)
-      setActivity(s.recentActivity)
-      setLoading(false)
-    })
+  // Load Dashboard Data
+  React.useEffect(() => {
+    let isMounted = true
+    setLoading(true)
+    setError(null)
+
+    async function loadData() {
+      try {
+        const [sumRes, actRes, leadsRes, wsRes] = await Promise.all([
+          apiGet<DashboardSummaryResponse>('/dashboard/summary').catch(() => null),
+          apiGet<ActivityResponse>('/activity?limit=15').catch(() => ({ activities: [] })),
+          apiGet<Lead[]>('/leads').catch(() => []),
+          apiGet<{ workspace: WorkspaceInfo }>('/workspace').catch(() => ({ workspace: { id: '', name: 'Workspace', plan: 'free', owner_id: null } })),
+        ])
+
+        if (!isMounted) return
+
+        setSummary(sumRes)
+        setActivities(actRes?.activities || [])
+        setLeads(Array.isArray(leadsRes) ? leadsRes : [])
+        setWorkspace((wsRes?.workspace as WorkspaceInfo) || null)
+
+        // If multi-seat agency plan, load members
+        const plan = wsRes?.workspace?.plan || 'free'
+        if (['agency', 'pro', 'enterprise'].includes(plan)) {
+          const membersRes = await apiGet<{ members: any[] }>('/workspace/members').catch(() => ({ members: [] }))
+          if (isMounted) setMembers(membersRes?.members || [])
+        }
+      } catch (err: unknown) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Failed to load dashboard metrics')
+        }
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+
+    loadData()
+    return () => {
+      isMounted = false
+    }
   }, [])
 
-  // Get Priority Opportunities from real database records (score >= 75 or top scored)
-  const priorityOpportunities = useMemo(() => {
-    const combined = [...leads, ...discoveryResults]
-    const seen = new Set<string>()
-    const unique = combined.filter((l) => {
-      if (seen.has(l.id)) return false
-      seen.add(l.id)
-      return true
-    })
-    return unique.sort((a, b) => b.score - a.score).slice(0, 4)
-  }, [leads, discoveryResults])
+  // Seat limit calculation
+  const plan = workspace?.plan || 'free'
+  const isMultiSeat = ['agency', 'pro', 'enterprise'].includes(plan)
+  const seatLimit = plan === 'enterprise' ? 'Unlimited' : plan === 'pro' ? 25 : plan === 'agency' ? 5 : 1
 
-  if (loading) return <DashboardSkeleton />
+  // Filtered leads for Best Opportunities feed
+  const rankedLeads = React.useMemo(() => {
+    let list = [...leads]
+    if (selectedStageFilter) {
+      list = list.filter((l) => (l.pipelineStage || 'discovery').toLowerCase() === selectedStageFilter.toLowerCase())
+    }
+    return list.sort((a, b) => (b.score || 0) - (a.score || 0))
+  }, [leads, selectedStageFilter])
 
-  const s = stats!
-  const userName = userEmail ? userEmail.split('@')[0] : 'Partner'
-  const capitalizedUser = userName.charAt(0).toUpperCase() + userName.slice(1)
+  // Setup completeness calculations
+  const setupTasks = React.useMemo(() => {
+    const hasDiscovered = leads.length > 0
+    const hasEnriched = leads.some((l) => !!l.contactEmail || !!l.contactPhone)
+    const hasScored = leads.some((l) => (l.score || 0) > 0)
+    const hasProposal = (summary?.proposals?.total || 0) > 0
+    const hasContacted = (summary?.metrics?.contacted || 0) > 0
 
-  const statCards = [
-    {
-      label: 'Total Opportunities',
-      value: s.totalLeads,
-      trend: 18,
-      sparkline: [3, 5, 4, 7, 6, 9, 8, 11, 9, 13, 11, 15, 12, 14],
-      icon: <Users className="h-5 w-5 text-white" />,
-      accent: 'bg-gradient-to-br from-[#3b82f6] to-[#1d4ed8]',
-    },
-    {
-      label: 'High-Value (Score ≥ 80)',
-      value: s.highValueOpportunities ?? s.qualifiedLeads,
-      trend: 14,
-      sparkline: [2, 3, 4, 4, 5, 6, 7, 9, 8, 10, 11, 12, 14, 15],
-      icon: <Zap className="h-5 w-5 text-white" />,
-      accent: 'bg-gradient-to-br from-[#10b981] to-[#047857]',
-    },
-    {
-      label: 'Avg Opportunity Score',
-      value: `${s.avgOpportunityScore ?? 78.4}/100`,
-      trend: 4.2,
-      sparkline: [65, 68, 70, 71, 72, 73, 74, 75, 76, 77, 78, 78, 78, 79],
-      icon: <Star className="h-5 w-5 text-white" />,
-      accent: 'bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9]',
-    },
-    {
-      label: 'Avg Confidence Score',
-      value: `${s.avgConfidenceScore ?? 84.2}%`,
-      trend: 6.8,
-      sparkline: [70, 72, 74, 75, 78, 80, 81, 82, 83, 84, 84, 85, 84, 85],
-      icon: <Wand2 className="h-5 w-5 text-white" />,
-      accent: 'bg-gradient-to-br from-[#06b6d4] to-[#0891b2]',
-    },
-    {
-      label: 'Digital Gaps Detected',
-      value: s.digitalGapsDetected ?? 39,
-      trend: 22,
-      sparkline: [10, 12, 15, 18, 20, 24, 28, 30, 32, 34, 35, 37, 38, 39],
-      icon: <BarChart2 className="h-5 w-5 text-white" />,
-      accent: 'bg-gradient-to-br from-[#f59e0b] to-[#d97706]',
-    },
-  ]
+    const tasks = [
+      { id: 'discover', label: 'Run your first discovery scan', done: hasDiscovered, href: '/app/discover' },
+      { id: 'audit', label: 'Audit a business digital presence', done: hasScored, href: '/app/leads' },
+      { id: 'enrich', label: 'Enrich contact info for a lead', done: hasEnriched, href: '/app/leads' },
+      { id: 'outreach', label: 'Draft or send outreach message', done: hasContacted, href: '/app/messages' },
+      { id: 'proposal', label: 'Generate client proposal', done: hasProposal, href: '/app/proposals' },
+    ]
+
+    if (isMultiSeat) {
+      tasks.push({
+        id: 'team',
+        label: 'Invite a team member',
+        done: members.length > 1,
+        href: '/app/settings',
+      })
+    }
+
+    const completed = tasks.filter((t) => t.done).length
+    const percent = Math.round((completed / tasks.length) * 100)
+    return { tasks, completed, total: tasks.length, percent }
+  }, [leads, summary, isMultiSeat, members])
 
   return (
-    <div className="p-6 space-y-6 w-full relative overflow-hidden min-h-screen text-(--text-primary)">
-      
-      {/* Top Banner / Welcome with Actionable CTA */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 clay-raised border border-(--border)">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full text-(--text-primary)">
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 clay-raised rounded-2xl">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider uppercase bg-(--primary-soft) text-(--primary)">
-              Intelligence Command
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-(--primary-soft) text-(--primary)">
+              {workspace?.name || 'Workspace'}
             </span>
-            <span className="text-xs text-(--text-muted)">Live workspace feed</span>
+            <span className="text-xs text-(--text-muted)">
+              Plan: <strong className="capitalize text-(--text-primary)">{plan}</strong> ({isMultiSeat ? `Multi-seat: ${members.length}/${seatLimit}` : 'Freelancer'})
+            </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-(--text-primary) tracking-tight">
-            Good day, {capitalizedUser}
+          <h1 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight">
+            Client Acquisition Center
           </h1>
-          <p className="text-sm text-(--text-secondary) mt-1 font-medium">
-            Your evidence-backed opportunity intelligence overview. What software opportunities require action today?
+          <p className="text-xs sm:text-sm text-(--text-secondary) mt-1">
+            Discover local businesses, analyze digital gap signals, and deliver high-converting proposals.
           </p>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
           <Button
             onClick={() => navigate('/app/discover')}
-            className="gap-2 shadow-lg h-11 px-5"
+            className="clay-btn-primary gap-2 h-10 px-4 text-xs sm:text-sm"
           >
-            <Radar className="h-4 w-4" />
-            <span>+ Discover Opportunities</span>
+            <Radar className="w-4 h-4" />
+            <span>Discover Opportunities</span>
           </Button>
         </div>
       </div>
 
-      {/* Intelligence KPI metrics — 5-grid responsive */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        {statCards.map((card, i) => (
-          <StatCard key={card.label} {...card} delay={i * 0.05} />
-        ))}
+      {/* Error Banner if any */}
+      {error && (
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-(--danger)/20 flex items-center gap-3 text-sm text-(--danger)">
+          <AlertCircle className="w-5 h-5 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* 4-Tile Stat Strip (Upwork-style Pipeline Click-to-Filter) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <StatTile
+          label="Leads Discovered"
+          value={summary?.metrics?.discovered ?? leads.length}
+          trendData={summary?.sparklines?.discovered}
+          isLoading={loading}
+          isActive={selectedStageFilter === null}
+          onClick={() => setSelectedStageFilter(null)}
+          subtext="Total opportunities tracked"
+        />
+        <StatTile
+          label="Qualified Stage"
+          value={summary?.metrics?.qualified ?? leads.filter((l) => l.pipelineStage === 'qualified').length}
+          isLoading={loading}
+          isActive={selectedStageFilter === 'qualified'}
+          onClick={() => setSelectedStageFilter(selectedStageFilter === 'qualified' ? null : 'qualified')}
+          subtext="High-fit audited prospects"
+        />
+        <StatTile
+          label="Contacted"
+          value={summary?.metrics?.contacted ?? leads.filter((l) => l.pipelineStage === 'contacted').length}
+          isLoading={loading}
+          isActive={selectedStageFilter === 'contacted'}
+          onClick={() => setSelectedStageFilter(selectedStageFilter === 'contacted' ? null : 'contacted')}
+          subtext="Outreach drafted or sent"
+        />
+        <StatTile
+          label="Won / Client Stage"
+          value={summary?.metrics?.won ?? leads.filter((l) => l.pipelineStage === 'client').length}
+          isLoading={loading}
+          isActive={selectedStageFilter === 'client'}
+          onClick={() => setSelectedStageFilter(selectedStageFilter === 'client' ? null : 'client')}
+          trendColor="var(--success)"
+          subtext="Converted clients"
+        />
       </div>
 
-      {/* Priority Opportunities Section (Core UX Transformation) */}
-      <div className="clay-raised p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-xl clay-inset flex items-center justify-center">
-              <Target className="h-4 w-4 text-(--primary)" />
+      {/* Main Grid: Best Matches Feed (Left) & Sidebar Snapshot (Right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column (2 cols wide): "Best Matches" Opportunities Feed */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-(--accent)" />
+              <h2 className="text-base sm:text-lg font-heading font-bold text-(--text-primary)">
+                Best Opportunities Feed
+              </h2>
+              {selectedStageFilter && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-(--accent-soft) text-(--accent) capitalize">
+                  Filter: {selectedStageFilter}
+                </span>
+              )}
             </div>
-            <div>
-              <h2 className="text-base font-bold text-(--text-primary)">Priority Opportunities Requiring Action</h2>
-              <p className="text-xs text-(--text-secondary)">High-signal verified software gaps and digital transformation needs</p>
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/app/leads')}
-            className="text-xs gap-1.5"
-          >
-            <span>View All</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Button>
-        </div>
 
-        {priorityOpportunities.length === 0 ? (
-          <div className="py-8 text-center clay-inset rounded-2xl">
-            <Building2 className="h-8 w-8 mx-auto mb-2 text-(--text-muted) opacity-40" />
-            <p className="text-sm font-semibold text-(--text-primary)">No opportunities discovered in workspace yet</p>
-            <p className="text-xs text-(--text-secondary) mt-1">Start by discovering local businesses to evaluate software opportunities.</p>
-            <Button size="sm" onClick={() => navigate('/app/discover')} className="mt-3 gap-1.5">
-              <Radar className="h-3.5 w-3.5" /> Start Opportunity Discovery
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/app/leads')}
+              className="text-xs gap-1.5"
+            >
+              <span>View All ({leads.length})</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {priorityOpportunities.map((opp) => {
-              const analysis = opp.opportunityAnalysis
-              const primaryGap = analysis?.primaryOpportunity || (opp.websiteStatus === 'none' ? 'No website detected; missing online discovery' : 'Outdated web presence lacking modern booking')
-              const recommendedService = analysis?.recommendedServices?.[0]?.service || (opp.websiteStatus === 'none' ? 'Web Presence + WhatsApp Ordering' : 'Booking Engine & Modernization')
-              const maturity = analysis?.currentMaturityLevel ?? (opp.websiteStatus === 'none' ? 1 : 2)
 
-              return (
-                <div
-                  key={opp.id}
-                  className="clay-inset p-4 rounded-2xl flex flex-col justify-between hover:border-(--primary) border border-transparent transition-all group"
-                >
-                  <div>
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-(--text-primary) truncate group-hover:text-(--primary) transition-colors">
-                          {opp.name}
-                        </p>
-                        <p className="text-xs text-(--text-secondary) truncate">
-                          {getCategoryLabel(opp.category)} · {opp.city}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        <div className="text-right">
-                          <p className="text-xs font-mono font-bold" style={{ color: getScoreColor(opp.score) }}>
-                            {opp.score}/100
-                          </p>
-                          <p className="text-[10px] text-(--text-muted) uppercase tracking-wide">
-                            {opp.score >= 80 ? 'HIGH SIGNAL' : 'QUALIFIED'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 my-3 text-xs bg-(--surface) p-2.5 rounded-xl border border-(--border)">
-                      <div>
-                        <span className="text-[10px] font-bold text-(--text-muted) uppercase">Digital Maturity</span>
-                        <p className="font-semibold text-(--text-primary) mt-0.5">Level {maturity} / 4</p>
-                      </div>
-                      <div>
-                        <span className="text-[10px] font-bold text-(--text-muted) uppercase">Confidence</span>
-                        <p className="font-semibold text-(--accent) mt-0.5">{analysis?.confidenceScore ?? 85}% Verified</p>
-                      </div>
-                      <div className="col-span-2 pt-1 border-t border-(--border)">
-                        <span className="text-[10px] font-bold text-(--text-muted) uppercase">Primary Digital Gap</span>
-                        <p className="font-medium text-(--text-secondary) truncate mt-0.5">{primaryGap}</p>
-                      </div>
-                    </div>
+          {/* Leads Feed Cards */}
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="clay-raised p-5 space-y-3">
+                  <div className="flex justify-between">
+                    <Skeleton className="h-5 w-48 rounded" />
+                    <Skeleton className="h-5 w-16 rounded-full" />
                   </div>
-
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-(--border)">
-                    <div className="flex items-center gap-1.5 text-xs text-(--text-muted) truncate">
-                      <Wand2 className="h-3 w-3 text-(--primary) shrink-0" />
-                      <span className="truncate">{recommendedService}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSelectedLeadId(opp.id)}
-                        className="text-xs h-8 px-3"
-                      >
-                        View Intelligence
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => setSelectedLeadId(opp.id)}
-                        className="text-xs h-8 px-3 gap-1"
-                      >
-                        Prepare
-                        <ChevronRight className="h-3 w-3" />
-                      </Button>
-                    </div>
+                  <Skeleton className="h-4 w-full rounded" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-6 w-24 rounded-full" />
+                    <Skeleton className="h-6 w-24 rounded-full" />
                   </div>
                 </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Leads over time - takes 2 cols */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.3 }}
-          className="lg:col-span-2 clay-raised p-6"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-8 w-8 rounded-full clay-inset flex items-center justify-center">
-              <Activity className="h-4 w-4 text-(--primary)" />
-            </div>
-            <h2 className="clay-card-title">Lead Discovery — Last 14 Days</h2>
-          </div>
-          <div className="w-full">
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={s.leadsPerDay} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="leadsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={FOREST_ACCENT} stopOpacity={0.35} />
-                    <stop offset="95%" stopColor={FOREST_ACCENT} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1A4A32" opacity={0.6} />
-                <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#74C69D', fontWeight: 'bold' }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#74C69D', fontWeight: 'bold' }} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: '#0D2B1F', border: '2px solid #2D6A4F', borderRadius: 16, fontSize: 12, color: '#e2f0e2' }} />
-                <Area type="monotone" dataKey="count" stroke={FOREST_ACCENT} strokeWidth={3} fill="url(#leadsGradient)" dot={{ r: 4, stroke: '#1A4A32', strokeWidth: 2, fill: FOREST_ACCENT }} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
-
-        {/* Score distribution - 1 col */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.42, duration: 0.3 }}
-          className="clay-raised p-6 flex flex-col justify-between"
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-8 w-8 rounded-full clay-inset flex items-center justify-center">
-              <Wand2 className="h-4 w-4 text-(--warning)" />
-            </div>
-            <h2 className="clay-card-title">Score Distribution</h2>
-          </div>
-          <div className="w-full flex-1 flex items-center justify-center">
-            <ResponsiveContainer width="100%" height={180}>
-              <PieChart>
-                <Pie
-                  data={s.scoreBandData}
-                  dataKey="count"
-                  nameKey="band"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={70}
-                  paddingAngle={4}
-                  strokeWidth={0}
-                >
-                  {s.scoreBandData.map((_, i) => (
-                    <Cell key={i} fill={SCORE_COLORS[i]} />
-                  ))}
-                </Pie>
-                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, color: '#e2f0e2', fontWeight: 'bold' }} />
-                <Tooltip contentStyle={{ background: '#0D2B1F', border: '2px solid #2D6A4F', borderRadius: 16, fontSize: 12, color: '#e2f0e2' }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Funnel + Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Conversion funnel */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.3 }}
-          className="lg:col-span-2 clay-raised p-6"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-8 w-8 rounded-full clay-inset flex items-center justify-center">
-              <ArrowUpRight className="h-4 w-4 text-(--success)" />
-            </div>
-            <h2 className="clay-card-title">Opportunity Pipeline Funnel</h2>
-          </div>
-          <div className="w-full">
-            <ResponsiveContainer width="100%" height={230}>
-              <BarChart data={s.funnelData} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#1A4A32" opacity={0.6} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: '#74C69D', fontWeight: 'bold' }} tickLine={false} axisLine={false} />
-                <YAxis type="category" dataKey="stage" tick={{ fontSize: 11, fill: '#e2f0e2', fontWeight: 'bold' }} tickLine={false} axisLine={false} width={85} />
-                <Tooltip contentStyle={{ background: '#0D2B1F', border: '2px solid #2D6A4F', borderRadius: 16, fontSize: 12, color: '#e2f0e2' }} />
-                <Bar dataKey="count" radius={[0, 8, 8, 0]} maxBarSize={24}>
-                  {s.funnelData.map((_, i) => (
-                    <Cell key={i} fill={['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#14b8a6'][i % 6]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
-
-        {/* Activity feed */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.56, duration: 0.3 }}
-          className="clay-raised p-6 flex flex-col"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-8 w-8 rounded-full clay-inset flex items-center justify-center">
-              <Activity className="h-4 w-4 text-(--primary)" />
-            </div>
-            <h2 className="clay-card-title">Recent Activity</h2>
-          </div>
-          <div className="flex-1 max-h-62.5 overflow-y-auto space-y-3 pr-1">
-            <AnimatePresence initial={false}>
-              {activity.map((event) => (
-                <motion.div
-                  key={event.id}
-                  initial={{ opacity: 0, y: -10, height: 0 }}
-                  animate={{ opacity: 1, y: 0, height: 'auto' }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="activity-card flex items-center gap-4 px-4 py-3"
-                >
-                  <ActivityIcon type={event.type} />
-                  <div className="min-w-0">
-                    <p className="text-[13px] font-bold text-(--text-primary) truncate">{event.leadName}</p>
-                    <p className="text-[12px] text-(--text-secondary) leading-tight mt-0.5">{event.detail}</p>
-                    <p className="text-[10px] text-(--primary) mt-1.5 font-medium tracking-wide uppercase">{formatRelativeTime(event.timestamp)}</p>
-                  </div>
-                </motion.div>
               ))}
-            </AnimatePresence>
-          </div>
-        </motion.div>
-      </div>
-    </div>
-  )
-}
+            </div>
+          ) : rankedLeads.length === 0 ? (
+            <EmptyState
+              title="No opportunities found"
+              description={
+                selectedStageFilter
+                  ? `No leads currently in the "${selectedStageFilter}" stage. Run a discovery scan or change filters.`
+                  : "You haven't discovered any local business leads in this workspace yet."
+              }
+              actionLabel="Run Discovery Scan"
+              onAction={() => navigate('/app/discover')}
+            />
+          ) : (
+            <div className="space-y-3">
+              {rankedLeads.slice(0, 8).map((lead) => {
+                const opp = lead.opportunityAnalysis
+                const audit = lead.audit
+                const score = opp?.opportunityScore ?? lead.score ?? 50
 
-// ============================================================
-// Skeleton Loading State
-// ============================================================
-function DashboardSkeleton() {
-  return (
-    <div className="p-6 space-y-6 w-full min-h-screen text-(--text-primary)">
-      <div className="space-y-1">
-        <Skeleton className="h-7 w-32" />
-        <Skeleton className="h-4 w-64" />
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="clay-raised p-6 h-40">
-            <Skeleton className="h-10 w-10 rounded-xl mb-3" />
-            <Skeleton className="h-3.5 w-24 mb-2" />
-            <Skeleton className="h-8 w-16 mb-2" />
+                // Missing audit signals
+                const missingSignals: string[] = []
+                if (!lead.website || audit?.websiteExists === 'not_detected') missingSignals.push('website')
+                if (audit?.httpsEnabled === 'not_detected') missingSignals.push('https')
+                if (audit?.mobileIndicator === 'not_detected') missingSignals.push('mobile')
+                if (audit?.bookingDetected === 'not_detected') missingSignals.push('booking')
+                if (audit?.socialPresenceDetected === 'not_detected') missingSignals.push('social')
+
+                return (
+                  <div
+                    key={lead.id}
+                    className="clay-raised p-4 sm:p-5 transition-all hover:bg-(--surface-hover) rounded-xl flex flex-col justify-between gap-3 text-left"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-base font-bold text-(--text-primary) truncate">
+                            {lead.name}
+                          </h3>
+                          <span className="text-xs px-2 py-0.5 rounded-md bg-(--surface-raised) text-(--text-secondary) capitalize">
+                            {lead.category || 'Business'}
+                          </span>
+                          {lead.city && (
+                            <span className="text-xs text-(--text-muted)">
+                              {lead.city}
+                            </span>
+                          )}
+                        </div>
+
+                        {opp?.primaryOpportunity && (
+                          <p className="text-xs text-(--text-secondary) mt-1.5 line-clamp-2">
+                            {opp.primaryOpportunity}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="shrink-0">
+                        <ScoreBadge score={score} showBand size="md" />
+                      </div>
+                    </div>
+
+                    {/* Missing Signals Chips */}
+                    <div className="flex items-center gap-2 flex-wrap pt-1">
+                      {missingSignals.slice(0, 3).map((sig) => (
+                        <SignalChip key={sig} type={sig} isMissing />
+                      ))}
+                    </div>
+
+                    {/* Bottom Actions */}
+                    <div className="flex items-center justify-between pt-2 border-t border-(--border-subtle)">
+                      <span className="text-[11px] text-(--text-muted) capitalize">
+                        Stage: <strong>{lead.pipelineStage || 'discovery'}</strong>
+                      </span>
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            useAppStore.getState().setSelectedLeadId(lead.id)
+                          }}
+                          className="text-xs h-8 px-2.5"
+                        >
+                          View Details
+                        </Button>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => {
+                            useAppStore.getState().setSelectedLeadId(lead.id)
+                            navigate('/app/pipeline')
+                          }}
+                          className="clay-btn-primary text-xs h-8 px-3"
+                        >
+                          Prepare Lead
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Setup Progress, Team / Plan adaptive, Activity Timeline */}
+        <div className="space-y-6">
+          {/* Setup Completeness Card (Upwork Profile-Completeness Pattern) */}
+          <div className="clay-raised p-5 space-y-4 rounded-xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-(--text-primary)">
+                  Workspace Setup
+                </h3>
+                <p className="text-xs text-(--text-secondary)">
+                  {setupTasks.completed} of {setupTasks.total} steps completed
+                </p>
+              </div>
+              <span className="text-sm font-bold font-mono text-(--accent)">
+                {setupTasks.percent}%
+              </span>
+            </div>
+
+            <Progress value={setupTasks.percent} className="h-2" />
+
+            <div className="space-y-2 pt-1">
+              {setupTasks.tasks.map((task) => (
+                <a
+                  key={task.id}
+                  href={task.href}
+                  className={`flex items-center justify-between p-2 rounded-lg text-xs transition-colors ${
+                    task.done
+                      ? 'text-(--text-muted) line-through'
+                      : 'text-(--text-primary) font-medium hover:bg-(--surface-raised)'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2
+                      className={`w-4 h-4 ${task.done ? 'text-(--success)' : 'text-(--text-muted)'}`}
+                    />
+                    <span>{task.label}</span>
+                  </div>
+                  {!task.done && <ChevronRight className="w-3.5 h-3.5 opacity-60" />}
+                </a>
+              ))}
+            </div>
           </div>
-        ))}
+
+          {/* Proposal Status Board */}
+          <div className="clay-raised p-5 space-y-3 rounded-xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-(--text-primary)">
+                Proposal Status
+              </h3>
+              <span className="text-xs text-(--text-muted)">
+                Accept Rate: <strong className="text-(--success)">{summary?.proposals?.acceptRate ?? 0}%</strong>
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 text-center pt-1">
+              <div className="clay-inset p-2.5 rounded-lg">
+                <span className="text-[10px] uppercase font-bold text-(--text-muted) block">Draft</span>
+                <span className="text-lg font-bold tabular-nums text-(--text-primary)">
+                  {summary?.proposals?.statusCounts?.draft ?? 0}
+                </span>
+              </div>
+              <div className="clay-inset p-2.5 rounded-lg">
+                <span className="text-[10px] uppercase font-bold text-(--text-muted) block">Submitted</span>
+                <span className="text-lg font-bold tabular-nums text-(--text-primary)">
+                  {summary?.proposals?.statusCounts?.submitted ?? 0}
+                </span>
+              </div>
+              <div className="clay-inset p-2.5 rounded-lg">
+                <span className="text-[10px] uppercase font-bold text-(--text-muted) block">Accepted</span>
+                <span className="text-lg font-bold tabular-nums text-(--success)">
+                  {summary?.proposals?.statusCounts?.accepted ?? 0}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Team Panel — Strictly shown when seatLimit > 1 */}
+          {isMultiSeat && (
+            <div className="clay-raised p-5 space-y-3 rounded-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-(--accent)" />
+                  <h3 className="text-sm font-bold text-(--text-primary)">
+                    Agency Team ({members.length}/{seatLimit})
+                  </h3>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/app/settings')}
+                  className="text-xs h-7 px-2"
+                >
+                  <UserPlus className="w-3 h-3 mr-1" />
+                  Invite
+                </Button>
+              </div>
+
+              <div className="space-y-2 pt-1">
+                {members.slice(0, 4).map((member) => (
+                  <div
+                    key={member.id}
+                    className="flex items-center justify-between text-xs p-2 rounded-lg bg-(--surface-raised)"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-semibold text-(--text-primary) truncate">
+                        {member.full_name || 'Teammate'}
+                      </p>
+                      <p className="text-[10px] text-(--text-muted) truncate">
+                        {member.email || 'No email registered'}
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className="capitalize text-[10px]">
+                      {member.role || 'Member'}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Unified Activity Feed */}
+          <div className="clay-raised p-5 space-y-3 rounded-xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-(--text-primary)">
+                Recent Activity
+              </h3>
+              <span className="text-xs text-(--text-muted)">Live Feed</span>
+            </div>
+
+            {activities.length === 0 ? (
+              <p className="text-xs text-(--text-muted) py-4 text-center">
+                No recent activity recorded.
+              </p>
+            ) : (
+              <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                {activities.slice(0, 8).map((act) => (
+                  <ActivityFeedItem
+                    key={act.id}
+                    id={act.id}
+                    type={act.type}
+                    title={act.title}
+                    description={act.description}
+                    timestamp={act.timestamp}
+                    leadId={act.leadId}
+                    leadName={act.leadName}
+                    onLeadClick={(id) => {
+                      const found = leads.find((l) => l.id === id)
+                      if (found) setSelectedLead(found)
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 clay-raised p-6 h-65"><Skeleton className="h-full w-full" /></div>
-        <div className="clay-raised p-6 h-65"><Skeleton className="h-full w-full" /></div>
-      </div>
+
+      {/* Slideover Lead Details Panel */}
+      <LeadDetailPanel />
     </div>
   )
 }

@@ -206,13 +206,105 @@ router.get('/users', async (req, res) => {
   }
 });
 
+// GET /api/admin/overview
+// Platform stat strip & plan distribution
+router.get('/overview', async (req, res) => {
+  try {
+    const { count: totalWorkspaces } = await supabaseAdmin
+      .from('workspaces')
+      .select('id', { count: 'exact', head: true });
+
+    const { count: totalUsers } = await supabaseAdmin
+      .from('profiles')
+      .select('id', { count: 'exact', head: true });
+
+    const { count: totalLeads } = await supabaseAdmin
+      .from('leads')
+      .select('id', { count: 'exact', head: true });
+
+    const { count: totalProposals } = await supabaseAdmin
+      .from('proposals')
+      .select('id', { count: 'exact', head: true });
+
+    // Active in last 7 days
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: activeLeads } = await supabaseAdmin
+      .from('leads')
+      .select('workspace_id')
+      .gte('created_at', sevenDaysAgo);
+
+    const activeWorkspaceIds = new Set((activeLeads || []).map((l) => l.workspace_id));
+
+    // Plan distribution
+    const { data: workspaces } = await supabaseAdmin
+      .from('workspaces')
+      .select('id, plan');
+
+    const planCounts: Record<string, number> = {
+      free: 0,
+      starter: 0,
+      agency: 0,
+      pro: 0,
+      enterprise: 0,
+    };
+
+    (workspaces || []).forEach((w) => {
+      const plan = w.plan || 'free';
+      planCounts[plan] = (planCounts[plan] || 0) + 1;
+    });
+
+    res.json({
+      stats: {
+        totalWorkspaces: totalWorkspaces || 0,
+        totalUsers: totalUsers || 0,
+        activeWorkspaces7d: activeWorkspaceIds.size,
+        totalLeads: totalLeads || 0,
+        totalProposals: totalProposals || 0,
+      },
+      planDistribution: planCounts,
+    });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+  }
+});
+
+// GET /api/admin/system
+// System health: booleans only, NEVER expose raw keys or secrets
+router.get('/system', async (req, res) => {
+  try {
+    const { error } = await supabaseAdmin.from('profiles').select('count', { count: 'exact', head: true });
+    
+    // Check AI and email flags
+    const hasAiKey = !!(process.env.GEMINI_API_KEY || process.env.AGENTROUTER_API_KEY || process.env.OPENAI_API_KEY);
+    const hasEmailProvider = !!(process.env.RESEND_API_KEY);
+
+    res.json({
+      database: error ? 'unreachable' : 'connected',
+      aiConfigured: hasAiKey,
+      emailConfigured: hasEmailProvider,
+      environment: process.env.NODE_ENV || 'development',
+    });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+  }
+});
+
 // PATCH /api/admin/users/:id/role
 router.patch('/users/:id/role', async (req, res) => {
   const { id } = req.params;
   const { role } = req.body;
+  const caller = req.user!;
 
-  if (role !== 'admin' && role !== 'user') {
-    return res.status(400).json({ error: 'Invalid role. Must be admin or user.' });
+  if (role !== 'admin' && role !== 'user' && role !== 'client') {
+    return res.status(400).json({ error: 'Invalid role. Must be admin, user, or client.' });
+  }
+
+  // Guard against self-demotion
+  if (caller.sub === id && role !== 'admin') {
+    return res.status(403).json({
+      error: 'You cannot demote yourself from administrator. Have another admin change your role.',
+      code: 'SELF_DEMOTION_FORBIDDEN',
+    });
   }
 
   try {

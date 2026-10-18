@@ -45,6 +45,7 @@ import { ProfilePage } from '@/pages/ProfilePage'
 import { MarketIntelligencePage } from '@/pages/MarketIntelligencePage'
 import { OpportunityZonesPage } from '@/pages/OpportunityZonesPage'
 import { IntelligenceEvaluationPage } from '@/pages/IntelligenceEvaluationPage'
+import { ClientPortalPage } from '@/pages/ClientPortalPage'
 import { useAppStore } from '@/store/useAppStore'
 
 // Role Guard for Admin Panel
@@ -95,6 +96,11 @@ function App() {
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/cookies" element={<CookiePolicyPage />} />
         <Route path="/acceptable-use" element={<AcceptableUsePage />} />
+
+        {/* ── Client Portal (Outside /app shell for strict external persona) ── */}
+        <Route element={<AuthGuard />}>
+          <Route path="/portal" element={<ClientPortalPage />} />
+        </Route>
 
         {/* ── Protected app routes ───────────────────────────── */}
         <Route element={<AuthGuard />}>
