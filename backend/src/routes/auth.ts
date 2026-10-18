@@ -16,6 +16,7 @@
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import { supabaseAdmin } from '../lib/supabase';
+import { env } from '../lib/env';
 
 const router = Router();
 
@@ -37,7 +38,7 @@ router.post('/demo', async (req, res) => {
   const userId = role === 'admin' ? DEMO_ADMIN_USER_ID : DEMO_USER_USER_ID;
   const email = role === 'admin' ? 'admin@demo.clientpilotai' : 'user@demo.clientpilotai';
 
-  const jwtSecret = process.env.SUPABASE_JWT_SECRET;
+  const jwtSecret = env.supabaseJwtSecret;
   if (!jwtSecret) {
     return res.status(500).json({
       error: 'Demo auth is not configured. SUPABASE_JWT_SECRET is missing.',

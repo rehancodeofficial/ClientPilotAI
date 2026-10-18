@@ -1,5 +1,6 @@
-// Load .env before any route/service module reads process.env.
-import 'dotenv/config';
+// `./lib/env` loads dotenv and validates configuration before any route or
+// service module reads process.env.
+import { env } from './lib/env';
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
@@ -15,6 +16,7 @@ import outcomesRouter from './routes/outcomes';
 import intelligenceRouter from './routes/intelligence';
 import authRouter from './routes/auth';
 import { authMiddleware, adminMiddleware } from './middleware/auth';
+import { requireAi } from './middleware/requireAi';
 import { supabaseAdmin } from './lib/supabase';
 
 export const app = express();
@@ -38,7 +40,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
-  process.env.FRONTEND_URL,
+  env.frontendUrl,
 ].filter(Boolean) as string[];
 
 const isAllowedOrigin = (origin: string): boolean => {
@@ -87,6 +89,21 @@ const expensiveOpsLimiter = rateLimit({
 app.use('/api/leads/discover', expensiveOpsLimiter);
 app.use('/api/proposals/generate', expensiveOpsLimiter);
 app.use('/api/leads/:id/prepare', expensiveOpsLimiter);
+
+// Endpoints that cannot produce a meaningful result without an AI provider.
+// Guarded here rather than inside each handler so the list stays auditable.
+const aiDependentPaths = [
+  '/api/leads/discover',
+  '/api/leads/:id/score',
+  '/api/leads/:id/outreach',
+  '/api/leads/:id/prepare',
+  '/api/proposals/generate',
+  '/api/opportunities/:leadId/analyze',
+  '/api/competitors/:leadId/analyze',
+];
+for (const path of aiDependentPaths) {
+  app.use(path, requireAi);
+}
 
 // ─── Health Checks ─────────────────────────────────────────────────────────────
 // Basic liveness probe: does NOT depend on external providers or DB

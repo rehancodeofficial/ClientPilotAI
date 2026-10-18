@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { supabaseAdmin } from '../lib/supabase';
+import { env } from '../lib/env';
 
 export interface SupabaseUserPayload {
   sub: string;
@@ -30,7 +31,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   const token = authHeader.split(' ')[1];
 
   // ── Try demo JWT first (fast path, no network call) ───────────────
-  const jwtSecret = process.env.SUPABASE_JWT_SECRET;
+  const jwtSecret = env.supabaseJwtSecret;
   if (jwtSecret) {
     try {
       const decoded = jwt.verify(token, jwtSecret) as Record<string, unknown>;

@@ -1,33 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
+import { assertRequiredEnv, env } from './env';
 
-dotenv.config();
+// Runs before createClient so a misconfigured deployment reports the specific
+// missing variable instead of a generic "supabaseUrl is required" from the SDK.
+assertRequiredEnv();
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const jwtSecret = process.env.SUPABASE_JWT_SECRET;
-
-const missingVars: string[] = [];
-if (!supabaseUrl) missingVars.push('SUPABASE_URL / VITE_SUPABASE_URL');
-if (!supabaseServiceKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY');
-if (!jwtSecret) missingVars.push('SUPABASE_JWT_SECRET');
-
-if (missingVars.length > 0) {
-  console.warn(
-    `[Warning] Missing environment variables in backend: ${missingVars.join(', ')}.\n` +
-    'Please configure them in backend/.env for database operations and auth validation to succeed.'
-  );
-}
-
-// Service role client bypasses RLS for backend admin operations.
-// Initialized with fallback values to prevent server boot failure.
-export const supabaseAdmin = createClient(
-  (supabaseUrl || 'http://localhost:54321').trim(),
-  (supabaseServiceKey || 'placeholder-service-key').trim(),
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  }
-);
+/**
+ * Service role client. Bypasses Row Level Security, so it must only ever be
+ * used server-side and must never be exposed through an API response.
+ *
+ * Credentials are validated in `./env`. A missing or malformed key aborts
+ * startup there, so this module can rely on the values being present rather
+ * than falling back to placeholders that would fail later at request time.
+ */
+export const supabaseAdmin = createClient(env.supabaseUrl, env.supabaseServiceRoleKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});

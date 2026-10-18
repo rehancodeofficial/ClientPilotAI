@@ -23,7 +23,15 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment variables
+# Environment variables — never commit real secrets.
+# Tracked .env files leaked the service-role key to this public repo once already;
+# note that these rules do NOT protect a file that is already tracked.
 .env
 .env.*
+# ...but the documented templates must stay committable.
+!.env.example
+!**/.env.example
 .vercel
+
+# TypeScript incremental build cache
+*.tsbuildinfo
