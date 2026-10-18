@@ -5,7 +5,6 @@ import { useTheme } from 'next-themes'
 import { supabase } from '@/lib/supabaseClient'
 import { useNavigate } from 'react-router-dom'
 import { NotificationBell } from './NotificationPanel'
-import { DemoModeToggle } from '@/components/ui/DemoModeToggle'
 import { GlobalSearchModal } from './GlobalSearchModal'
 
 export function TopBar() {
@@ -13,6 +12,14 @@ export function TopBar() {
   const userRole = useAppStore((s) => s.userRole)
   const userEmail = useAppStore((s) => s.userEmail)
   const setUserRole = useAppStore((s) => s.setUserRole)
+
+  // Derived from the signed-in address. The previous markup showed the literal
+  // strings 'Admin User' / 'Normal User' and fell back to 'user@example.com',
+  // so the header displayed an invented identity for every real account.
+  const accountName = userEmail ? userEmail.split('@')[0] : 'Account'
+  const initials = (userEmail ? userEmail.replace(/[^a-zA-Z]/g, '') : 'AC')
+    .slice(0, 2)
+    .toUpperCase() || 'AC'
   const setUserEmail = useAppStore((s) => s.setUserEmail)
   const navigate = useNavigate()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -66,9 +73,6 @@ export function TopBar() {
 
         {/* Right: live indicator + actions */}
         <div className="flex items-center gap-3">
-        {/* FYP Defense Demo Scenario Selector */}
-        <DemoModeToggle />
-
         {/* Live indicator */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full clay-inset">
           <span className="relative flex h-2.5 w-2.5">
@@ -99,14 +103,14 @@ export function TopBar() {
           title="User Profile"
         >
           <div className="h-11 w-11 rounded-full clay-raised flex items-center justify-center text-(--primary) font-bold text-sm shrink-0">
-            {userRole === 'admin' ? 'AD' : 'US'}
+            {initials}
           </div>
           <div className="hidden sm:block">
             <p className="text-[13px] font-bold text-(--text-primary) leading-none">
-              {userRole === 'admin' ? 'Admin User' : 'Normal User'}
+              {accountName}
             </p>
             <p className="text-[11px] text-(--text-secondary) leading-none mt-1.5 font-semibold">
-              {userEmail || 'user@example.com'}
+              {userRole === 'admin' ? 'Administrator' : 'Member'}
             </p>
           </div>
         </div>

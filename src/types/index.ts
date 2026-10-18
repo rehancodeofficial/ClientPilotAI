@@ -446,8 +446,6 @@ export interface AppState {
   userEmail: string | null;
   proposals: Proposal[];
   notifications: Notification[];
-  isDemoMode: boolean;
-  selectedDemoScenario: string | null;
 
   // Actions
   setLeads: (leads: Lead[]) => void;
@@ -470,7 +468,5 @@ export interface AppState {
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
   clearNotifications: () => void;
-  setIsDemoMode: (val: boolean) => void;
-  setSelectedDemoScenario: (scenario: string | null) => void;
 }
 

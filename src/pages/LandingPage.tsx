@@ -326,13 +326,19 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── 2. TRUST BAR (Social proof numbers) ──────────────────────────── */}
+      {/* ── 2. CAPABILITY BAR ────────────────────────────────────────────────
+          Previously a "social proof" bar reading 10,000+ businesses analyzed,
+          3.4× more qualified leads and 68% time saved. None of those figures
+          had a source, and the first was contradicted by the database. They are
+          replaced with facts that are true of the product as built: the
+          categories discovery covers, the signals each audit checks, the data
+          source, and the price of starting. ───────────────────────────────── */}
       <section className="py-14 bg-white border-b border-black/10">
         <div className="max-w-300 mx-auto px-4 sm:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x-0 md:divide-x divide-black/8">
-            <StatCard value="10,000+" label="Businesses analyzed" delay={0} />
-            <StatCard value="3.4×" label="More qualified leads" delay={0.1} />
-            <StatCard value="68%" label="Time saved on research" delay={0.2} />
+            <StatCard value="14" label="Business categories covered" delay={0} />
+            <StatCard value="7" label="Digital presence signals checked" delay={0.1} />
+            <StatCard value="Public" label="Data sources only" delay={0.2} />
             <StatCard value="$0" label="To start discovering" delay={0.3} />
           </div>
         </div>
@@ -382,7 +388,7 @@ export function LandingPage() {
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
               {[
                 { num: '01', title: 'Business Discovery', desc: "Discover businesses that match your agency's target market using AI-powered search.", icon: Search, delay: 0 },
-                { num: '02', title: 'Digital Intelligence', desc: 'Analyze websites across 40+ technical, SEO, performance, and UX signals.', icon: Globe, delay: 0.05 },
+                { num: '02', title: 'Digital Intelligence', desc: 'Check 7 digital presence signals: website, HTTPS, mobile, booking, ordering, contact forms and social.', icon: Globe, delay: 0.05 },
                 { num: '03', title: 'Opportunity Detection', desc: 'Identify meaningful digital gaps and rank opportunities by impact.', icon: Brain, delay: 0.1 },
                 { num: '04', title: 'Smart Qualification', desc: 'Separate interesting businesses from genuinely relevant opportunities.', icon: Target, delay: 0.15 },
                 { num: '05', title: 'Personalized Outreach', desc: 'Turn verified findings into highly relevant, evidence-backed outreach.', icon: Mail, delay: 0.2 },
@@ -488,7 +494,12 @@ export function LandingPage() {
                   <div className="px-4 py-3 border-b border-black/8 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-lime-pulse" />
-                      <span className="text-xs font-medium text-charcoal-body">Website Intelligence — apexstudio.io</span>
+                      <span className="text-xs font-medium text-charcoal-body">Website Intelligence — apexstudio.example</span>
+                      {/* These figures are illustrative, not a real audit, so the
+                          card says so rather than implying a live result. */}
+                      <span className="text-[10px] font-mono uppercase tracking-wide px-1.5 py-0.5 rounded bg-black/8 text-ash-subheading">
+                        Example
+                      </span>
                     </div>
                     <span className="text-xs text-ash-subheading font-mono">Score: 34/100</span>
                   </div>
@@ -578,7 +589,7 @@ export function LandingPage() {
             <FeatureCard
               icon={BarChart2}
               title="Digital Presence Analysis"
-              desc="Deep-scan websites across 40+ signals: performance, SEO, mobile, accessibility, UX, and more."
+              desc="Scan each site for website presence, HTTPS, mobile responsiveness, online booking, ordering, contact forms and social presence."
               image="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80"
               delay={0.05}
               accent
@@ -624,7 +635,7 @@ export function LandingPage() {
             <FeatureCard
               icon={Shield}
               title="Privacy First"
-              desc="All analysis uses only publicly available information — fully GDPR compliant."
+              desc="Analysis uses only publicly available information — nothing private is collected."
               image="/image.png"
               delay={0.35}
               accent
@@ -711,6 +722,9 @@ export function LandingPage() {
                   <div className="px-4 py-3 border-b border-black/8 flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-lime-pulse" />
                     <span className="text-xs font-medium text-charcoal-body">Discovery Pipeline</span>
+                    <span className="text-[10px] font-mono uppercase tracking-wide px-1.5 py-0.5 rounded bg-black/8 text-ash-subheading">
+                      Example
+                    </span>
                     <span className="ml-auto text-xs text-ash-subheading font-mono">14 prospects</span>
                   </div>
                   <div className="p-4 space-y-2">
@@ -858,7 +872,7 @@ export function LandingPage() {
             transition={{ delay: 0.3 }}
             className="mt-8 text-center text-xs text-ash-subheading"
           >
-            All plans include a 14-day free trial. No credit card required.
+            The free tier is available now. Paid plans are in development — join the waitlist.
           </motion.div>
         </div>
       </section>

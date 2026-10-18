@@ -35,7 +35,7 @@ const features = [
     category: 'Intelligence',
     icon: Globe,
     title: 'Website Intelligence Analysis',
-    desc: 'Deep-analyze any website across 40+ signals covering performance, SEO, mobile experience, accessibility, UX quality, content strategy, and business capability indicators.',
+    desc: 'Analyze any website for website presence, HTTPS, mobile responsiveness, online booking, ordering, contact forms and social presence, then grade its digital maturity from the evidence collected.',
     bullets: ['Core Web Vitals audit', 'SEO & meta analysis', 'Mobile responsiveness', 'Accessibility scoring'],
     accent: true
   },
@@ -131,8 +131,8 @@ const features = [
     category: 'Security',
     icon: Shield,
     title: 'Privacy & Compliance',
-    desc: 'ClientPilot analyzes only publicly available information. All data handling is GDPR compliant with full data deletion on request.',
-    bullets: ['GDPR compliant', 'Public data only', 'Data deletion on request', 'Encrypted storage'],
+    desc: 'ClientPilot analyzes only publicly available information. Nothing private is collected, and your workspace data is removed on request.',
+    bullets: ['Public data only', 'No private data collected', 'Workspace deletion on request', 'Encrypted in transit and at rest'],
     accent: true
   },
 ]

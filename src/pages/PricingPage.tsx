@@ -41,8 +41,8 @@ const tiers = [
       'Email support',
     ],
     missing: ['Team workspaces', 'API access', 'Webhooks'],
-    cta: 'Start Starter',
-    ctaLink: '/signup',
+    cta: 'Join Waitlist',
+    ctaLink: '/contact',
     featured: false,
   },
   {
@@ -58,8 +58,8 @@ const tiers = [
       'Priority support',
     ],
     missing: ['API access', 'Webhooks'],
-    cta: 'Start Agency',
-    ctaLink: '/signup',
+    cta: 'Join Waitlist',
+    ctaLink: '/contact',
     featured: true,
     badge: 'Most Popular',
   },
@@ -68,7 +68,7 @@ const tiers = [
     price: { monthly: '$99', annual: '$83' },
     sub: 'For established agencies and sales teams.',
     features: [
-      'Up to 10,000 businesses / month',
+      'Higher discovery limits',
       'Full website intelligence',
       'Advanced outreach generation',
       'Team workspaces (unlimited users)',
@@ -78,8 +78,8 @@ const tiers = [
       'Priority support',
     ],
     missing: [],
-    cta: 'Start Pro',
-    ctaLink: '/signup',
+    cta: 'Join Waitlist',
+    ctaLink: '/contact',
     featured: false,
   },
   {
@@ -106,7 +106,7 @@ const tiers = [
 const faqs = [
   {
     q: 'Is there a free trial on paid plans?',
-    a: 'Yes — all paid plans come with a 14-day free trial. No credit card required to start.'
+    a: 'The free tier is available today with no card required. Paid plans are still in development — join the waitlist and we will contact you before they launch.'
   },
   {
     q: 'What counts as a "business"?',
@@ -118,15 +118,15 @@ const faqs = [
   },
   {
     q: 'What is included in website intelligence?',
-    a: 'A full analysis across 40+ signals: performance, Core Web Vitals, SEO, mobile experience, accessibility, UX quality, content strategy, and business capability indicators.'
+    a: 'An audit of 7 digital presence signals: whether a website exists, HTTPS, mobile responsiveness, online booking, online ordering, a contact form, and social presence. Each finding is stored with the evidence behind it.'
   },
   {
     q: 'Do you offer annual billing discounts?',
     a: 'Yes — choosing annual billing gives you approximately 15–20% off the monthly rate across all plans.'
   },
   {
-    q: 'Is ClientPilot GDPR compliant?',
-    a: 'Yes. ClientPilot analyzes only publicly available information. We are GDPR compliant and support data deletion requests.'
+    q: 'What data does ClientPilot collect?',
+    a: 'Only publicly available information about businesses — nothing private, and no personal data beyond what a business publishes itself. You can request deletion of your workspace and its data at any time.'
   },
 ]
 
@@ -165,7 +165,7 @@ export function PricingPage() {
             initial="hidden" animate="visible"
             className="text-lg text-[#5c5c5b] max-w-xl leading-relaxed mb-8"
           >
-            Start free. Upgrade when you need more. Every plan includes a 14-day free trial on paid tiers.
+            Start free today. Paid plans are in development — join the waitlist to hear when they launch.
           </motion.p>
 
           {/* Billing toggle */}
@@ -278,7 +278,7 @@ export function PricingPage() {
             transition={{ delay: 0.4 }}
             className="mt-8 text-center text-xs text-ash-subheading space-y-1"
           >
-            <p>All paid plans include a 14-day free trial. No credit card required to start.</p>
+            <p>The free tier is available now. Paid plans are in development and not yet purchasable.</p>
             <p>Need something custom? <Link to="/contact" className="text-charcoal-body underline underline-offset-2">Contact our sales team</Link>.</p>
           </motion.div>
         </div>
@@ -350,10 +350,10 @@ export function PricingPage() {
                   const planIdx = ['Free', 'Starter', 'Agency', 'Pro', 'Enterprise'].indexOf(selectedMobilePlan)
                   const values = [
                     ['50 / month', 'Basic analysis', 'Included', 'Not included', 'Not included', 'Not included', 'Not included', 'Not included', 'Not included', 'Community support'],
-                    ['500 / month', 'Full 40+ signals', 'Included', 'Included', 'Not included', 'Not included', 'Not included', 'Not included', 'Not included', 'Standard email'],
-                    ['2,000 / month', 'Full 40+ signals', 'Included', 'Advanced AI drafts', 'Up to 5 seats', 'Included', 'Not included', 'Not included', 'Not included', 'Priority queue'],
-                    ['10,000 / month', 'Full 40+ signals', 'Included', 'Advanced AI drafts', 'Unlimited seats', 'Included', 'Full API access', 'Webhooks included', 'Not included', 'Priority queue'],
-                    ['Unlimited', 'Full 40+ signals', 'Included', 'Advanced AI drafts', 'Unlimited seats', 'Included', 'Custom rate limits', 'Custom pipelines', 'SSO / SAML', 'Dedicated manager'],
+                    ['500 / month', 'All 7 signals', 'Included', 'Included', 'Not included', 'Not included', 'Not included', 'Not included', 'Not included', 'Standard email'],
+                    ['2,000 / month', 'All 7 signals', 'Included', 'Advanced AI drafts', 'Up to 5 seats', 'Included', 'Not included', 'Not included', 'Not included', 'Priority queue'],
+                    ['10,000 / month', 'All 7 signals', 'Included', 'Advanced AI drafts', 'Unlimited seats', 'Included', 'Full API access', 'Webhooks included', 'Not included', 'Priority queue'],
+                    ['Unlimited', 'All 7 signals', 'Included', 'Advanced AI drafts', 'Unlimited seats', 'Included', 'Custom rate limits', 'Custom pipelines', 'SSO / SAML', 'Dedicated manager'],
                   ]
                   const val = values[planIdx] ? values[planIdx][idx] : '—'
                   const isIncluded = val !== 'Not included' && val !== '—'
@@ -481,7 +481,7 @@ export function PricingPage() {
               Start finding opportunities today.
             </h2>
             <p className="text-white/60 max-w-md mx-auto text-base">
-              Free to start. 14-day trial on all paid plans. No credit card required.
+              Free to start, no card required. Paid plans are in development.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link

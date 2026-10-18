@@ -43,8 +43,6 @@ export function OpportunityZonesPage() {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const markersRef = useRef<L.LayerGroup | null>(null);
-
-  const isDemoMode = useAppStore((s) => s.isDemoMode);
   const setSelectedLeadId = useAppStore((s) => s.setSelectedLeadId);
 
   // Initialize Leaflet Map
@@ -87,7 +85,7 @@ export function OpportunityZonesPage() {
 
   useEffect(() => {
     loadData();
-  }, [isDemoMode]);
+  }, []);
 
   // Update Map Markers when zones or selectedZone or leads change
   useEffect(() => {
@@ -176,9 +174,6 @@ export function OpportunityZonesPage() {
             <h1 className="text-2xl font-bold tracking-tight text-(--text-primary)">
               Geographic Opportunity Zones
             </h1>
-            {isDemoMode && (
-              <Badge variant="warning" className="text-xs px-2 py-0.5">DEMO DATA</Badge>
-            )}
           </div>
           <p className="text-sm text-(--text-secondary)">
             Geospatial clusters of concentrated software agency service opportunities based on high opportunity density and digital gaps.

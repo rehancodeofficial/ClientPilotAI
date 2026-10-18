@@ -15,6 +15,7 @@ import competitorsRouter from './routes/competitors';
 import outcomesRouter from './routes/outcomes';
 import intelligenceRouter from './routes/intelligence';
 import authRouter from './routes/auth';
+import profileRouter, { workspaceRouter } from './routes/profile';
 import { authMiddleware, adminMiddleware } from './middleware/auth';
 import { requireAi } from './middleware/requireAi';
 import { supabaseAdmin } from './lib/supabase';
@@ -150,6 +151,8 @@ app.use('/api/ai', aiRouter);
 app.use('/api/auth', authRouter);
 
 // ─── Protected API Routes ──────────────────────────────────────────────────────
+app.use('/api/profile', authMiddleware, profileRouter);
+app.use('/api/workspace', authMiddleware, workspaceRouter);
 app.use('/api/leads', authMiddleware, leadsRouter);
 app.use('/api/proposals', authMiddleware, proposalsRouter);
 app.use('/api/analytics', authMiddleware, analyticsRouter);

@@ -14,7 +14,6 @@ import { useAppStore } from '@/store/useAppStore';
 export function IntelligenceEvaluationPage() {
   const [stats, setStats] = useState<ModelEvaluationStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const isDemoMode = useAppStore((s) => s.isDemoMode);
 
   const fetchStats = async () => {
     setIsLoading(true);
@@ -30,7 +29,7 @@ export function IntelligenceEvaluationPage() {
 
   useEffect(() => {
     fetchStats();
-  }, [isDemoMode]);
+  }, []);
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -44,9 +43,6 @@ export function IntelligenceEvaluationPage() {
             <h1 className="text-2xl font-bold tracking-tight text-(--text-primary)">
               Intelligence Model Evaluation & Research Validation
             </h1>
-            {isDemoMode && (
-              <Badge variant="warning" className="text-xs px-2 py-0.5">DEMO DATA</Badge>
-            )}
           </div>
           <p className="text-sm text-(--text-secondary)">
             Empirical validation of multi-factor opportunity scoring against real-world operational outcomes for the Software Engineering FYP.

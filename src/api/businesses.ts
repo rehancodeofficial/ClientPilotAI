@@ -24,7 +24,11 @@ export interface DiscoverResult {
   totalFound?: number;
 }
 
-interface DbLead {
+/**
+ * A `leads` row as the API returns it, including the related rows the backend
+ * embeds via PostgREST. Snake_case throughout: these are database column names.
+ */
+export interface DbLead {
   id: string;
   business_name?: string;
   category?: string | null;
@@ -35,6 +39,7 @@ interface DbLead {
   review_count?: number | null;
   has_website?: boolean;
   website_url?: string | null;
+  website?: string | null;
   pipeline_stage?: string;
   created_at?: string;
   distance?: number;
@@ -42,39 +47,162 @@ interface DbLead {
   lng?: number;
   contact_email?: string | null;
   contact_phone?: string | null;
-  lead_scores?: { overall_score?: number; ai_reasoning?: string }[];
-  business_audits?: { digital_maturity_level?: number; audit_score?: number }[];
-  opportunity_analysis?: { opportunity_score?: number; confidence_score?: number }[];
+  contact_source?: string | null;
+  contact_confidence?: number | null;
+  outreach_subject?: string | null;
+  outreach_body?: string | null;
+  outreach_status?: string | null;
+  outreach_generated_at?: string | null;
+  outreach_sent_at?: string | null;
+  proposal_content?: string | null;
+  proposal_status?: string | null;
+  proposal_generated_at?: string | null;
+  last_enrichment_run_at?: string | null;
+  last_error?: string | null;
+  lead_scores?: DbLeadScore[] | DbLeadScore | null;
+  outreach_messages?: DbOutreachMessage[] | DbOutreachMessage | null;
+  business_audits?: DbBusinessAudit[] | DbBusinessAudit | null;
+  opportunity_analysis?: DbOpportunityAnalysis[] | DbOpportunityAnalysis | null;
 }
 
-function mapDbLeadToLead(db: DbLead): Lead {
-  const scores = Array.isArray(db.lead_scores) ? db.lead_scores[0] : db.lead_scores;
-  const audit = Array.isArray(db.business_audits) ? db.business_audits[0] : db.business_audits;
-  const opp = Array.isArray(db.opportunity_analysis) ? db.opportunity_analysis[0] : db.opportunity_analysis;
+interface DbLeadScore {
+  overall_score?: number | null;
+  digital_presence_gap?: number | null;
+  category_fit?: number | null;
+  review_activity?: number | null;
+  market_density?: number | null;
+  competitor_presence?: number | null;
+  ai_reasoning?: string | null;
+}
+
+interface DbOutreachMessage {
+  id?: string;
+  subject?: string | null;
+  content?: string | null;
+  status?: string | null;
+  variant?: number | null;
+  created_at?: string | null;
+}
+
+interface DbBusinessAudit {
+  digital_maturity_level?: number | null;
+  audit_score?: number | null;
+}
+
+interface DbOpportunityAnalysis {
+  opportunity_score?: number | null;
+  confidence_score?: number | null;
+}
+
+/** PostgREST returns an embedded relation as an array, or an object when limited to one. */
+function firstOf<T>(value: T[] | T | null | undefined): T | undefined {
+  if (Array.isArray(value)) return value[0];
+  return value ?? undefined;
+}
+
+/**
+ * Derives the three-state website status the UI renders from the columns the
+ * database actually stores. `outdated` is reported only when an audit observed a
+ * live site that fails its checks — a URL alone cannot distinguish "modern" from
+ * "neglected", so a site with no audit is reported simply as present.
+ */
+function deriveWebsiteStatus(db: DbLead, audit?: DbBusinessAudit): Lead['websiteStatus'] {
+  const url = db.website_url || db.website;
+  if (!url && !db.has_website) return 'none';
+  if (audit && typeof audit.digital_maturity_level === 'number' && audit.digital_maturity_level <= 1) {
+    return 'outdated';
+  }
+  return 'has_website';
+}
+
+/**
+ * Converts an API lead row into the camelCase `Lead` the UI consumes.
+ *
+ * This is the single conversion point between database and UI shapes. An
+ * earlier version emitted `businessName` and was cast with `as any`, which hid
+ * the fact that it satisfied no consumer: the `Lead` type declares `name`, and
+ * all 32 call sites read `.name`, so every real lead rendered as blank. The cast
+ * is gone deliberately — the compiler should reject a shape the UI cannot use.
+ */
+export function mapDbLeadToLead(db: DbLead): Lead {
+  const scores = firstOf(db.lead_scores);
+  const audit = firstOf(db.business_audits);
+  const opportunity = firstOf(db.opportunity_analysis);
+
+  const messages = Array.isArray(db.outreach_messages)
+    ? db.outreach_messages
+    : db.outreach_messages
+      ? [db.outreach_messages]
+      : [];
+
+  const outreachMessages: Lead['outreachMessages'] = messages
+    .filter((message) => message.subject || message.content)
+    .map((message) => ({
+      id: message.id,
+      subject: message.subject || '',
+      body: message.content || '',
+      createdAt: message.created_at || undefined,
+      generatedAt: message.created_at || undefined,
+      status: message.status === 'sent' ? 'sent' : 'draft',
+      variant: message.variant ?? 1,
+    }));
+
+  // The lead row itself carries the current draft, which may be newer than any
+  // persisted outreach_messages row. Surface it so the drawer shows the draft.
+  if (outreachMessages.length === 0 && (db.outreach_subject || db.outreach_body)) {
+    outreachMessages.push({
+      subject: db.outreach_subject || '',
+      body: db.outreach_body || '',
+      generatedAt: db.outreach_generated_at || undefined,
+      status: db.outreach_status === 'sent' ? 'sent' : 'draft',
+      variant: 1,
+    });
+  }
 
   return {
     id: db.id,
-    businessName: db.business_name || 'Unknown Business',
-    category: (db.category || 'business') as Lead['category'],
+    name: db.business_name || 'Unnamed business',
+    category: (db.category || 'retail') as Lead['category'],
     address: db.address || '',
-    city: (db.city || 'Karachi') as Lead['city'],
-    phone: db.phone ?? undefined,
+    // `city` is a free-text column; the narrow union in the Lead type does not
+    // constrain what discovery can return, so pass it through unchanged.
+    city: (db.city || '') as Lead['city'],
+    phone: db.phone ?? db.contact_phone ?? undefined,
     rating: db.rating ?? undefined,
     reviewCount: db.review_count ?? undefined,
-    hasWebsite: db.has_website ?? !!db.website_url,
-    websiteUrl: db.website_url ?? undefined,
-    score: opp?.opportunity_score ?? scores?.overall_score ?? 0,
+    websiteStatus: deriveWebsiteStatus(db, audit),
+    websiteUrl: db.website_url ?? db.website ?? undefined,
+    score: opportunity?.opportunity_score ?? scores?.overall_score ?? 0,
+    scoreBreakdown: {
+      digitalPresenceGap: scores?.digital_presence_gap ?? 0,
+      categoryFit: scores?.category_fit ?? 0,
+      reviewActivity: scores?.review_activity ?? 0,
+      marketDensity: scores?.market_density ?? 0,
+      competitorPresence: scores?.competitor_presence ?? 0,
+    },
     pipelineStage: (db.pipeline_stage || 'discovery') as Lead['pipelineStage'],
     discoveredAt: db.created_at || new Date().toISOString(),
     distance: db.distance ?? undefined,
     aiAnalysis: scores?.ai_reasoning || '',
-    outreachMessages: [],
+    outreachMessages,
     latitude: db.lat ?? undefined,
     longitude: db.lng ?? undefined,
     contactEmail: db.contact_email ?? undefined,
-    opportunityScore: opp?.opportunity_score ?? undefined,
-    confidenceScore: opp?.confidence_score ?? undefined,
-  } as any;
+    contactPhone: db.contact_phone ?? undefined,
+    website: db.website ?? undefined,
+    contactSource: (db.contact_source as Lead['contactSource']) ?? undefined,
+    contactConfidence: db.contact_confidence ?? undefined,
+    outreachSubject: db.outreach_subject ?? undefined,
+    outreachBody: db.outreach_body ?? undefined,
+    outreachStatus: (db.outreach_status as Lead['outreachStatus']) ?? undefined,
+    outreachGeneratedAt: db.outreach_generated_at ?? undefined,
+    outreachSentAt: db.outreach_sent_at ?? undefined,
+    proposalContent: db.proposal_content ?? undefined,
+    proposalStatus: (db.proposal_status as Lead['proposalStatus']) ?? undefined,
+    proposalGeneratedAt: db.proposal_generated_at ?? undefined,
+    lastEnrichmentRunAt: db.last_enrichment_run_at ?? undefined,
+    lastError: db.last_error ?? null,
+  };
 }
 
 /**

@@ -28,8 +28,6 @@ export const useAppStore = create<AppState & {
   userRole: null,
   userEmail: null,
   proposals: [],
-  isDemoMode: false,
-  selectedDemoScenario: null,
   /** Real-data only: notifications start empty and are populated from DB */
   notifications: [],
 
@@ -160,9 +158,6 @@ export const useAppStore = create<AppState & {
     })),
 
   clearNotifications: () => set({ notifications: [] }),
-
-  setIsDemoMode: (val: boolean) => set({ isDemoMode: val }),
-  setSelectedDemoScenario: (scenario: string | null) => set({ selectedDemoScenario: scenario }),
 
   initRealtime: () => {
     if (!isSupabaseConfigured) {

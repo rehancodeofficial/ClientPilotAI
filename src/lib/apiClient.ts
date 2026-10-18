@@ -38,16 +38,24 @@ export async function deleteProposalApi(proposalId: string) {
   return apiDelete<any>(`/proposals/${proposalId}`);
 }
 
-import { mockLeads, mockDashboardStats } from '@/data/mockLeads';
+import { fetchLeads } from '@/api/businesses';
+import type { Lead } from '@/types';
 
 // ─── Lead helpers ─────────────────────────────────────────────────────────────
-export async function getAllLeads(): Promise<any[]> {
-  try {
-    const result = await apiGet<{ leads: any[] }>('/leads');
-    return result.leads && result.leads.length > 0 ? result.leads : mockLeads;
-  } catch {
-    return mockLeads;
-  }
+
+/**
+ * Loads every lead in the signed-in workspace.
+ *
+ * Delegates to `fetchLeads`, which applies the database→UI field mapping. This
+ * previously read `result.leads` from a `GET /api/leads` response that is a bare
+ * array, so the property was always undefined and the function fell back to a
+ * 50-row invented dataset — on every authenticated page, in production.
+ *
+ * Errors now propagate. Callers render an error or empty state; substituting
+ * fabricated businesses for a failed request is never the right answer.
+ */
+export async function getAllLeads(): Promise<Lead[]> {
+  return fetchLeads();
 }
 
 export async function enrichLead(leadId: string) {
@@ -103,12 +111,16 @@ export async function getOpportunityZones(): Promise<any[]> {
 }
 
 // ─── Dashboard stats ──────────────────────────────────────────────────────────
+
+/**
+ * Workspace-level dashboard aggregates.
+ *
+ * Throws on failure rather than returning invented totals. A dashboard that
+ * silently shows fabricated revenue and conversion figures when the API is down
+ * is worse than one that shows an error.
+ */
 export async function getDashboardStats(): Promise<DashboardStats> {
-  try {
-    return await apiGet<DashboardStats>('/intelligence/dashboard');
-  } catch {
-    return mockDashboardStats;
-  }
+  return apiGet<DashboardStats>('/intelligence/dashboard');
 }
 
 // ─── Admin helpers ────────────────────────────────────────────────────────────

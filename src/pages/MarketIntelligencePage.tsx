@@ -21,7 +21,6 @@ const GAP_COLORS = ['#f43f5e', '#f97316', '#eab308', '#06b6d4'];
 export function MarketIntelligencePage() {
   const [stats, setStats] = useState<MarketIntelligenceStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const isDemoMode = useAppStore((s) => s.isDemoMode);
 
   const fetchStats = async () => {
     setIsLoading(true);
@@ -37,7 +36,7 @@ export function MarketIntelligencePage() {
 
   useEffect(() => {
     fetchStats();
-  }, [isDemoMode]);
+  }, []);
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -51,9 +50,6 @@ export function MarketIntelligencePage() {
             <h1 className="text-2xl font-bold tracking-tight text-(--text-primary)">
               Market Opportunity Intelligence
             </h1>
-            {isDemoMode && (
-              <Badge variant="warning" className="text-xs px-2 py-0.5">DEMO DATA</Badge>
-            )}
           </div>
           <p className="text-sm text-(--text-secondary)">
             Aggregated digital maturity gaps, category opportunity density, and service intervention potential across your target territory.

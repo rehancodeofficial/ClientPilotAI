@@ -89,6 +89,67 @@ router.get('/', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/leads/:id — one lead with everything the detail drawer renders.
+ *
+ * The frontend has always called this (`fetchLead` in src/api/businesses.ts) but
+ * no such route existed, so the drawer's own fetch silently returned null and it
+ * could only ever show what the list had already loaded.
+ *
+ * Declared before the parameterised POST routes but after `/discover`, so the
+ * literal path is not captured by `:id`.
+ */
+router.get('/:id', async (req, res) => {
+  const user = req.user!;
+  try {
+    const { id } = req.params;
+
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('workspace_id')
+      .eq('id', user.sub)
+      .maybeSingle();
+
+    if (!profile?.workspace_id) {
+      return res.status(403).json({ error: 'No workspace found', code: 'NO_WORKSPACE' });
+    }
+
+    const { data: lead, error } = await supabaseAdmin
+      .from('leads')
+      .select(`
+        *,
+        lead_scores (*),
+        outreach_messages (*),
+        business_audits (*),
+        opportunity_analysis (*),
+        competitor_analysis (*)
+      `)
+      .eq('id', id)
+      // Scoped by workspace as well as id: the service-role client bypasses RLS,
+      // so without this a caller could read any lead by guessing its UUID.
+      .eq('workspace_id', profile.workspace_id)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!lead) {
+      return res.status(404).json({ error: 'Lead not found', code: 'LEAD_NOT_FOUND' });
+    }
+
+    const { data: latestStage } = await supabaseAdmin
+      .from('pipeline_stages')
+      .select('stage')
+      .eq('lead_id', id)
+      .eq('workspace_id', profile.workspace_id)
+      .order('changed_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    res.json({ ...lead, pipeline_stage: latestStage?.stage || 'discovery' });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+  }
+});
+
 // POST /api/leads/discover
 router.post('/discover', async (req, res) => {
   try {

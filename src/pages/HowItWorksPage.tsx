@@ -28,7 +28,7 @@ const steps = [
       { label: 'need',      value: 'website + seo' },
       { label: 'budget',    value: 'established' },
     ],
-    stat: { value: '40+', sub: 'filter dimensions' },
+    stat: { value: '14', sub: 'business categories' },
   },
   {
     num: '02',
@@ -55,7 +55,7 @@ const steps = [
     accent: '#4cc02b',
     title: 'Analyze Digital Presence',
     short: 'Audit',
-    desc: 'Every discovered business gets a comprehensive website audit across performance, SEO, mobile experience, accessibility, UX quality, and content signals. 40+ dimensions per site.',
+    desc: 'Every discovered business gets a website audit covering website presence, HTTPS, mobile responsiveness, online booking, ordering, contact forms and social presence, with the evidence for each finding recorded.',
     detail: 'A full audit runs automatically for every business in your list. You get structured findings grounded in real data, not assumptions.',
     img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=900&q=80',
     imgAlt: 'Website analysis dashboard showing performance metrics',
@@ -66,7 +66,7 @@ const steps = [
       { label: 'accessibility', value: '52/100 · Moderate' },
       { label: 'content',       value: '60/100 · Good' },
     ],
-    stat: { value: '40+', sub: 'signals per site' },
+    stat: { value: '7', sub: 'signals per site' },
   },
   {
     num: '04',
@@ -447,7 +447,7 @@ export function HowItWorksPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 24 }}>
             {[
               { value: '6', label: 'Workflow steps', sub: 'end-to-end' },
-              { value: '40+', label: 'Analysis signals', sub: 'per business' },
+              { value: '7', label: 'Analysis signals', sub: 'per business' },
               { value: '<2 min', label: 'Discovery to insight', sub: 'fully automated' },
               { value: '100%', label: 'Human-reviewed', sub: 'before sending' },
             ].map((stat, i) => (

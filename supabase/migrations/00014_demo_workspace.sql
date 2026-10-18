@@ -1,38 +1,31 @@
--- Migration 00014: Demo Workspace and Users
+-- Migration 00014: Demo workspace and users — SUPERSEDED, intentionally a no-op.
+--
+-- The original contents of this file could never run. They were written against
+-- a schema that does not exist and were never applied to any environment:
+--
+--   1. INSERT INTO profiles (..., email, ...) — profiles has no `email` column.
+--      Postgres rejects the statement with 42703 (undefined_column). The column
+--      is added in 00015, after this migration.
+--
+--   2. The demo profile rows used hand-picked UUIDs
+--      (00000000-0000-0000-0000-00000000000{2,3}) that have no matching row in
+--      auth.users. profiles.id is `REFERENCES auth.users(id)`, so the inserts
+--      violate that foreign key regardless of the column problem.
+--
+-- Because this file sits in the middle of the chain, a fresh `supabase db push`
+-- or `db reset` aborted here and never reached any later migration. Emptying it
+-- is what makes the chain runnable end to end; the statements are not moved to
+-- a later migration because the approach itself was wrong.
+--
+-- Demo data is now created by `backend/src/scripts/seed-demo.ts`, which provisions
+-- genuine Supabase auth users through the admin API. That keeps the auth.users
+-- foreign key intact, lets the demo accounts sign in through the normal flow, and
+-- keeps seed data out of the schema migration history where it does not belong.
+--
+--   npm --prefix backend run seed:demo
+--
+-- Verified against the live database on 2026-10-18: workspace
+-- 00000000-0000-0000-0000-000000000001 does not exist, workspaces.owner_id is
+-- still NOT NULL, and profiles.email is absent — confirming nothing here applied.
 
--- Allow owner_id to be NULL so the demo workspace (which has no real auth user) can be inserted
-ALTER TABLE workspaces ALTER COLUMN owner_id DROP NOT NULL;
-
--- 1. Insert Demo Workspace
-INSERT INTO workspaces (id, name, owner_id, created_at)
-VALUES (
-    '00000000-0000-0000-0000-000000000001',
-    'Demo Workspace',
-    NULL,
-    now()
-)
-ON CONFLICT (id) DO NOTHING;
-
--- 2. Insert Demo Admin Profile (using stable UUIDs matching backend/src/routes/auth.ts)
-INSERT INTO profiles (id, workspace_id, email, full_name, role, created_at)
-VALUES (
-    '00000000-0000-0000-0000-000000000002',
-    '00000000-0000-0000-0000-000000000001',
-    'admin@demo.clientpilotai',
-    'Demo Admin',
-    'admin',
-    now()
-)
-ON CONFLICT (id) DO NOTHING;
-
--- 3. Insert Demo User Profile
-INSERT INTO profiles (id, workspace_id, email, full_name, role, created_at)
-VALUES (
-    '00000000-0000-0000-0000-000000000003',
-    '00000000-0000-0000-0000-000000000001',
-    'user@demo.clientpilotai',
-    'Demo User',
-    'user',
-    now()
-)
-ON CONFLICT (id) DO NOTHING;
+-- No statements. Deliberately left empty.
