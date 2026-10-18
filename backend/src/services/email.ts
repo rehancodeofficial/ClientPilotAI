@@ -189,7 +189,7 @@ ClientPilot AI - Acquire High-Value Clients
 
 export function getWelcomeEmailTemplate(name?: string) {
   const recipient = name ? name.trim() : 'there';
-  const appUrl = env.appBaseUrl || env.frontendUrl || 'http://localhost:5173';
+  const appUrl = env.appBaseUrl || env.frontendUrl || 'https://clientpilotai.rehanhussain.dev';
 
   const html = `
 <!DOCTYPE html>
