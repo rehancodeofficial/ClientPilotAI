@@ -13,8 +13,14 @@
  *
  * Secrets are never logged. Only their presence, length and shape are reported.
  */
-
-import 'dotenv/config';
+// Load local .env if dotenv is present (e.g. in development). In serverless/production
+// environments (Render, Vercel), environment variables are injected directly into process.env.
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('dotenv/config');
+} catch {
+  // dotenv not bundled or needed in production environment
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
