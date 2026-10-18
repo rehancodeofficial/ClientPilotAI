@@ -12,11 +12,15 @@ const defaultFilters: FilterState = {
 }
 
 export const useAppStore = create<AppState & {
+  /** Custom auth JWT token — stored in localStorage for persistence across reloads */
+  authToken: string | null;
+  setAuthToken: (token: string | null) => void;
   /** Demo JWT — set after calling /api/auth/demo. Used by apiFetch instead of Supabase session. */
   demoToken: string | null;
   setDemoToken: (token: string | null) => void;
   updateLeadScore: (id: string, scoreData: Record<string, unknown>) => void;
   initRealtime: () => () => void;
+  clearAuth: () => void;
 }>((set, get) => ({
   leads: [],
   selectedLeadId: null,
@@ -31,9 +35,26 @@ export const useAppStore = create<AppState & {
   /** Real-data only: notifications start empty and are populated from DB */
   notifications: [],
 
-  /** Demo JWT issued by /api/auth/demo — null for real Supabase sessions */
+  /** Custom JWT auth token */
+  authToken: typeof window !== 'undefined' ? localStorage.getItem('cp_auth_token') : null,
+  setAuthToken: (token) => {
+    if (typeof window !== 'undefined') {
+      if (token) localStorage.setItem('cp_auth_token', token);
+      else localStorage.removeItem('cp_auth_token');
+    }
+    set({ authToken: token });
+  },
+
+  /** Demo JWT issued by /api/auth/demo */
   demoToken: null,
   setDemoToken: (token) => set({ demoToken: token }),
+
+  clearAuth: () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('cp_auth_token');
+    }
+    set({ authToken: null, demoToken: null, userRole: null, userEmail: null });
+  },
 
   setLeads: (leads: Lead[]) => set({ leads }),
   setSelectedLeadId: (id: string | null) => set({ selectedLeadId: id }),

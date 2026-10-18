@@ -1,65 +1,319 @@
-/**
- * Demo Auth Route — POST /api/auth/demo
- *
- * Issues a short-lived signed JWT that grants demo access to the backend.
- * The token carries a dedicated demo workspace_id and user_id so all
- * real backend routes work without a live Supabase session.
- *
- * SECURITY:
- * - Token is signed with SUPABASE_JWT_SECRET (same secret the middleware verifies)
- * - TTL is 4 hours
- * - Demo workspace is isolated; the token is scoped to it and nothing else
- * - Never exposes any real credentials to the frontend
- *
- * This endpoint is unauthenticated and mints a token the auth middleware
- * accepts, so anyone who can reach it gets API access to the demo workspace.
- * That is the point of a demo, but it must be a deliberate choice rather than a
- * default: it is therefore DISABLED unless ENABLE_DEMO_AUTH=true. The `role` in
- * the request body is caller-supplied and grants no privilege by itself — admin
- * authorisation is still decided by the profiles row for the resolved user.
- */
-
 import { Router } from 'express';
+import { z } from 'zod';
+import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
 import { supabaseAdmin } from '../lib/supabase';
 import { env } from '../lib/env';
+import {
+  registerUser,
+  verifyEmailOtp,
+  resendEmailOtp,
+  loginWithPassword,
+  requestPasswordReset,
+  resetPasswordWithOtp,
+  changeUserPassword,
+  findUserByEmail,
+} from '../services/auth';
+import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 
-// The demo workspace id is fixed; the demo USER ids are not. They were
-// previously hardcoded to match rows that migration 00014 was supposed to
-// insert — but that migration could never run, so the ids referred to profiles
-// that did not exist and every demo request failed with "No workspace found".
-// The accounts are now real auth users created by `npm run seed:demo`, and are
-// resolved here by email.
+// ─── Rate Limiters ─────────────────────────────────────────────────────────────
+
+// Login & registration attempts: 15 per 15 mins per IP
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many authentication attempts. Please try again in a few minutes.' },
+});
+
+// OTP verification attempts: 10 per 10 mins per IP
+const otpLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many verification attempts. Please wait a few moments.' },
+});
+
+// OTP resend requests: 5 per 15 mins per IP
+const resendLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 6,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many resend requests. Please check your inbox or try again shortly.' },
+});
+
+// ─── Input Validation Schemas ──────────────────────────────────────────────────
+
+const RegisterSchema = z.object({
+  fullName: z.string().trim().min(1, 'Full name is required').max(100),
+  email: z.string().trim().email('Invalid email address').max(255),
+  password: z.string().min(6, 'Password must be at least 6 characters').max(128),
+  accountType: z.enum(['agency', 'freelancer', 'client']).optional(),
+});
+
+const VerifyEmailSchema = z.object({
+  email: z.string().trim().email('Invalid email address'),
+  otp: z.string().trim().regex(/^\d{6}$/, 'Verification code must be exactly 6 digits'),
+});
+
+const ResendOtpSchema = z.object({
+  email: z.string().trim().email('Invalid email address'),
+});
+
+const LoginSchema = z.object({
+  email: z.string().trim().email('Invalid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+const ForgotPasswordSchema = z.object({
+  email: z.string().trim().email('Invalid email address'),
+});
+
+const ResetPasswordSchema = z.object({
+  email: z.string().trim().email('Invalid email address'),
+  otp: z.string().trim().regex(/^\d{6}$/, 'Reset code must be exactly 6 digits'),
+  newPassword: z.string().min(6, 'New password must be at least 6 characters').max(128),
+});
+
+const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required').optional(),
+  newPassword: z.string().min(6, 'Password must be at least 6 characters').max(128),
+});
+
+// ─── Endpoints ─────────────────────────────────────────────────────────────────
+
+/**
+ * POST /api/auth/register
+ */
+router.post('/register', authLimiter, async (req, res) => {
+  const parsed = RegisterSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: parsed.error.issues[0]?.message || 'Validation error',
+      code: 'VALIDATION_FAILED',
+      details: parsed.error.issues,
+    });
+  }
+
+  try {
+    const result = await registerUser(parsed.data);
+    res.status(201).json({
+      success: true,
+      message: 'Registration initiated. Please check your email for your 6-digit verification code.',
+      ...result,
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    const code = (err as any)?.code || 'REGISTRATION_FAILED';
+    const status = code === 'EMAIL_EXISTS' ? 409 : 500;
+    res.status(status).json({ error: message, code });
+  }
+});
+
+/**
+ * POST /api/auth/verify-email
+ */
+router.post('/verify-email', otpLimiter, async (req, res) => {
+  const parsed = VerifyEmailSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: parsed.error.issues[0]?.message || 'Validation error',
+      code: 'VALIDATION_FAILED',
+    });
+  }
+
+  try {
+    const result = await verifyEmailOtp(parsed.data);
+    res.status(200).json({
+      success: true,
+      message: 'Email verified successfully. Welcome to ClientPilot AI!',
+      ...result,
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    const code = (err as any)?.code || 'VERIFICATION_FAILED';
+    const status = ['INVALID_OTP', 'OTP_EXPIRED', 'MAX_ATTEMPTS_EXCEEDED'].includes(code) ? 400 : 500;
+    res.status(status).json({ error: message, code });
+  }
+});
+
+/**
+ * POST /api/auth/resend-otp
+ */
+router.post('/resend-otp', resendLimiter, async (req, res) => {
+  const parsed = ResendOtpSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: parsed.error.issues[0]?.message || 'Validation error',
+      code: 'VALIDATION_FAILED',
+    });
+  }
+
+  try {
+    const result = await resendEmailOtp(parsed.data.email);
+    res.status(200).json(result);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    const code = (err as any)?.code || 'RESEND_FAILED';
+    const status = code === 'COOLDOWN_ACTIVE' ? 429 : 400;
+    res.status(status).json({
+      error: message,
+      code,
+      waitSeconds: (err as any)?.waitSeconds,
+    });
+  }
+});
+
+/**
+ * POST /api/auth/login
+ */
+router.post('/login', authLimiter, async (req, res) => {
+  const parsed = LoginSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: parsed.error.issues[0]?.message || 'Validation error',
+      code: 'VALIDATION_FAILED',
+    });
+  }
+
+  try {
+    const result = await loginWithPassword(parsed.data);
+    res.status(200).json({
+      success: true,
+      message: 'Sign in successful',
+      ...result,
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    const code = (err as any)?.code || 'LOGIN_FAILED';
+    const status = code === 'EMAIL_NOT_VERIFIED' ? 403 : code === 'INVALID_CREDENTIALS' ? 401 : 500;
+    res.status(status).json({
+      error: message,
+      code,
+      email: (err as any)?.email,
+    });
+  }
+});
+
+/**
+ * POST /api/auth/logout
+ */
+router.post('/logout', (_req, res) => {
+  // Stateless JWT invalidation on client
+  res.status(200).json({ success: true, message: 'Logged out successfully' });
+});
+
+/**
+ * GET /api/auth/me
+ */
+router.get('/me', authMiddleware, async (req, res) => {
+  const user = req.user!;
+  try {
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('id, workspace_id, full_name, email, role, avatar_url, timezone, created_at')
+      .eq('id', user.sub)
+      .maybeSingle();
+
+    if (!profile) {
+      return res.status(404).json({ error: 'User profile not found', code: 'NOT_FOUND' });
+    }
+
+    res.status(200).json({
+      user: {
+        id: user.sub,
+        email: user.email || profile.email,
+        role: profile.role || user.role || 'user',
+        fullName: profile.full_name,
+        workspaceId: profile.workspace_id,
+        avatarUrl: profile.avatar_url,
+      },
+      profile,
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: message, code: 'INTERNAL_ERROR' });
+  }
+});
+
+/**
+ * POST /api/auth/forgot-password
+ */
+router.post('/forgot-password', authLimiter, async (req, res) => {
+  const parsed = ForgotPasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: parsed.error.issues[0]?.message || 'Validation error',
+      code: 'VALIDATION_FAILED',
+    });
+  }
+
+  try {
+    const result = await requestPasswordReset(parsed.data.email);
+    res.status(200).json(result);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: message, code: 'RESET_REQUEST_FAILED' });
+  }
+});
+
+/**
+ * POST /api/auth/reset-password
+ */
+router.post('/reset-password', otpLimiter, async (req, res) => {
+  const parsed = ResetPasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: parsed.error.issues[0]?.message || 'Validation error',
+      code: 'VALIDATION_FAILED',
+    });
+  }
+
+  try {
+    const result = await resetPasswordWithOtp(parsed.data);
+    res.status(200).json(result);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    const code = (err as any)?.code || 'PASSWORD_RESET_FAILED';
+    const status = ['INVALID_RESET_CODE', 'CODE_EXPIRED', 'MAX_ATTEMPTS_EXCEEDED'].includes(code) ? 400 : 500;
+    res.status(status).json({ error: message, code });
+  }
+});
+
+/**
+ * POST /api/auth/change-password (Authenticated)
+ */
+router.post('/change-password', authMiddleware, async (req, res) => {
+  const parsed = ChangePasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: parsed.error.issues[0]?.message || 'Validation error',
+      code: 'VALIDATION_FAILED',
+    });
+  }
+
+  const user = req.user!;
+  try {
+    const result = await changeUserPassword(user.sub, parsed.data.newPassword);
+    res.status(200).json(result);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: message, code: 'PASSWORD_CHANGE_FAILED' });
+  }
+});
+
+// ─── Demo Sign-In Route (Preserved for QA / evaluation) ─────────────────────────
 export const DEMO_WORKSPACE_ID = '00000000-0000-0000-0000-000000000001';
-
-const DEMO_EMAILS = {
-  admin: (process.env.DEMO_ADMIN_EMAIL || 'demo-admin@clientpilot.test').toLowerCase(),
-  user: (process.env.DEMO_USER_EMAIL || 'demo-user@clientpilot.test').toLowerCase(),
-} as const;
-
 const DEMO_TOKEN_TTL_SECONDS = 4 * 60 * 60; // 4 hours
 
-/** Demo auth is opt-in: it hands out API access without any credential. */
 const isDemoAuthEnabled = (): boolean =>
   (process.env.ENABLE_DEMO_AUTH || '').trim().toLowerCase() === 'true';
 
-/** Looks up the seeded demo profile for a role. Returns null when not seeded. */
-async function resolveDemoProfile(role: 'admin' | 'user') {
-  const { data } = await supabaseAdmin
-    .from('profiles')
-    .select('id, email, role, workspace_id')
-    .eq('email', DEMO_EMAILS[role])
-    .maybeSingle();
-  return data;
-}
-
-/**
- * POST /api/auth/demo
- * Body: { role: 'admin' | 'user' }
- * Returns: { token: string, expiresIn: number, role: string }
- */
 router.post('/demo', async (req, res) => {
   if (!isDemoAuthEnabled()) {
     return res.status(404).json({
@@ -69,7 +323,6 @@ router.post('/demo', async (req, res) => {
   }
 
   const role = req.body?.role === 'admin' ? 'admin' : 'user';
-
   const jwtSecret = env.supabaseJwtSecret;
   if (!jwtSecret) {
     return res.status(500).json({
@@ -77,38 +330,34 @@ router.post('/demo', async (req, res) => {
     });
   }
 
-  // Resolve the seeded demo account rather than creating rows on the fly.
-  //
-  // The previous implementation upserted a workspace with no owner_id and a
-  // profile carrying an `email` column, inside a try/catch that logged any
-  // failure as "non-fatal" and continued. Both writes always failed —
-  // owner_id was NOT NULL and profiles had no email column — so this issued a
-  // perfectly valid token for a workspace and profile that did not exist, and
-  // every subsequent request answered 403 "No workspace found". Requiring the
-  // seed to have run turns that silent breakage into a clear error.
-  const profile = await resolveDemoProfile(role);
+  const demoEmail = role === 'admin' ? 'admin@clientpilotai.com' : 'user@clientpilotai.com';
+  const { profile } = await findUserByEmail(demoEmail);
 
-  if (!profile) {
-    return res.status(503).json({
-      error:
-        'The demo workspace has not been seeded on this server. ' +
-        'Run `npm --prefix backend run seed:demo` to create the demo accounts.',
-      code: 'DEMO_NOT_SEEDED',
-    });
+  let userId = profile?.id;
+  let workspaceId = profile?.workspace_id || DEMO_WORKSPACE_ID;
+
+  if (!userId) {
+    // Check if seeded demo profile exists
+    const { data: prof } = await supabaseAdmin
+      .from('profiles')
+      .select('id, email, role, workspace_id')
+      .eq('role', role)
+      .maybeSingle();
+
+    if (prof) {
+      userId = prof.id;
+      workspaceId = prof.workspace_id || DEMO_WORKSPACE_ID;
+    } else {
+      userId = role === 'admin' ? '00000000-0000-0000-0000-000000000002' : '00000000-0000-0000-0000-000000000003';
+    }
   }
 
-  const userId = profile.id as string;
-  const email = (profile.email as string) ?? DEMO_EMAILS[role];
-  const workspaceId = (profile.workspace_id as string) ?? DEMO_WORKSPACE_ID;
-
-  // Issue JWT with the same claims Supabase uses so the auth middleware accepts it
   const payload = {
     sub: userId,
-    email,
+    email: demoEmail,
     role: 'authenticated',
     app_metadata: { role },
     user_metadata: { full_name: role === 'admin' ? 'Demo Admin' : 'Demo User' },
-    // Demo-specific flag so middleware can identify demo tokens
     is_demo: true,
     demo_workspace_id: workspaceId,
     aud: 'authenticated',

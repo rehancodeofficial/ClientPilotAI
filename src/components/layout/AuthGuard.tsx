@@ -1,95 +1,79 @@
 import { useEffect, useState } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
-import { supabase } from '@/lib/supabaseClient'
-import type { Session } from '@supabase/supabase-js'
 import { useAppStore } from '@/store/useAppStore'
+import { apiGet } from '@/api/client'
 import { Loader2 } from 'lucide-react'
 
 export function AuthGuard() {
-  const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
+  const authToken = useAppStore((s) => s.authToken)
+  const demoToken = useAppStore((s) => s.demoToken)
   const setUserRole = useAppStore((s) => s.setUserRole)
   const setUserEmail = useAppStore((s) => s.setUserEmail)
-  // A demo session is represented by the token minted by POST /api/auth/demo.
-  // The token is the credential; a role value on its own is not.
-  const demoToken = useAppStore((s) => s.demoToken)
+  const clearAuth = useAppStore((s) => s.clearAuth)
 
   useEffect(() => {
-    let active = true;
+    let active = true
 
-    const initAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!active) return
-        setSession(session)
-        if (session?.user) {
-          setUserEmail(session.user.email ?? null)
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single()
-          
-          if (!active) return
-          if (data && !error) {
-            setUserRole(data.role as 'admin' | 'user')
-          } else {
-            setUserRole('user')
-          }
+    const verifySession = async () => {
+      // 1. Check if we have a demo token
+      if (demoToken) {
+        if (active) {
+          setIsAuthenticated(true)
+          setLoading(false)
         }
-      } catch {
-        if (active) setUserRole('user')
+        return
+      }
+
+      // 2. Check if we have a custom authToken
+      const token = authToken || (typeof window !== 'undefined' ? localStorage.getItem('cp_auth_token') : null)
+      if (!token) {
+        if (active) {
+          setIsAuthenticated(false)
+          setLoading(false)
+        }
+        return
+      }
+
+      // 3. Verify token with /api/auth/me
+      try {
+        const response = await apiGet<{
+          user: {
+            id: string
+            email: string
+            role: 'admin' | 'user' | 'client'
+            fullName?: string
+          }
+        }>('/auth/me')
+
+        if (!active) return
+
+        if (response?.user) {
+          setUserEmail(response.user.email)
+          setUserRole((response.user.role as 'admin' | 'user') || 'user')
+          setIsAuthenticated(true)
+        } else {
+          clearAuth()
+          setIsAuthenticated(false)
+        }
+      } catch (err) {
+        if (!active) return
+        console.warn('[AuthGuard] Token verification failed:', err)
+        clearAuth()
+        setIsAuthenticated(false)
       } finally {
         if (active) setLoading(false)
       }
     }
 
-    initAuth()
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!active) return
-      setSession(session)
-      if (session?.user) {
-        setUserEmail(session.user.email ?? null)
-        try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single()
-          if (!active) return
-          if (data && !error) {
-            setUserRole(data.role as 'admin' | 'user')
-          } else {
-            setUserRole('user')
-          }
-        } catch {
-          if (active) setUserRole('user')
-        }
-      } else if (!useAppStore.getState().demoToken) {
-        // Signed out and not in a demo session: clear the cached identity.
-        setUserEmail(null)
-        setUserRole(null)
-      }
-    })
+    verifySession()
 
     return () => {
       active = false
-      subscription.unsubscribe()
     }
-  }, [setUserRole, setUserEmail])
-
-  // Entry previously required only `userRole !== null`. Because the role is set
-  // client-side before any credential is verified, anything that wrote a role —
-  // the former hardcoded admin branch, or the demo login's failure path — let a
-  // caller straight through this guard. Access now requires an actual
-  // credential: a Supabase session, or a demo token issued by the backend.
-  if (demoToken) {
-    return <Outlet />
-  }
+  }, [authToken, demoToken, setUserRole, setUserEmail, clearAuth])
 
   if (loading) {
     return (
@@ -99,7 +83,7 @@ export function AuthGuard() {
     )
   }
 
-  if (!session) {
+  if (!isAuthenticated && !demoToken) {
     return <Navigate to="/login" replace />
   }
 

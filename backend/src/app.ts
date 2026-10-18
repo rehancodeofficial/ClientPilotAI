@@ -18,6 +18,7 @@ import authRouter from './routes/auth';
 import profileRouter, { workspaceRouter } from './routes/profile';
 import portalRouter from './routes/portal';
 import dashboardRouter from './routes/dashboard';
+import webhooksRouter from './routes/webhooks';
 import activityRouter from './routes/activity';
 import { authMiddleware, adminMiddleware } from './middleware/auth';
 import { requireAi } from './middleware/requireAi';
@@ -70,7 +71,13 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(express.json({ limit: '2mb' }));
+// Body parser with raw body retention for webhook signature verification
+app.use(express.json({
+  limit: '2mb',
+  verify: (req: any, _res, buf) => {
+    req.rawBody = buf.toString('utf8');
+  },
+}));
 
 // General API Rate Limiting (100 requests per 15 min per IP)
 const apiLimiter = rateLimit({
@@ -152,6 +159,7 @@ app.get('/health/ready', async (_req, res) => {
 // ─── Public routes (no JWT required) ──────────────────────────────────────────
 app.use('/api/ai', aiRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/webhooks/resend', webhooksRouter);
 
 // ─── Protected API Routes ──────────────────────────────────────────────────────
 app.use('/api/profile', authMiddleware, profileRouter);

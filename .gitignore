@@ -36,6 +36,8 @@ dist-ssr
 # TypeScript incremental build cache
 *.tsbuildinfo
 
-# Consolidated migration paste, generated per-environment to resume a
-# partially applied chain. The numbered migrations are the record.
 supabase/_apply_missing.sql
+
+# Local scratch / test files
+api.md
+

@@ -41,14 +41,19 @@ export class ApiError extends Error {
 
 /**
  * Gets the auth token to use for API calls.
- * Priority: demo JWT stored in Zustand → real Supabase session token
+ * Priority: custom auth token → demo JWT → fallback Supabase session token
  */
 async function getAuthToken(): Promise<string | null> {
-  // 1. Check for demo token in store
-  const demoToken = useAppStore.getState().demoToken;
+  // 1. Check for custom auth token in store / localStorage
+  const state = useAppStore.getState();
+  const customToken = state.authToken || (typeof window !== 'undefined' ? localStorage.getItem('cp_auth_token') : null);
+  if (customToken) return customToken;
+
+  // 2. Check for demo token in store
+  const demoToken = state.demoToken;
   if (demoToken) return demoToken;
 
-  // 2. Fall back to real Supabase session
+  // 3. Fall back to real Supabase session if any
   try {
     const { supabase } = await import('@/lib/supabaseClient');
     const { data: { session } } = await supabase.auth.getSession();

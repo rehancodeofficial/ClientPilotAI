@@ -36,11 +36,22 @@ export function TopBar() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  const clearAuth = useAppStore((s) => s.clearAuth)
+
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setUserRole(null)
-    setUserEmail(null)
-    navigate('/')
+    try {
+      let rawApiUrl = (import.meta.env.VITE_API_URL || '/api').trim()
+      if (rawApiUrl.startsWith('http')) {
+        if (rawApiUrl.endsWith('/')) rawApiUrl = rawApiUrl.slice(0, -1)
+        if (!rawApiUrl.endsWith('/api')) rawApiUrl += '/api'
+      } else if (!rawApiUrl.startsWith('/api')) {
+        rawApiUrl = '/api'
+      }
+      await fetch(`${rawApiUrl}/auth/logout`, { method: 'POST' }).catch(() => {})
+    } finally {
+      clearAuth()
+      navigate('/')
+    }
   }
 
   return (

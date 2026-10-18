@@ -158,24 +158,27 @@ if (geminiApiKey && !geminiApiKey.startsWith('AIza')) {
 
 const resendApiKey = read('RESEND_API_KEY');
 const outreachFromEmail = read('OUTREACH_FROM_EMAIL');
+const resendFromEmail = readAny('RESEND_FROM_EMAIL', 'OUTREACH_FROM_EMAIL');
+const resendWebhookSecret = read('RESEND_WEBHOOK_SECRET');
+const appBaseUrl = readAny('APP_BASE_URL', 'FRONTEND_URL');
 
 export const hasEmailProvider = Boolean(resendApiKey);
 
 if (!resendApiKey) {
   warnings.push(
-    'RESEND_API_KEY is not set. Outreach emails cannot be delivered; ' +
-      'send endpoints will report that email is not configured.'
+    'RESEND_API_KEY is not set. Outreach and authentication emails cannot be delivered; ' +
+      'endpoints will simulate email dispatch.'
   );
-} else if (!outreachFromEmail) {
+} else if (!resendFromEmail && !outreachFromEmail) {
   warnings.push(
-    'RESEND_API_KEY is set but OUTREACH_FROM_EMAIL is not. ' +
-      'A verified sender address is required before any email can be sent.'
+    'RESEND_API_KEY is set but RESEND_FROM_EMAIL is not. ' +
+      'Defaulting to onboarding@resend.dev.'
   );
 }
 
 // ─── Optional: frontend origin ────────────────────────────────────────────────
 
-const frontendUrl = read('FRONTEND_URL');
+const frontendUrl = readAny('FRONTEND_URL', 'APP_BASE_URL');
 if (!frontendUrl) {
   warnings.push(
     'FRONTEND_URL is not set. CORS will fall back to built-in defaults, which may ' +
@@ -260,4 +263,7 @@ export const env = {
   frontendUrl,
   resendApiKey,
   outreachFromEmail,
+  resendFromEmail,
+  resendWebhookSecret,
+  appBaseUrl,
 } as const;

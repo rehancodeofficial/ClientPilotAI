@@ -9,6 +9,7 @@
     "start:ts": "ts-node src/index.ts",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "test:auth": "ts-node src/scripts/test-custom-auth.ts",
     "seed:demo": "ts-node src/scripts/seed-demo.ts",
     "verify:rls": "ts-node src/scripts/verify-rls.ts"
   },
@@ -19,13 +20,17 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.108.2",
+    "@types/bcrypt": "^6.0.0",
     "axios": "^1.18.0",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
     "jsonwebtoken": "^9.0.3",
     "openai": "^6.44.0",
+    "resend": "^6.34.1",
+    "svix": "^2.8.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

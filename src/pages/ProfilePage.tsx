@@ -90,13 +90,13 @@ export function ProfilePage() {
 
     setIsChangingPassword(true)
     try {
-      // Supabase re-authenticates from the active session, so the current
-      // password is not resent. A stale session is rejected here.
-      const { error } = await supabase.auth.updateUser({ password: newPassword })
-      if (error) throw new Error(error.message)
+      const { apiPost } = await import('@/api/client')
+      await apiPost('/auth/change-password', {
+        newPassword,
+      })
       setNewPassword('')
       setConfirmPassword('')
-      setPasswordMessage({ kind: 'ok', text: 'Password updated. It applies the next time you sign in.' })
+      setPasswordMessage({ kind: 'ok', text: 'Password updated successfully.' })
     } catch (err: unknown) {
       setPasswordMessage({
         kind: 'error',

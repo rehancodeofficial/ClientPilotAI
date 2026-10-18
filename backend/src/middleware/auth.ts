@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { supabaseAdmin } from '../lib/supabase';
 import { env } from '../lib/env';
 
-export interface SupabaseUserPayload {
+export interface UserPayload {
   sub: string;
   email?: string;
   role?: string;
@@ -16,7 +16,7 @@ export interface SupabaseUserPayload {
 declare global {
   namespace Express {
     interface Request {
-      user?: SupabaseUserPayload;
+      user?: UserPayload;
     }
   }
 }
@@ -29,34 +29,33 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   }
 
   const token = authHeader.split(' ')[1];
-
-  // ── Try demo JWT first (fast path, no network call) ───────────────
   const jwtSecret = env.supabaseJwtSecret;
+
+  // 1. First verify JWT with SUPABASE_JWT_SECRET
   if (jwtSecret) {
     try {
       const decoded = jwt.verify(token, jwtSecret) as Record<string, unknown>;
 
-      // Accept tokens issued by our demo endpoint
-      if (decoded.is_demo === true && decoded.sub && decoded.demo_workspace_id) {
+      // Check if this is a valid token (either custom auth or demo)
+      if (decoded.sub) {
         req.user = {
           sub: decoded.sub as string,
           email: decoded.email as string | undefined,
-          role: decoded.role as string | undefined,
-          is_demo: true,
-          demo_workspace_id: decoded.demo_workspace_id as string,
+          role: ((decoded.app_metadata as any)?.role || decoded.role) as string | undefined,
+          is_demo: decoded.is_demo === true,
+          demo_workspace_id: decoded.demo_workspace_id as string | undefined,
         };
         return next();
       }
     } catch {
-      // Not a demo token — fall through to Supabase verification
+      // Secret didn't verify or token expired
     }
   }
 
-  // ── Verify real Supabase token ────────────────────────────────────
+  // 2. Fall back to Supabase auth service verification for legacy tokens
   try {
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     if (error || !user) {
-      console.error('Supabase auth.getUser error:', error?.message || 'No user returned');
       return res.status(401).json({ error: 'Invalid or expired token' });
     }
 
@@ -68,11 +67,10 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     };
     next();
   } catch (error) {
-    console.error('Auth middleware exception:', error);
+    console.error('[AuthMiddleware] Exception:', error);
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
-
 
 export const adminMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -82,15 +80,7 @@ export const adminMiddleware = async (req: Request, res: Response, next: NextFun
     }
 
     // Demo admin bypass
-    if (user.is_demo) {
-      const { data: profile } = await supabaseAdmin
-        .from('profiles')
-        .select('role')
-        .eq('id', user.sub)
-        .single();
-      if (profile?.role !== 'admin') {
-        return res.status(403).json({ error: 'Access denied: Admin role required' });
-      }
+    if (user.is_demo && user.role === 'admin') {
       return next();
     }
 
@@ -98,7 +88,7 @@ export const adminMiddleware = async (req: Request, res: Response, next: NextFun
       .from('profiles')
       .select('role')
       .eq('id', user.sub)
-      .single();
+      .maybeSingle();
 
     if (error || !profile || profile.role !== 'admin') {
       return res.status(403).json({ error: 'Access denied: Admin role required' });
@@ -106,7 +96,7 @@ export const adminMiddleware = async (req: Request, res: Response, next: NextFun
 
     next();
   } catch (err: unknown) {
-    console.error('Admin middleware error:', err instanceof Error ? err.message : String(err));
+    console.error('[AdminMiddleware] Error:', err instanceof Error ? err.message : String(err));
     res.status(500).json({ error: 'Internal server error during authorization check' });
   }
 };

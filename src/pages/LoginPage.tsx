@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
-import { supabase } from '@/lib/supabaseClient'
 import { useAppStore } from '@/store/useAppStore'
-import { Loader2, Eye, EyeOff, Zap, User, ArrowRight, Shield, Wand2 } from 'lucide-react'
+import { Loader2, Eye, EyeOff, Zap, User, ArrowRight, Shield, Wand2, KeyRound, Mail, CheckCircle2 } from 'lucide-react'
 
 interface LoginPageProps {
   initialMode?: 'login' | 'signup'
@@ -154,15 +153,33 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
   const [shakeName, setShakeName] = useState(false)
   const [shakeOtp, setShakeOtp] = useState(false)
 
+  const [authView, setAuthView] = useState<'auth' | 'verify' | 'forgot' | 'reset'>('auth')
+  const [resetOtp, setResetOtp] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+
+  const setAuthToken = useAppStore((s) => s.setAuthToken)
   const setUserRole = useAppStore((s) => s.setUserRole)
   const setUserEmail = useAppStore((s) => s.setUserEmail)
   const navigate = useNavigate()
   const location = useLocation()
 
+  const getApiUrl = () => {
+    let raw = (import.meta.env.VITE_API_URL || '/api').trim()
+    if (raw.startsWith('http')) {
+      if (raw.endsWith('/')) raw = raw.slice(0, -1)
+      if (!raw.endsWith('/api')) raw += '/api'
+    } else if (!raw.startsWith('/api')) {
+      raw = '/api'
+    }
+    return raw
+  }
+
   useEffect(() => {
     setMode(location.pathname === '/signup' ? 'signup' : 'login')
     setError(null)
     setOtpStep(false)
+    setAuthView('auth')
   }, [location.pathname])
 
   useEffect(() => {
@@ -208,52 +225,57 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
 
     if (hasError) { setLoading(false); return }
 
+    const apiUrl = getApiUrl()
+
     try {
       if (mode === 'login') {
-        // A hardcoded branch used to grant admin for one specific address and
-        // password, setting the role client-side with no server call. That pair
-        // shipped in the public JavaScript bundle, so anyone reading it could
-        // sign in as an administrator. All sign-ins now go through Supabase, and
-        // the role is read from the profiles row for the authenticated user.
+        const res = await fetch(`${apiUrl}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        })
 
-        const { data: authData, error: signInError } =
-          await supabase.auth.signInWithPassword({ email, password })
-        if (signInError) throw signInError
+        const data = await res.json()
 
-        if (authData.user) {
-          setUserEmail(authData.user.email ?? null)
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', authData.user.id)
-            .single()
+        if (!res.ok) {
+          if (data.code === 'EMAIL_NOT_VERIFIED') {
+            setOtpSentEmail(email)
+            setOtpStep(true)
+            setAuthView('verify')
+            setResendCooldown(60)
+            setError('Please enter the 6-digit verification code sent to your email.')
+            return
+          }
+          throw new Error(data.error || 'Invalid email or password')
+        }
 
-          const role =
-            !profileError && profile ? (profile.role as 'admin' | 'user') : 'user'
+        if (data.token) {
+          setAuthToken(data.token)
+          setUserEmail(data.user?.email || email)
+          const role = (data.user?.role as 'admin' | 'user') || 'user'
           setUserRole(role)
           navigate(role === 'admin' ? '/app/admin' : '/app')
         }
       } else {
-        const targetRole = accountType === 'client' ? 'client' : 'user'
-        const targetPlan = accountType === 'agency' ? 'agency' : 'free'
-
-        const { error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: fullName,
-              account_type: accountType,
-              plan: targetPlan,
-              role: targetRole,
-            },
-          },
+        const res = await fetch(`${apiUrl}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fullName,
+            email,
+            password,
+            accountType,
+          }),
         })
-        if (signUpError && !signUpError.message.toLowerCase().includes('already registered')) {
-          throw signUpError
+
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.error || 'Registration failed')
         }
+
         setOtpSentEmail(email)
         setOtpStep(true)
+        setAuthView('verify')
         setResendCooldown(60)
         setOtpCode(['', '', '', '', '', ''])
         setTimeout(() => {
@@ -315,42 +337,32 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
     setLoading(true)
     setError(null)
 
+    const apiUrl = getApiUrl()
+
     try {
-      const { data, error: verifyError } = await supabase.auth.verifyOtp({
-        email: otpSentEmail || email,
-        token,
-        type: 'signup',
+      const res = await fetch(`${apiUrl}/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: otpSentEmail || email,
+          otp: token,
+        }),
       })
 
-      if (verifyError) {
-        if (verifyError.message.includes('token is expired') || verifyError.message.includes('invalid')) {
-          if (token === '123456' || token === '000000') {
-            setUserEmail(otpSentEmail || email)
-            setUserRole('user')
-            navigate('/app')
-            return
-          }
-          throw verifyError
-        }
-        throw verifyError
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Verification failed')
       }
 
-      if (data?.user) {
-        setUserEmail(data.user.email ?? (otpSentEmail || email))
-        setUserRole('user')
-      } else {
-        setUserEmail(otpSentEmail || email)
-        setUserRole('user')
+      if (data.token) {
+        setAuthToken(data.token)
+        setUserEmail(data.user?.email || (otpSentEmail || email))
+        setUserRole((data.user?.role as 'admin' | 'user') || 'user')
       }
+
       navigate('/app')
     } catch (err: unknown) {
-      if (token === '123456' || token === '000000') {
-        setUserEmail(otpSentEmail || email)
-        setUserRole('user')
-        navigate('/app')
-        return
-      }
-      setError(err instanceof Error ? err.message : 'Invalid verification code. Use the code sent to your email or 123456.')
+      setError(err instanceof Error ? err.message : 'Invalid verification code. Please check your email and try again.')
       triggerShake(setShakeOtp)
     } finally {
       setLoading(false)
@@ -361,16 +373,24 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
     if (resendCooldown > 0) return
     setLoading(true)
     setError(null)
+    const apiUrl = getApiUrl()
+
     try {
-      const { error: resendError } = await supabase.auth.resend({
-        type: 'signup',
-        email: otpSentEmail || email,
+      const res = await fetch(`${apiUrl}/auth/resend-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: otpSentEmail || email,
+        }),
       })
-      if (resendError) {
-        console.warn('Resend info:', resendError.message)
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to resend code')
       }
+
       setResendCooldown(60)
-      setError('A new 6-digit code has been sent.')
+      setError(data.message || 'A new 6-digit code has been sent.')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -378,21 +398,87 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
     }
   }
 
-  const handleOAuthLogin = async (provider: 'google' | 'apple') => {
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim() || !validateEmail(email)) {
+      triggerShake(setShakeEmail)
+      setError('Please enter a valid email address.')
+      return
+    }
+
     setLoading(true)
     setError(null)
+    const apiUrl = getApiUrl()
+
     try {
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/app`,
-        },
+      const res = await fetch(`${apiUrl}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
       })
-      if (oauthError) throw oauthError
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Could not send reset code')
+      }
+
+      setOtpSentEmail(email)
+      setAuthView('reset')
+      setError('If an account exists, a 6-digit reset code has been sent to your email.')
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(err instanceof Error ? err.message : 'Failed to request password reset')
+    } finally {
       setLoading(false)
     }
+  }
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!resetOtp.trim() || resetOtp.length < 6) {
+      setError('Please enter the 6-digit reset code.')
+      return
+    }
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters.')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    const apiUrl = getApiUrl()
+
+    try {
+      const res = await fetch(`${apiUrl}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: otpSentEmail || email,
+          otp: resetOtp,
+          newPassword,
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to reset password')
+      }
+
+      setAuthView('auth')
+      setMode('login')
+      setError('Password reset successfully! Please sign in with your new password.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Could not reset password')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleOAuthLogin = (provider: 'google' | 'apple') => {
+    setError(`Direct ${provider === 'google' ? 'Google' : 'Apple'} OAuth has been replaced with custom email verification. Please sign up or sign in using your verified email address.`)
   }
 
   const handleStateToggle = (targetMode: 'login' | 'signup') => {
@@ -899,6 +985,189 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
                     </div>
                   </form>
                 </motion.div>
+              ) : authView === 'forgot' ? (
+                <motion.div
+                  key="forgot-step"
+                  initial={{ opacity: 0, x: 24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -24 }}
+                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      background: 'rgba(76,192,43,0.12)', border: '1px solid rgba(76,192,43,0.25)',
+                      padding: '4px 10px', borderRadius: 999, marginBottom: 12,
+                    }}>
+                      <KeyRound size={13} style={{ color: '#4cc02b' }} />
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#2f851d' }}>Password Assistance</span>
+                    </div>
+                    <h2 style={{
+                      fontSize: 26, fontWeight: 800, color: '#141414',
+                      letterSpacing: '-0.04em', margin: '0 0 6px',
+                      fontFamily: 'var(--font-heading)',
+                    }}>
+                      Forgot password?
+                    </h2>
+                    <p style={{ fontSize: 13, color: '#6f6f6e', margin: 0, lineHeight: 1.5 }}>
+                      Enter your account email. We will send a secure 6-digit code via Resend to reset your password.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <label className="auth-label">Email address</label>
+                      <input
+                        className={`auth-input${shakeEmail ? ' shake' : ''}`}
+                        type="email" placeholder="john@example.com"
+                        value={email} onChange={(e) => setEmail(e.target.value)}
+                        autoComplete="email"
+                      />
+                    </div>
+
+                    <AnimatePresence>
+                      {error && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          style={{
+                            fontSize: 12, fontWeight: 600, padding: '10px 14px', borderRadius: 10,
+                            color: error.includes('sent') ? '#4cc02b' : '#f87171',
+                            background: error.includes('sent') ? 'rgba(76,192,43,0.08)' : 'rgba(248,113,113,0.08)',
+                            border: `1px solid ${error.includes('sent') ? 'rgba(76,192,43,0.2)' : 'rgba(248,113,113,0.2)'}`,
+                          }}
+                        >
+                          {error}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <button type="submit" className="auth-btn-primary" disabled={loading}>
+                      {loading ? <Loader2 size={18} className="animate-spin" /> : <>Send Reset Code <ArrowRight size={15} /></>}
+                    </button>
+
+                    <div style={{ textAlign: 'center', marginTop: 4 }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthView('auth')
+                          setError(null)
+                        }}
+                        style={{
+                          background: 'none', border: 'none', color: '#141414',
+                          fontSize: 12, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline',
+                        }}
+                      >
+                        ← Back to Sign in
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              ) : authView === 'reset' ? (
+                <motion.div
+                  key="reset-step"
+                  initial={{ opacity: 0, x: 24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -24 }}
+                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      background: 'rgba(76,192,43,0.12)', border: '1px solid rgba(76,192,43,0.25)',
+                      padding: '4px 10px', borderRadius: 999, marginBottom: 12,
+                    }}>
+                      <KeyRound size={13} style={{ color: '#4cc02b' }} />
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#2f851d' }}>Set New Password</span>
+                    </div>
+                    <h2 style={{
+                      fontSize: 26, fontWeight: 800, color: '#141414',
+                      letterSpacing: '-0.04em', margin: '0 0 6px',
+                      fontFamily: 'var(--font-heading)',
+                    }}>
+                      Reset your password
+                    </h2>
+                    <p style={{ fontSize: 13, color: '#6f6f6e', margin: 0, lineHeight: 1.5 }}>
+                      Enter the 6-digit code sent to <strong style={{ color: '#141414' }}>{otpSentEmail || email}</strong> along with your new password.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <label className="auth-label">6-digit Reset Code</label>
+                      <input
+                        className="auth-input"
+                        type="text"
+                        maxLength={6}
+                        placeholder="123456"
+                        value={resetOtp}
+                        onChange={(e) => setResetOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                        style={{ textAlign: 'center', fontSize: 18, letterSpacing: '4px', fontWeight: 700 }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <label className="auth-label">New Password</label>
+                      <input
+                        className="auth-input"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="At least 6 characters"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <label className="auth-label">Confirm New Password</label>
+                      <input
+                        className="auth-input"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Re-enter new password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                      />
+                    </div>
+
+                    <AnimatePresence>
+                      {error && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          style={{
+                            fontSize: 12, fontWeight: 600, padding: '10px 14px', borderRadius: 10,
+                            color: error.includes('sent') || error.includes('success') ? '#4cc02b' : '#f87171',
+                            background: error.includes('sent') || error.includes('success') ? 'rgba(76,192,43,0.08)' : 'rgba(248,113,113,0.08)',
+                            border: `1px solid ${error.includes('sent') || error.includes('success') ? 'rgba(76,192,43,0.2)' : 'rgba(248,113,113,0.2)'}`,
+                          }}
+                        >
+                          {error}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <button type="submit" className="auth-btn-primary" disabled={loading}>
+                      {loading ? <Loader2 size={18} className="animate-spin" /> : <>Reset Password & Sign In <ArrowRight size={15} /></>}
+                    </button>
+
+                    <div style={{ textAlign: 'center', marginTop: 4 }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthView('auth')
+                          setError(null)
+                        }}
+                        style={{
+                          background: 'none', border: 'none', color: '#141414',
+                          fontSize: 12, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline',
+                        }}
+                      >
+                        ← Back to Sign in
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
               ) : (
                 <motion.div
                   key={mode}
@@ -1057,9 +1326,26 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                         <label className="auth-label" style={{ margin: 0 }}>Password</label>
                         {mode === 'login' && (
-                          <a href="#" style={{ fontSize: 11, fontWeight: 600, color: '#4cc02b', textDecoration: 'none', opacity: 0.8 }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setError(null)
+                              setAuthView('forgot')
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              padding: 0,
+                              cursor: 'pointer',
+                              fontSize: 11,
+                              fontWeight: 600,
+                              color: '#4cc02b',
+                              textDecoration: 'none',
+                              opacity: 0.9,
+                            }}
+                          >
                             Forgot password?
-                          </a>
+                          </button>
                         )}
                       </div>
                       <div style={{ position: 'relative' }}>
