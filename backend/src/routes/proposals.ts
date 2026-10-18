@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { supabaseAdmin } from '../lib/supabase';
 import { generateProposal } from '../services/openai';
+import { respondWithError } from '../lib/errors';
 
 const router = Router();
 
@@ -47,7 +48,7 @@ router.get('/', async (req, res) => {
     if (error) throw error;
     res.json(proposals);
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/proposals');
   }
 });
 
@@ -86,7 +87,7 @@ router.get('/:id', async (req, res) => {
 
     res.json(proposal);
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/proposals/:id');
   }
 });
 
@@ -151,7 +152,7 @@ router.post('/generate', async (req, res) => {
     res.json(proposal);
   } catch (err: unknown) {
     console.error('[Proposals:generate] ❌ Exception:', err);
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'POST /api/proposals/generate');
   }
 });
 
@@ -201,7 +202,7 @@ router.post('/', async (req, res) => {
     if (err instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid proposal data', details: err.issues });
     }
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'POST /api/proposals');
   }
 });
 
@@ -236,7 +237,7 @@ router.patch('/:id/status', async (req, res) => {
     if (err instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid status', details: err.issues });
     }
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'PATCH /api/proposals/:id/status');
   }
 });
 
@@ -265,7 +266,7 @@ router.delete('/:id', async (req, res) => {
     if (error) throw error;
     res.json({ success: true });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'DELETE /api/proposals/:id');
   }
 });
 

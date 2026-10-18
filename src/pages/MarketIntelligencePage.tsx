@@ -137,7 +137,7 @@ export function MarketIntelligencePage() {
                 <Skeleton className="h-48 w-full" />
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 480, height: 256 }}>
                 <BarChart data={stats?.digitalMaturityDistribution || []} layout="vertical" margin={{ left: 10, right: 30, top: 10, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
                   <XAxis type="number" />
@@ -185,7 +185,7 @@ export function MarketIntelligencePage() {
                 <Skeleton className="h-48 w-full" />
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 480, height: 256 }}>
                 <PieChart>
                   <Pie
                     data={stats?.digitalGapDistribution || []}

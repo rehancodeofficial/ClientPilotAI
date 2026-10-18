@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabase';
+import { respondWithError } from '../lib/errors';
 
 const router = Router();
 
@@ -131,7 +132,7 @@ router.get('/market', async (req, res) => {
       opportunityZones: [],
     });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/intelligence/market');
   }
 });
 
@@ -280,7 +281,7 @@ router.get('/evaluation', async (req, res) => {
       },
     });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/intelligence/evaluation');
   }
 });
 
@@ -456,7 +457,7 @@ router.get('/dashboard', async (req, res) => {
       digitalGapsDetected: digitalGaps,
     });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/intelligence/dashboard');
   }
 });
 

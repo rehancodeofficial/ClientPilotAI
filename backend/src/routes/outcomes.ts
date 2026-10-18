@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { supabaseAdmin } from '../lib/supabase';
+import { respondWithError } from '../lib/errors';
 
 const router = Router();
 
@@ -51,7 +52,7 @@ router.get('/timeline', async (req, res) => {
     if (error) throw error;
     res.json(events);
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/outcomes/timeline');
   }
 });
 
@@ -79,7 +80,7 @@ router.get('/:leadId', async (req, res) => {
     if (error) throw error;
     res.json(events);
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/outcomes/:leadId');
   }
 });
 
@@ -136,7 +137,7 @@ router.post('/:leadId', async (req, res) => {
     if (err instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid outcome event payload', details: err.issues });
     }
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'POST /api/outcomes/:leadId');
   }
 });
 

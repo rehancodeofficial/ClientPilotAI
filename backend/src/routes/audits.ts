@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabase';
 import { performDigitalAudit } from '../services/audit';
+import { respondWithError } from '../lib/errors';
 
 const router = Router();
 
@@ -30,7 +31,7 @@ router.get('/:leadId', async (req, res) => {
 
     res.json(audit);
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/audits/:leadId');
   }
 });
 
@@ -107,7 +108,7 @@ router.post('/:leadId/run', async (req, res) => {
     res.json(savedAudit);
   } catch (err: unknown) {
     console.error('[Audits:Run] Error:', err);
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'POST /api/audits/:leadId/run');
   }
 });
 

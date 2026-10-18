@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabase';
+import { respondWithError } from '../lib/errors';
 
 const router = Router();
 
@@ -127,7 +128,7 @@ router.get('/summary', async (req, res) => {
       },
     });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/dashboard/summary');
   }
 });
 

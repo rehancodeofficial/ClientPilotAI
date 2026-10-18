@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabase';
 import { benchmarkCompetitors } from '../services/competitors';
+import { respondWithError } from '../lib/errors';
 
 const router = Router();
 
@@ -30,7 +31,7 @@ router.get('/:leadId', async (req, res) => {
 
     res.json(record);
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/competitors/:leadId');
   }
 });
 
@@ -119,7 +120,7 @@ router.post('/:leadId/analyze', async (req, res) => {
     res.json(saved);
   } catch (err: unknown) {
     console.error('[Competitors:Analyze] Error:', err);
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'POST /api/competitors/:leadId/analyze');
   }
 });
 

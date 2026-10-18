@@ -20,6 +20,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { supabaseAdmin } from '../lib/supabase';
+import { respondWithError } from '../lib/errors';
 
 const router = Router();
 
@@ -90,7 +91,7 @@ router.get('/', async (req, res) => {
 
     res.json({ profile: data });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/profile');
   }
 });
 
@@ -137,7 +138,7 @@ router.patch('/', async (req, res) => {
 
     res.json({ profile: data });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'PATCH /api/profile');
   }
 });
 
@@ -169,7 +170,7 @@ workspaceRouter.get('/', async (req, res) => {
     if (error) throw error;
     res.json({ workspace: data, isOwner: data?.owner_id === user.sub });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/workspace');
   }
 });
 
@@ -220,6 +221,6 @@ workspaceRouter.get('/members', async (req, res) => {
 
     res.json({ members: enriched });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/workspace/members');
   }
 });

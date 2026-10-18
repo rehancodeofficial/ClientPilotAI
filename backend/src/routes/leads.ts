@@ -8,6 +8,7 @@ import { enrichLeadContact } from '../services/enrichment';
 import { performDigitalAudit } from '../services/audit';
 import { analyzeBusinessOpportunity } from '../services/opportunity';
 import { benchmarkCompetitors } from '../services/competitors';
+import { respondWithError, normalizeError } from '../lib/errors';
 
 
 const router = Router();
@@ -85,7 +86,7 @@ router.get('/', async (req, res) => {
 
     res.json(leadsWithPipelineStage);
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/leads');
   }
 });
 
@@ -146,7 +147,7 @@ router.get('/:id', async (req, res) => {
 
     res.json({ ...lead, pipeline_stage: latestStage?.stage || 'discovery' });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/leads/:id');
   }
 });
 
@@ -255,7 +256,7 @@ router.post('/discover', async (req, res) => {
     if (err instanceof OSMGeocodingError || err instanceof OSMOverpassError) {
       return res.status(err.statusCode).json({ error: err.message });
     }
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'POST /api/leads/discover');
   }
 });
 
@@ -296,7 +297,7 @@ router.post('/:id/score', async (req, res) => {
 
     res.json(updated);
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'POST /api/leads/:id/score');
   }
 });
 
@@ -424,9 +425,9 @@ router.post('/:id/outreach', async (req, res) => {
       message: savedMsg ?? null,
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Internal Server Error';
+    const { status, message, code } = normalizeError(err);
     console.error(`[Outreach:${id}] ❌ Unhandled exception:`, err);
-    return res.status(500).json({ success: false, error: message });
+    return res.status(status).json({ success: false, error: message, ...(code ? { code } : {}) });
   }
 });
 
@@ -452,7 +453,7 @@ router.patch('/:id/stage', async (req, res) => {
     if (error) throw error;
     res.json(history);
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'PATCH /api/leads/:id/stage');
   }
 });
 
@@ -830,7 +831,7 @@ router.post('/:id/prepare', async (req, res) => {
       error: lastError,
     });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'POST /api/leads/:id/prepare');
   }
 });
 
@@ -895,7 +896,7 @@ router.post('/:id/send-outreach', async (req, res) => {
       sent_at: now,
     });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'POST /api/leads/:id/send-outreach');
   }
 });
 
@@ -947,7 +948,7 @@ router.post('/:id/save-draft', async (req, res) => {
 
     res.json({ lead: updatedLead, saved_at: now });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'POST /api/leads/:id/save-draft');
   }
 });
 

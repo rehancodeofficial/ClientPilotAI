@@ -23,6 +23,7 @@ import activityRouter from './routes/activity';
 import { authMiddleware, adminMiddleware } from './middleware/auth';
 import { requireAi } from './middleware/requireAi';
 import { supabaseAdmin } from './lib/supabase';
+import { normalizeError } from './lib/errors';
 
 export const app = express();
 
@@ -183,13 +184,16 @@ app.use('/api/admin', authMiddleware, adminMiddleware, adminRouter);
 // ─── Centralized Error Handling Middleware ────────────────────────────────────
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('[ErrorMiddleware]', err instanceof Error ? err.stack : err);
+
+  const normalized = normalizeError(err);
+  // An explicit `status` on the thrown value wins over the inferred one.
   const status = (err && typeof err === 'object' && 'status' in err && typeof (err as any).status === 'number')
     ? (err as any).status
-    : 500;
-  const message = err instanceof Error ? err.message : 'Internal Server Error';
+    : normalized.status;
 
   res.status(status).json({
-    error: message,
+    error: normalized.message,
+    ...(normalized.code ? { code: normalized.code } : {}),
   });
 });
 

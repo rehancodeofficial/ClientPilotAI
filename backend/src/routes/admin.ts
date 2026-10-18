@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabase';
+import { respondWithError } from '../lib/errors';
 
 const router = Router();
 
@@ -264,7 +265,7 @@ router.get('/overview', async (req, res) => {
       planDistribution: planCounts,
     });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/admin/overview');
   }
 });
 
@@ -285,7 +286,7 @@ router.get('/system', async (req, res) => {
       environment: process.env.NODE_ENV || 'development',
     });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/admin/system');
   }
 });
 

@@ -3,6 +3,7 @@ import { supabaseAdmin } from '../lib/supabase';
 import { performDigitalAudit, BusinessAuditResult } from '../services/audit';
 import { analyzeBusinessOpportunity } from '../services/opportunity';
 import { getResolvedModel } from '../lib/aiConfig';
+import { respondWithError } from '../lib/errors';
 
 const router = Router();
 
@@ -130,7 +131,7 @@ router.get('/zones', async (req, res) => {
 
     res.json(zones);
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/opportunities/zones');
   }
 });
 
@@ -160,7 +161,7 @@ router.get('/:leadId', async (req, res) => {
 
     res.json(opp);
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/opportunities/:leadId');
   }
 });
 
@@ -309,7 +310,7 @@ router.post('/:leadId/analyze', async (req, res) => {
     res.json(savedOpp);
   } catch (err: unknown) {
     console.error('[Opportunities:Analyze] Error:', err);
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'POST /api/opportunities/:leadId/analyze');
   }
 });
 

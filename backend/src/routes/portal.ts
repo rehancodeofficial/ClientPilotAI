@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { supabaseAdmin } from '../lib/supabase';
 import { authMiddleware } from '../middleware/auth';
+import { respondWithError } from '../lib/errors';
 
 const router = Router();
 
@@ -32,7 +33,7 @@ async function portalAuth(req: any, res: any, next: any) {
     req.portalGrant = grant;
     next();
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'portal access middleware');
   }
 }
 
@@ -70,7 +71,7 @@ router.get('/context', authMiddleware, portalAuth, async (req: any, res) => {
       grantedAt: grant.created_at,
     });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/portal/context');
   }
 });
 
@@ -100,7 +101,7 @@ router.get('/audit', authMiddleware, portalAuth, async (req: any, res) => {
 
     res.json({ audit });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/portal/audit');
   }
 });
 
@@ -124,7 +125,7 @@ router.get('/recommendation', authMiddleware, portalAuth, async (req: any, res) 
 
     res.json({ recommendation: rec || null });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/portal/recommendation');
   }
 });
 
@@ -146,7 +147,7 @@ router.get('/proposal', authMiddleware, portalAuth, async (req: any, res) => {
 
     res.json({ proposal: proposal || null });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/portal/proposal');
   }
 });
 
@@ -209,7 +210,7 @@ router.post('/proposal/respond', authMiddleware, portalAuth, async (req: any, re
 
     res.json({ success: true, status: newStatus });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'POST /api/portal/proposal/respond');
   }
 });
 
@@ -232,7 +233,7 @@ router.get('/messages', authMiddleware, portalAuth, async (req: any, res) => {
 
     res.json({ messages: messages || [] });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'GET /api/portal/messages');
   }
 });
 
@@ -265,7 +266,7 @@ router.post('/messages', authMiddleware, portalAuth, async (req: any, res) => {
 
     res.json({ message });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    respondWithError(res, err, 'POST /api/portal/messages');
   }
 });
 

@@ -54,7 +54,13 @@ export function TrendSparkline({
       aria-label={`${ariaLabel}. Total: ${totalValue}. Trend is ${isUp ? 'upward' : 'downward'}.`}
       role="img"
     >
-      <ResponsiveContainer width="100%" height="100%">
+      {/*
+        `initialDimension` seeds the first render. Recharts otherwise starts at
+        its default of { width: -1, height: -1 } — before the ResizeObserver has
+        measured the wrapper — and logs "The width(-1) and height(-1) of chart
+        should be greater than 0" on every mount.
+      */}
+      <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 160, height }}>
         <LineChart data={points} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
           <Line
             type="monotone"
