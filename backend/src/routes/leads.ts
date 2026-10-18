@@ -229,13 +229,21 @@ router.post('/discover', async (req, res) => {
         }
       };
 
-      const { data: inserted, error } = await supabaseAdmin
+      const { data: inserted, error: upsertError } = await supabaseAdmin
         .from('leads')
         .upsert(leadData, { onConflict: 'workspace_id,osm_id' })
         .select()
         .single();
 
-      if (!error && inserted) {
+      if (upsertError) {
+        console.warn('[Leads Discover] Supabase upsert warning:', upsertError.message);
+        // Fallback: still show lead to the user even if DB upsert had an issue
+        newLeads.push({
+          id: `osm-${business.osmId}`,
+          ...leadData,
+          created_at: new Date().toISOString(),
+        });
+      } else if (inserted) {
         newLeads.push(inserted);
         // Async AI scoring — does not block response
         scoreLeadAsync(inserted.id, leadData.business_name, category, leadData.address, hasWebsite).catch(console.error);

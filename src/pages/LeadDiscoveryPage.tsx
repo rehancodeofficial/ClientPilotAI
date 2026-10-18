@@ -302,6 +302,7 @@ export function LeadDiscoveryPage() {
   const [viewMode, setViewMode] = useState<'split' | 'list'>('split')
   const [sortBy, setSortBy] = useState<'score' | 'name'>('score')
   const [scoreFilter, setScoreFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all')
+  const [discoveryError, setDiscoveryError] = useState<string | null>(null)
 
   const toggleCat = (cat: BusinessCategory) => {
     setSelectedCats((prev) =>
@@ -317,7 +318,7 @@ export function LeadDiscoveryPage() {
     try {
       const resp = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`,
-        { headers: { 'Accept-Language': 'en', 'User-Agent': 'ClientPilotAI/1.0' } }
+        { headers: { 'Accept-Language': 'en', 'User-Agent': 'ClientPilotAI/1.0 (https://clientpilotai.internal; info@clientpilotai.com)' } }
       )
       const data = await resp.json() as { lat: string; lon: string; display_name: string }[]
       if (data[0]) {
@@ -346,23 +347,31 @@ export function LeadDiscoveryPage() {
   const handleDiscover = async () => {
     if (isRunning) return
     setIsRunning(true)
+    setDiscoveryError(null)
     setSteps([])
     setDiscoveryResults([])
     setHasSearched(true)
 
-    const result = await discoverLeads(
-      {
-        location: locationText,
-        lat: mapCenter[0],
-        lng: mapCenter[1],
-        categories: selectedCats,
-        radiusKm: radius
-      },
-      (updatedSteps) => setSteps(updatedSteps)
-    )
+    try {
+      const result = await discoverLeads(
+        {
+          location: locationText,
+          lat: mapCenter[0],
+          lng: mapCenter[1],
+          categories: selectedCats,
+          radiusKm: radius
+        },
+        (updatedSteps) => setSteps(updatedSteps)
+      )
 
-    setDiscoveryResults(result.leads)
-    setIsRunning(false)
+      setDiscoveryResults(result.leads || [])
+    } catch (err: unknown) {
+      console.error('[Discover Leads Error]:', err)
+      const message = err instanceof Error ? err.message : 'Discovery failed. Please try again or adjust search filters.'
+      setDiscoveryError(message)
+    } finally {
+      setIsRunning(false)
+    }
   }
 
   const filtered = discoveryResults
@@ -518,6 +527,19 @@ export function LeadDiscoveryPage() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Error Message */}
+          {discoveryError && (
+            <div className="p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 text-xs flex items-center justify-between">
+              <span>{discoveryError}</span>
+              <button
+                onClick={() => setDiscoveryError(null)}
+                className="text-red-400 hover:text-red-300 ml-2 font-bold"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
 
           {/* Empty */}
           {!hasSearched && <EmptyState />}

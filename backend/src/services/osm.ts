@@ -3,11 +3,12 @@ import axios, { AxiosError } from 'axios';
 const DEFAULT_NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const DEFAULT_OVERPASS_URLS = [
   'https://overpass-api.de/api/interpreter',
+  'https://lz4.overpass-api.de/api/interpreter',
+  'https://z.overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
-  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
 ];
-const DEFAULT_USER_AGENT = 'ClientPilotAI/1.0 (contact@clientpilotai.internal)';
-const DEFAULT_TIMEOUT_MS = 25_000;
+const DEFAULT_USER_AGENT = 'ClientPilotAI/1.0 (https://clientpilotai.internal; info@clientpilotai.com)';
+const DEFAULT_TIMEOUT_MS = 15_000;
 const DEFAULT_RETRIES = 2;
 const MAX_RADIUS_METERS = 50_000;
 
@@ -149,6 +150,7 @@ const normalizeCategories = (categories?: string[]): string[] =>
 
 const requestHeaders = () => ({
   'User-Agent': USER_AGENT,
+  'Referer': 'https://clientpilotai.internal/',
   'Accept': 'application/json',
 });
 
