@@ -89,6 +89,7 @@ const apiLimiter = rateLimit({
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.path === '/health',
   message: { error: 'Too many requests, please try again later.' },
 });
 app.use('/api/', apiLimiter);
@@ -120,7 +121,12 @@ for (const path of aiDependentPaths) {
   app.use(path, requireAi);
 }
 
-// ─── Health Checks ─────────────────────────────────────────────────────────────
+// ─── Health & Keep-Alive Checks ───────────────────────────────────────────────
+// Lightweight keep-alive probe for external uptime monitors / Render keep-alive
+app.get('/api/health', (_req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // Basic liveness probe: does NOT depend on external providers or DB
 app.get('/health', (_req, res) => {
   res.status(200).json({
