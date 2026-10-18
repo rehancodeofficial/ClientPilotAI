@@ -12,25 +12,61 @@ export interface SendEmailParams {
   headers?: Record<string, string>;
 }
 
+/**
+ * Normalizes and determines the sender address.
+ * Priority:
+ * 1. env.resendFromEmail (e.g. "ClientPilot AI <auth@verified-domain.com>" or "auth@verified-domain.com")
+ * 2. env.outreachFromEmail
+ * 3. Fallback to onboarding@resend.dev ONLY if no sender is configured
+ */
+export function getSenderAddress(): string {
+  const customSender = (env.resendFromEmail || env.outreachFromEmail || '').trim();
+  if (customSender) {
+    return customSender;
+  }
+  return 'ClientPilot AI <onboarding@resend.dev>';
+}
+
+/**
+ * Diagnostic helper to extract domain from email string
+ */
+function extractDomain(emailString: string): string {
+  const match = emailString.match(/<([^>]+)>/) || [null, emailString];
+  const email = (match[1] || emailString).trim();
+  const parts = email.split('@');
+  return parts.length === 2 ? parts[1].toLowerCase() : 'unknown';
+}
+
 export async function sendEmail({ to, subject, html, text, headers }: SendEmailParams) {
+  const targetRecipient = to.trim();
+
   if (!resend) {
-    console.warn('[Email] RESEND_API_KEY is not configured. Simulating delivery to:', to);
+    console.warn('[Email] RESEND_API_KEY is not configured. Simulating delivery to:', targetRecipient);
     return { success: true, id: 'simulated_' + Date.now(), simulated: true };
   }
 
-  // Resend restriction: onboarding@resend.dev can only deliver to the verified account owner or delivered@resend.dev
-  // If in development/test and an unverified or example.com domain is supplied, route safely to delivered@resend.dev
-  let destination = to;
-  if (to.endsWith('@example.com') || to.endsWith('.test') || to.endsWith('@test.com')) {
-    destination = 'delivered@resend.dev';
-  }
+  const from = getSenderAddress();
+  const senderDomain = extractDomain(from);
+  const recipientDomain = extractDomain(targetRecipient);
 
-  const from = env.resendFromEmail || 'ClientPilot AI <onboarding@resend.dev>';
+  // Safe diagnostic logging (NEVER logs OTP codes, passwords, or API keys)
+  console.log(`[Email Dispatch] Sending email:
+  → Subject: "${subject}"
+  → Sender: "${from}" (domain: @${senderDomain})
+  → Target Recipient: "${targetRecipient}" (domain: @${recipientDomain})`);
+
+  if (from.includes('onboarding@resend.dev')) {
+    console.warn(
+      '[Email Warning] Sender is set to "onboarding@resend.dev". ' +
+      'Resend restricts onboarding@resend.dev to sending only to the account owner. ' +
+      'To deliver to external users, configure RESEND_FROM_EMAIL with your verified domain in Render/environment variables.'
+    );
+  }
 
   try {
     const { data, error } = await resend.emails.send({
       from,
-      to: destination,
+      to: targetRecipient,
       subject,
       html,
       text,
@@ -38,14 +74,21 @@ export async function sendEmail({ to, subject, html, text, headers }: SendEmailP
     });
 
     if (error) {
-      console.error('[Email] Resend delivery error:', error);
+      console.error('[Email Error] Resend API rejected message:', {
+        name: error.name,
+        message: error.message,
+        statusCode: (error as any).statusCode || (error as any).status,
+        senderDomain,
+        targetRecipient,
+      });
       throw new Error(error.message || 'Failed to deliver email through Resend');
     }
 
+    console.log(`[Email Success] Delivered to Resend gateway. Message ID: ${data?.id}`);
     return { success: true, id: data?.id, simulated: false };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error('[Email] Send exception:', message);
+    console.error('[Email Exception] Dispatch failed:', message);
     throw new Error(message);
   }
 }
