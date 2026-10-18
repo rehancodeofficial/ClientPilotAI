@@ -1,7 +1,14 @@
 -- Migration 00013: Notifications Table
 
+-- NOTE: uuid_generate_v4() is schema-qualified because the uuid-ossp extension
+-- lives in the `extensions` schema. Supabase happens to include that schema in
+-- the default search_path, which masked the dependency — the unqualified call
+-- worked there but failed on any other Postgres, so a fresh rebuild of this
+-- chain aborted here. The live table's column default is already
+-- extensions.uuid_generate_v4(), so this only makes the file match reality.
+
 CREATE TABLE IF NOT EXISTS notifications (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
     workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
     type TEXT NOT NULL, -- 'lead', 'pipeline', 'outreach', 'proposal', 'system'
     title TEXT NOT NULL,
