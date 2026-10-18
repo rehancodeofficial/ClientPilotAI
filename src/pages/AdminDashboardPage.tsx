@@ -299,15 +299,15 @@ export function AdminDashboardPage() {
               />
             </div>
 
-            <div className="flex items-center gap-1 clay-inset p-1 rounded-lg">
+            <div className="flex items-center gap-1 clay-inset p-1 rounded-xl">
               {(['all', 'admin', 'user', 'client'] as const).map((r) => (
                 <button
                   key={r}
                   type="button"
                   onClick={() => setRoleFilter(r)}
-                  className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors capitalize ${
+                  className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-all capitalize ${
                     roleFilter === r
-                      ? 'bg-(--primary) text-white'
+                      ? 'bg-(--primary) text-[#171a17] shadow-sm'
                       : 'text-(--text-secondary) hover:text-(--text-primary)'
                   }`}
                 >
@@ -323,11 +323,11 @@ export function AdminDashboardPage() {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-(--border) text-(--text-secondary)">
-                <th className="py-2.5 px-3 font-semibold">User</th>
-                <th className="py-2.5 px-3 font-semibold">Workspace</th>
-                <th className="py-2.5 px-3 font-semibold">Current Role</th>
-                <th className="py-2.5 px-3 font-semibold">Created</th>
-                <th className="py-2.5 px-3 font-semibold text-right">Actions</th>
+                <th className="py-3 px-3.5 font-bold uppercase tracking-wider text-[11px]">User</th>
+                <th className="py-3 px-3.5 font-bold uppercase tracking-wider text-[11px]">Workspace</th>
+                <th className="py-3 px-3.5 font-bold uppercase tracking-wider text-[11px]">Current Role</th>
+                <th className="py-3 px-3.5 font-bold uppercase tracking-wider text-[11px]">Created</th>
+                <th className="py-3 px-3.5 font-bold uppercase tracking-wider text-[11px] text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-(--border-subtle)">
@@ -349,9 +349,9 @@ export function AdminDashboardPage() {
                 filteredUsers.map((u) => {
                   const isCurrent = u.email === currentEmail
                   return (
-                    <tr key={u.id} className="hover:bg-(--surface-hover) transition-colors">
-                      <td className="py-3 px-3">
-                        <div className="font-semibold text-(--text-primary)">
+                    <tr key={u.id} className="hover:bg-(--surface-hover) transition-colors rounded-xl">
+                      <td className="py-3.5 px-3.5">
+                        <div className="font-bold text-(--text-primary)">
                           {u.fullName || 'User'}
                         </div>
                         <div className="text-[11px] text-(--text-muted) font-mono">
