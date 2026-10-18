@@ -252,7 +252,7 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
-      if (!email.trim().startsWith('admin@clientpilotai')) setLoading(false)
+      setLoading(false)
     }
   }
 
@@ -1101,36 +1101,59 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
                     <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.06)' }} />
                   </div>
 
-                  {/* Demo buttons */}
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    <button
-                      type="button"
-                      className="auth-demo-btn"
-                      onClick={() => handleDemoLogin('admin')}
-                      disabled={loading}
-                      style={{
-                        border: '1.5px solid rgba(0,0,0,0.08)',
-                        background: '#f5f5f3',
-                        color: '#292929',
-                      }}
-                    >
-                      <Zap size={13} style={{ color: '#4cc02b' }} />
-                      Admin demo
-                    </button>
-                    <button
-                      type="button"
-                      className="auth-demo-btn"
-                      onClick={() => handleDemoLogin('user')}
-                      disabled={loading}
-                      style={{
-                        border: '1.5px solid rgba(76,192,43,0.3)',
-                        background: 'rgba(76,192,43,0.08)',
-                        color: '#141414',
-                      }}
-                    >
-                      <User size={13} style={{ color: '#4cc02b' }} />
-                      User demo
-                    </button>
+                  {/* Test Accounts Quick-Fill */}
+                  <div style={{ marginTop: 14, padding: '10px 12px', borderRadius: 8, background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.06)' }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: '#6f6f6e', marginBottom: 8 }}>
+                      Quick Fill Real Test Accounts:
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmail('admin@clientpilotai.com')
+                          setPassword('Admin123!Client')
+                          setMode('login')
+                        }}
+                        style={{
+                          fontSize: 11,
+                          padding: '6px 8px',
+                          borderRadius: 6,
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          background: '#fff',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4
+                        }}
+                      >
+                        <Zap size={11} style={{ color: '#4cc02b' }} />
+                        <span>Admin</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmail('user@clientpilotai.com')
+                          setPassword('User123!Client')
+                          setMode('login')
+                        }}
+                        style={{
+                          fontSize: 11,
+                          padding: '6px 8px',
+                          borderRadius: 6,
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          background: '#fff',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4
+                        }}
+                      >
+                        <User size={11} style={{ color: '#4cc02b' }} />
+                        <span>Agency / User</span>
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               )}

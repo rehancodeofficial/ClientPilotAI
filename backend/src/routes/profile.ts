@@ -39,13 +39,24 @@ const UpdateProfileSchema = z
   })
   .strict();
 
-/** Resolves the caller's profile, or null when they have none. */
+/** Resolves the caller's profile, falling back to base columns if migration 00015 has not landed yet. */
 async function loadProfile(userId: string) {
-  return supabaseAdmin
+  const full = await supabaseAdmin
     .from('profiles')
     .select('id, workspace_id, full_name, email, role, avatar_url, timezone, created_at')
     .eq('id', userId)
     .maybeSingle();
+
+  if (full.error && isMissingColumn(full.error.message)) {
+    // Graceful backward compatibility with unmigrated schema
+    const base = await supabaseAdmin
+      .from('profiles')
+      .select('id, workspace_id, full_name, role, created_at')
+      .eq('id', userId)
+      .maybeSingle();
+    return base;
+  }
+  return full;
 }
 
 // ─── GET /api/profile ─────────────────────────────────────────────────────────
@@ -68,9 +79,13 @@ router.get('/', async (req, res) => {
 
     // The token is the authority on the address; keep the stored copy aligned
     // so a profile created before 00015 backfills on first read.
-    if (!data.email && user.email) {
-      await supabaseAdmin.from('profiles').update({ email: user.email }).eq('id', user.sub);
-      data.email = user.email;
+    if (!(data as any).email && user.email) {
+      try {
+        await supabaseAdmin.from('profiles').update({ email: user.email }).eq('id', user.sub);
+      } catch {
+        // Ignored if column does not exist yet
+      }
+      (data as any).email = user.email;
     }
 
     res.json({ profile: data });
