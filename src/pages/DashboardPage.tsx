@@ -70,6 +70,13 @@ export function DashboardPage() {
   const userRole = useAppStore((s) => s.userRole)
   const userEmail = useAppStore((s) => s.userEmail)
 
+  // Redirect administrators to the dedicated Admin Portal & Dashboard
+  React.useEffect(() => {
+    if (userRole === 'admin') {
+      navigate('/app/admin', { replace: true })
+    }
+  }, [userRole, navigate])
+
   // State
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
@@ -78,6 +85,8 @@ export function DashboardPage() {
   const [leads, setLeads] = React.useState<Lead[]>([])
   const [workspace, setWorkspace] = React.useState<WorkspaceInfo | null>(null)
   const [members, setMembers] = React.useState<any[]>([])
+  const [updatingPlan, setUpdatingPlan] = React.useState<string | null>(null)
+  const [planMessage, setPlanMessage] = React.useState<string | null>(null)
   
   // Filtering & Interactivity
   const [selectedStageFilter, setSelectedStageFilter] = React.useState<string | null>(null)
@@ -130,6 +139,82 @@ export function DashboardPage() {
   const plan = workspace?.plan || 'free'
   const isMultiSeat = ['agency', 'pro', 'enterprise'].includes(plan)
   const seatLimit = plan === 'enterprise' ? 'Unlimited' : plan === 'pro' ? 25 : plan === 'agency' ? 5 : 1
+
+  const handleSelectPlan = async (targetPlan: string) => {
+    if (targetPlan === plan) return
+    setUpdatingPlan(targetPlan)
+    setPlanMessage(null)
+    try {
+      const { apiPatch } = await import('@/api/client')
+      await apiPatch('/workspace', { plan: targetPlan })
+      setWorkspace((prev) => prev ? { ...prev, plan: targetPlan as any } : null)
+      setPlanMessage(`Workspace successfully transitioned to the ${targetPlan.toUpperCase()} plan.`)
+      setTimeout(() => setPlanMessage(null), 4000)
+    } catch {
+      setPlanMessage('Failed to update plan. Please try again.')
+    } finally {
+      setUpdatingPlan(null)
+    }
+  }
+
+  const AVAILABLE_PLANS = [
+    {
+      id: 'free',
+      name: 'Free Explorer',
+      price: '$0',
+      period: '/mo',
+      badge: 'Starter Tier',
+      description: 'Ideal for freelance developers & solo auditors testing digital opportunity scoring.',
+      seats: '1 Seat',
+      scans: '25 Scans / mo',
+      features: ['25 Local Business Scans', 'Basic Digital Audit Signals', 'Opportunity Score Preview', 'Community Support'],
+    },
+    {
+      id: 'starter',
+      name: 'Starter Pro',
+      price: '$49',
+      period: '/mo',
+      badge: 'Solopreneur',
+      description: 'For growing freelancers seeking to discover active commercial web & SEO projects.',
+      seats: '1 Seat',
+      scans: '250 Scans / mo',
+      features: ['250 Local Business Scans', 'Complete Technical Audit Signals', 'AI Outreach Pitch Drafts', 'Email Support'],
+    },
+    {
+      id: 'agency',
+      name: 'Agency Scale',
+      price: '$149',
+      period: '/mo',
+      badge: 'Most Popular',
+      popular: true,
+      description: 'Built for agencies and boutique studios scaling multi-client pipeline acquisition.',
+      seats: '5 Seats Included',
+      scans: '1,000 Scans / mo',
+      features: ['1,000 Local Business Scans', 'White-Label PDF Proposals', 'Pipeline CRM & Multi-Seat Access', 'Priority SLA Support'],
+    },
+    {
+      id: 'pro',
+      name: 'Professional',
+      price: '$299',
+      period: '/mo',
+      badge: 'High Volume',
+      description: 'Advanced intelligence for high-velocity sales and engineering development teams.',
+      seats: '25 Seats Included',
+      scans: '5,000 Scans / mo',
+      features: ['5,000 Local Business Scans', 'Market Intelligence & Zones', 'Custom Webhooks & Export APIs', 'Dedicated Phone Support'],
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise',
+      price: '$599',
+      period: '/mo',
+      badge: 'Unlimited Scale',
+      description: 'Unlimited prospecting capacity with custom scoring weights and dedicated strategist.',
+      seats: 'Unlimited Seats',
+      scans: 'Unlimited Scans',
+      features: ['Unlimited Discovery Scans', 'Custom AI Scoring Models', 'Custom Contracts & Invoicing', 'Dedicated Account Strategist'],
+    },
+  ]
 
   // Filtered leads for Best Opportunities feed
   const rankedLeads = React.useMemo(() => {
@@ -553,8 +638,116 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* Slideover Lead Details Panel */}
-      <LeadDetailPanel />
+      {/* Plans & Workspace Subscription Section */}
+      <div className="clay-floating p-6 sm:p-8 rounded-2xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-(--border-subtle) pb-5">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-mono font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-(--primary-soft) text-(--primary)">
+                Workspace Capacity & Plans
+              </span>
+              <span className="text-xs text-(--text-muted)">
+                Current Active: <strong className="capitalize text-(--text-primary)">{plan}</strong>
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-(--text-primary)">
+              Available Subscription Tiers
+            </h2>
+            <p className="text-xs sm:text-sm text-(--text-secondary) mt-0.5">
+              Review platform capabilities across all tiers and customize your active workspace plan.
+            </p>
+          </div>
+
+          {planMessage && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-(--primary-soft) text-(--primary) text-xs font-semibold">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{planMessage}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {AVAILABLE_PLANS.map((p) => {
+            const isCurrent = (workspace?.plan || 'free').toLowerCase() === p.id.toLowerCase()
+            return (
+              <div
+                key={p.id}
+                className={cn(
+                  'relative rounded-xl p-4 flex flex-col justify-between transition-all duration-200',
+                  isCurrent
+                    ? 'clay-raised border-2 border-(--primary) shadow-md ring-2 ring-(--primary)/20'
+                    : 'clay-inset hover:border-(--border) border border-transparent'
+                )}
+              >
+                {/* Active or Popular Badge */}
+                <div className="flex items-center justify-between gap-1 mb-2">
+                  <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-(--text-muted)">
+                    {p.badge}
+                  </span>
+                  {isCurrent && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-(--primary) text-white shadow-xs">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Active
+                    </span>
+                  )}
+                </div>
+
+                <div>
+                  <h3 className="text-base font-bold text-(--text-primary) leading-tight">
+                    {p.name}
+                  </h3>
+                  <div className="flex items-baseline gap-1 my-2">
+                    <span className="text-2xl font-black text-(--text-primary)">{p.price}</span>
+                    <span className="text-xs text-(--text-muted)">{p.period}</span>
+                  </div>
+                  <p className="text-[11px] text-(--text-secondary) leading-snug mb-3">
+                    {p.description}
+                  </p>
+
+                  <div className="space-y-1.5 pt-2 border-t border-(--border-subtle) text-[11px] text-(--text-primary)">
+                    <div className="flex items-center gap-1.5 font-semibold text-(--primary)">
+                      <Users className="w-3.5 h-3.5" />
+                      <span>{p.seats}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-(--text-secondary)">
+                      <Radar className="w-3.5 h-3.5 text-(--primary)" />
+                      <span>{p.scans}</span>
+                    </div>
+                    <ul className="space-y-1 pt-1.5">
+                      {p.features.map((feat, i) => (
+                        <li key={i} className="flex items-start gap-1.5 text-[10.5px] text-(--text-muted) leading-tight">
+                          <CheckCircle2 className="w-3 h-3 text-(--primary) shrink-0 mt-0.5" />
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="pt-4 mt-3 border-t border-(--border-subtle)">
+                  {isCurrent ? (
+                    <button
+                      disabled
+                      className="w-full py-1.5 px-3 rounded-lg text-xs font-bold bg-(--primary) text-white flex items-center justify-center gap-1 cursor-default opacity-90"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Current Plan</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleSelectPlan(p.id)}
+                      disabled={updatingPlan === p.id}
+                      className="w-full py-1.5 px-3 rounded-lg text-xs font-semibold clay-raised hover:bg-(--surface-hover) text-(--text-primary) transition-all flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <span>{updatingPlan === p.id ? 'Updating...' : `Select ${p.name.split(' ')[0]}`}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }
