@@ -355,7 +355,7 @@ function OverviewTab({ lead }: { lead: Lead }) {
             </div>
 
             {/* Bottom Gradient with Rating */}
-            <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-center justify-between text-white">
+            <div className="absolute inset-x-0 bottom-0 p-3 bg-linear-to-t from-black/80 via-black/40 to-transparent flex items-center justify-between text-white">
               <div className="flex items-center gap-1.5">
                 <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                 <span className="text-xs font-bold">{lead.rating ? lead.rating.toFixed(1) : '4.5'}</span>
@@ -1600,7 +1600,7 @@ export function LeadDetailPanel() {
 
   return (
     <div
-      className="fixed inset-0 z-[1100] bg-black/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+      className="fixed inset-0 z-1100 bg-black/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
       onClick={() => setSelectedLeadId(null)}
     >
       <div
