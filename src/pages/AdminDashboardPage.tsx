@@ -263,7 +263,7 @@ export function AdminDashboardPage() {
           {Object.entries(overview?.planDistribution || { free: 0, starter: 0, agency: 0, pro: 0, enterprise: 0 }).map(
             ([tier, count]) => (
               <div key={tier} className="clay-inset p-3 rounded-xl text-center">
-                <span className="text-[10px] uppercase font-bold text-(--text-muted) block capitalize">
+                <span className="text-[10px] uppercase font-bold text-(--text-muted) block">
                   {tier}
                 </span>
                 <span className="text-xl font-bold tabular-nums text-(--text-primary)">

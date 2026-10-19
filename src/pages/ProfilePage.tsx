@@ -109,6 +109,71 @@ export function ProfilePage() {
     }
   }
 
+  const handleAvatarFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setAvatarError(null)
+    setAvatarSuccess(null)
+
+    // Validate MIME type
+    if (!file.type.startsWith('image/')) {
+      setAvatarError('Please select a valid image file (PNG, JPG, WebP, etc.).')
+      return
+    }
+
+    // Validate 2MB limit (2 * 1024 * 1024 bytes)
+    const MAX_SIZE_BYTES = 2 * 1024 * 1024
+    if (file.size > MAX_SIZE_BYTES) {
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(2)
+      setAvatarError(`Image size exceeds the 2MB limit (Selected: ${sizeMb} MB). Please choose an image under 2MB.`)
+      return
+    }
+
+    setIsUploadingAvatar(true)
+    try {
+      const reader = new FileReader()
+      reader.onload = async () => {
+        try {
+          const dataUrl = reader.result as string
+          const updated = await updateProfile({ avatar_url: dataUrl })
+          setProfile(updated)
+          setAvatarUrl(dataUrl)
+          setAvatarSuccess('Profile photo updated successfully.')
+        } catch (err: unknown) {
+          setAvatarError(err instanceof Error ? err.message : 'Could not save uploaded avatar.')
+        } finally {
+          setIsUploadingAvatar(false)
+        }
+      }
+      reader.onerror = () => {
+        setAvatarError('Failed to read image file.')
+        setIsUploadingAvatar(false)
+      }
+      reader.readAsDataURL(file)
+    } catch {
+      setAvatarError('Failed to process image.')
+      setIsUploadingAvatar(false)
+    }
+  }
+
+  const handleRemoveAvatar = async () => {
+    setIsUploadingAvatar(true)
+    setAvatarError(null)
+    setAvatarSuccess(null)
+    try {
+      const updated = await updateProfile({ avatar_url: '' })
+      setProfile(updated)
+      setAvatarUrl(null)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      setAvatarSuccess('Profile photo removed.')
+    } catch (err: unknown) {
+      setAvatarError(err instanceof Error ? err.message : 'Could not remove avatar.')
+    } finally {
+      setIsUploadingAvatar(false)
+    }
+  }
+
   const initials = (trimmedName || profile?.email || '')
     .split(/[\s@._-]+/)
     .filter(Boolean)
@@ -154,9 +219,86 @@ export function ProfilePage() {
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="h-16 w-16 rounded-full clay-inset flex items-center justify-center text-(--primary) text-xl font-bold">
-                      {initials || '—'}
+                  {/* Avatar Upload Section (Max 2MB) */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 p-4 rounded-2xl clay-inset mb-6">
+                    <div className="relative shrink-0">
+                      {avatarUrl || profile?.avatar_url ? (
+                        <img
+                          src={avatarUrl || profile?.avatar_url || ''}
+                          alt={name || 'Avatar'}
+                          className="h-20 w-20 rounded-2xl object-cover border-2 border-(--primary) shadow-md"
+                          onError={(e) => {
+                            const t = e.currentTarget
+                            t.style.display = 'none'
+                            const fallback = t.nextElementSibling as HTMLElement
+                            if (fallback) fallback.style.display = 'flex'
+                          }}
+                        />
+                      ) : (
+                        <div className="h-20 w-20 rounded-2xl clay-raised flex items-center justify-center text-(--primary) text-2xl font-bold border border-(--primary)/30">
+                          {initials || '—'}
+                        </div>
+                      )}
+                      <div
+                        style={{ display: 'none' }}
+                        className="h-20 w-20 rounded-2xl clay-raised items-center justify-center text-(--primary) text-2xl font-bold border border-(--primary)/30"
+                      >
+                        {initials || '—'}
+                      </div>
+                      {isUploadingAvatar && (
+                        <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center">
+                          <Loader2 className="h-6 w-6 text-white animate-spin" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 space-y-2">
+                      <div>
+                        <h4 className="text-sm font-bold text-(--text-primary)">Profile Photo</h4>
+                        <p className="text-xs text-(--text-secondary)">
+                          Upload a personalized photo for your account (up to 2MB). Shown in the top bar and sidebar navigation.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3 flex-wrap pt-1">
+                        <label className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold clay-btn-primary cursor-pointer transition-transform hover:scale-[1.02]">
+                          <Upload className="h-3.5 w-3.5" />
+                          <span>{isUploadingAvatar ? 'Saving...' : 'Upload Photo (Max 2MB)'}</span>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp,image/gif"
+                            onChange={handleAvatarFileSelect}
+                            disabled={isUploadingAvatar}
+                            className="hidden"
+                          />
+                        </label>
+
+                        {(avatarUrl || profile?.avatar_url) && (
+                          <button
+                            type="button"
+                            onClick={handleRemoveAvatar}
+                            disabled={isUploadingAvatar}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-(--danger) hover:bg-red-500/10 transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span>Remove</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {avatarError && (
+                        <p className="text-xs text-(--danger) font-medium flex items-center gap-1 mt-1">
+                          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                          {avatarError}
+                        </p>
+                      )}
+                      {avatarSuccess && (
+                        <p className="text-xs text-(--success) font-medium flex items-center gap-1 mt-1">
+                          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                          {avatarSuccess}
+                        </p>
+                      )}
                     </div>
                   </div>
 
