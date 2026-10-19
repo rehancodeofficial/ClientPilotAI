@@ -3,21 +3,50 @@ import axios, { AxiosError } from 'axios';
 const DEFAULT_NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const DEFAULT_OVERPASS_URLS = [
   'https://overpass-api.de/api/interpreter',
-  'https://lz4.overpass-api.de/api/interpreter',
-  'https://z.overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
 ];
 const DEFAULT_USER_AGENT = 'ClientPilotAI/1.0 (https://clientpilotai.internal; info@clientpilotai.com)';
-const DEFAULT_TIMEOUT_MS = 15_000;
-const DEFAULT_RETRIES = 2;
+const DEFAULT_TIMEOUT_MS = 30_000;
 const MAX_RADIUS_METERS = 50_000;
 
 const NOMINATIM_URL = process.env.NOMINATIM_URL || DEFAULT_NOMINATIM_URL;
-const OVERPASS_URLS = process.env.OVERPASS_URL ? [process.env.OVERPASS_URL, ...DEFAULT_OVERPASS_URLS] : DEFAULT_OVERPASS_URLS;
+const OVERPASS_URLS = process.env.OVERPASS_URL
+  ? [process.env.OVERPASS_URL, ...DEFAULT_OVERPASS_URLS.filter(url => url !== process.env.OVERPASS_URL)]
+  : DEFAULT_OVERPASS_URLS;
 const USER_AGENT = process.env.OSM_USER_AGENT || DEFAULT_USER_AGENT;
 const REQUEST_TIMEOUT_MS = Number(process.env.OSM_REQUEST_TIMEOUT_MS || DEFAULT_TIMEOUT_MS);
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Simple in-memory cache with 1-hour TTL
+interface CacheEntry<T> {
+  data: T;
+  expiresAt: number;
+}
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+const discoveryCache = new Map<string, CacheEntry<NearbyBusinessSearchResult>>();
+
+const getFromCache = (key: string): NearbyBusinessSearchResult | null => {
+  const entry = discoveryCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    discoveryCache.delete(key);
+    return null;
+  }
+  return entry.data;
+};
+
+const setInCache = (key: string, data: NearbyBusinessSearchResult): void => {
+  // Simple eviction if map grows too large
+  if (discoveryCache.size > 2000) {
+    const now = Date.now();
+    for (const [k, v] of discoveryCache.entries()) {
+      if (now > v.expiresAt) discoveryCache.delete(k);
+    }
+  }
+  discoveryCache.set(key, { data, expiresAt: Date.now() + CACHE_TTL_MS });
+};
 
 export interface Coordinates {
   lat: number;
@@ -202,22 +231,38 @@ export const geocodeLocation = async (location: string): Promise<GeocodeResult> 
   }
 };
 
+const sanitizeOverpassValue = (val: string): string =>
+  val.replace(/["\\;]/g, '').trim();
+
 const tagFilterToOverpass = (filter: OSMTagFilter): string => {
-  if (filter.regex) return `["${filter.key}"~"^(${filter.regex})$",i]`;
-  if (filter.value) return `["${filter.key}"="${filter.value}"]`;
-  return `["${filter.key}"]`;
+  const safeKey = sanitizeOverpassValue(filter.key);
+  if (filter.regex) {
+    const safeRegex = filter.regex.replace(/["\\;]/g, '');
+    return `["${safeKey}"~"^(${safeRegex})$",i]`;
+  }
+  if (filter.value) {
+    const safeValue = sanitizeOverpassValue(filter.value);
+    return `["${safeKey}"="${safeValue}"]`;
+  }
+  return `["${safeKey}"]`;
 };
 
 const filtersForCategories = (categories: string[]): OSMTagFilter[] => {
   if (categories.length === 0) return DEFAULT_BUSINESS_FILTERS;
 
   const filters = categories.flatMap(category => {
-    if (CATEGORY_FILTERS[category]) return CATEGORY_FILTERS[category];
-    if (category.includes('=')) {
-      const [key, value] = category.split('=').map(part => part.trim());
+    const cleanCat = sanitizeOverpassValue(category);
+    if (!cleanCat) return [];
+    if (CATEGORY_FILTERS[cleanCat]) return CATEGORY_FILTERS[cleanCat];
+    if (cleanCat.includes('=')) {
+      const [key, value] = cleanCat.split('=').map(part => sanitizeOverpassValue(part));
       return key && value ? [{ key, value }] : [];
     }
-    return [{ key: 'shop', value: category }, { key: 'amenity', value: category }, { key: 'office', value: category }];
+    return [
+      { key: 'shop', value: cleanCat },
+      { key: 'amenity', value: cleanCat },
+      { key: 'office', value: cleanCat },
+    ];
   });
 
   const seen = new Set<string>();
@@ -229,7 +274,7 @@ const filtersForCategories = (categories: string[]): OSMTagFilter[] => {
   });
 };
 
-const buildOverpassQuery = (lat: number, lng: number, radiusMeters: number, categories: string[]): string => {
+const buildOverpassQuery = (lat: number, lng: number, radiusMeters: number, categories: string[], limit = 50): string => {
   const filters = filtersForCategories(categories);
   const elementTypes: OsmElementType[] = ['node', 'way', 'relation'];
   const selectors = filters.flatMap(filter =>
@@ -241,7 +286,7 @@ const buildOverpassQuery = (lat: number, lng: number, radiusMeters: number, cate
 (
 ${selectors.join('\n')}
 );
-out center tags;
+out center ${limit};
 `.trim();
 };
 
@@ -310,55 +355,111 @@ export const searchNearbyBusinesses = async (
 
   const radiusMeters = clampRadius(params.radiusMeters);
   const categories = normalizeCategories(params.categories);
-  const query = buildOverpassQuery(lat, lng, radiusMeters, categories);
-  const limit = Math.max(1, Math.min(params.limit || 100, 250));
+  const limit = Math.max(1, Math.min(params.limit || 50, 100));
 
+  // 1. Check cache first
+  const cacheKey = `${lat.toFixed(4)}:${lng.toFixed(4)}:${radiusMeters}:${categories.sort().join(',')}`;
+  const cached = getFromCache(cacheKey);
+  if (cached) {
+    console.log(`[OSM Overpass] Cache hit for ${cacheKey} (${cached.businesses.length} leads)`);
+    return cached;
+  }
+
+  const query = buildOverpassQuery(lat, lng, radiusMeters, categories, limit);
+  const postData = `data=${encodeURIComponent(query)}`;
+
+  const RETRY_ROUNDS = 2;
+  const BACKOFF_DELAYS = [1000, 3000];
   let lastError: unknown;
+  const mirrorFailureLogs: string[] = [];
 
-  for (const endpoint of OVERPASS_URLS) {
-    try {
-      const response = await axios.post<{ elements?: OverpassElement[] }>(endpoint, `data=${encodeURIComponent(query)}`, {
-        headers: { ...requestHeaders(), 'Content-Type': 'application/x-www-form-urlencoded' },
-        timeout: 7_000,
-      });
+  for (let round = 0; round < RETRY_ROUNDS; round++) {
+    if (round > 0) {
+      const waitMs = BACKOFF_DELAYS[round - 1] || 2000;
+      console.warn(`[OSM Overpass] Starting retry round ${round + 1} after ${waitMs}ms backoff...`);
+      await delay(waitMs);
+    }
 
-      if (response.data && Array.isArray(response.data.elements)) {
-        const seen = new Set<string>();
-        const businesses = response.data.elements
-          .map(normalizeBusiness)
-          .filter((business): business is NormalizedBusiness => Boolean(business))
-          .filter(business => {
-            if (seen.has(business.osmId)) return false;
-            seen.add(business.osmId);
-            return true;
-          })
-          .slice(0, limit);
+    for (const endpoint of OVERPASS_URLS) {
+      try {
+        const response = await axios.post<{ elements?: OverpassElement[] }>(endpoint, postData, {
+          headers: {
+            ...requestHeaders(),
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          timeout: REQUEST_TIMEOUT_MS, // 30s
+        });
 
-        if (businesses.length > 0) {
-          return { businesses, center: { lat, lng }, radiusMeters, categories };
+        if (response.data && Array.isArray(response.data.elements)) {
+          const seen = new Set<string>();
+          const businesses = response.data.elements
+            .map(normalizeBusiness)
+            .filter((business): business is NormalizedBusiness => Boolean(business))
+            .filter(business => {
+              if (seen.has(business.osmId)) return false;
+              seen.add(business.osmId);
+              return true;
+            })
+            .slice(0, limit);
+
+          if (businesses.length > 0) {
+            const result: NearbyBusinessSearchResult = { businesses, center: { lat, lng }, radiusMeters, categories };
+            setInCache(cacheKey, result);
+            return result;
+          }
         }
-      }
-    } catch (error) {
-      lastError = error;
-      // If client error (400), don't retry other endpoints
-      if (axios.isAxiosError(error) && error.response?.status === 400) {
-        throw new OSMOverpassError('Invalid query format', 400);
+      } catch (error) {
+        lastError = error;
+
+        let statusText = 'network error / timeout';
+        let responseBodyPreview = 'no response';
+
+        if (axios.isAxiosError(error)) {
+          const status = error.response?.status;
+          if (status) statusText = `HTTP ${status}`;
+          if (error.response?.data) {
+            const rawBody = typeof error.response.data === 'string'
+              ? error.response.data
+              : JSON.stringify(error.response.data);
+            responseBodyPreview = rawBody.slice(0, 300).replace(/\s+/g, ' ');
+          }
+
+          // If client error (400), syntax error - stop retrying
+          if (status === 400) {
+            console.error(`[OSM Overpass] Mirror ${endpoint} returned 400 syntax error: ${responseBodyPreview}`);
+            throw new OSMOverpassError(`Invalid Overpass query format: ${responseBodyPreview}`, 400);
+          }
+        } else if (error instanceof Error) {
+          statusText = error.name;
+          responseBodyPreview = error.message;
+        }
+
+        const logMsg = `Mirror [${endpoint}] failed (Round ${round + 1}): ${statusText} - Response body: "${responseBodyPreview}"`;
+        console.warn(`[OSM Overpass] ${logMsg}`);
+        mirrorFailureLogs.push(logMsg);
       }
     }
   }
 
   // Graceful fallback to Nominatim when Overpass mirrors are unavailable or rate-limited
   try {
+    console.warn('[OSM Overpass] Overpass mirrors exhausted; attempting fallback to Nominatim search...');
     const fallbackResult = await searchNearbyBusinessesViaNominatim(params);
     if (fallbackResult.businesses.length > 0) {
+      setInCache(cacheKey, fallbackResult);
       return fallbackResult;
     }
   } catch (fallbackError) {
-    // Continue to error throw if fallback also fails
+    console.warn('[OSM Overpass] Nominatim fallback also failed:', fallbackError);
   }
 
   if (lastError instanceof OSMOverpassError) throw lastError;
-  throw new OSMOverpassError(`Overpass business search failed across mirrors: ${axiosMessage(lastError)}`, 502);
+
+  console.error('[OSM Overpass] All Overpass mirrors and retries failed:\n' + mirrorFailureLogs.join('\n'));
+  throw new OSMOverpassError(
+    'Lead search service is temporarily busy, please try again in a minute',
+    503
+  );
 };
 
 export const searchNearbyBusinessesViaNominatim = async (

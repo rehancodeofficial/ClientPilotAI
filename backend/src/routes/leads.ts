@@ -17,7 +17,9 @@ const DiscoverSchema = z.object({
   location: z.string().trim().optional(),
   lat: z.coerce.number().optional(),
   lng: z.coerce.number().optional(),
-  categories: z.array(z.string()).default([]),
+  categories: z
+    .array(z.string().trim().min(1, 'Category must not be empty'))
+    .default([]),
   radiusMeters: z.coerce.number().min(100).max(50000).default(5000)
 });
 

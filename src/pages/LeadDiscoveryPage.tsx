@@ -6,7 +6,7 @@ import {
   Filter, ArrowUpDown, Search, Wand2, Map as MapIcon, List, X,
   Utensils, ShoppingBag, Scissors, Activity, Wrench, Pill, Coffee, Monitor, Star, Home, Store,
   SlidersHorizontal, ChevronDown, Sparkles, Building2, Layers, AlertCircle, ArrowRight, Eye, RefreshCw,
-  Crosshair, Compass, Laptop, Briefcase, Dumbbell, ShieldCheck
+  Crosshair, Compass, Laptop, Briefcase, Dumbbell, ShieldCheck, RotateCcw
 } from 'lucide-react'
 import {
   Button, Badge, Card, Input, Label,
@@ -820,6 +820,7 @@ export function LeadDiscoveryPage() {
           <Button
             onClick={handleDiscover}
             isLoading={isRunning}
+            disabled={isRunning}
             className="clay-btn-primary h-9 px-4 text-xs font-bold gap-2 ml-auto shrink-0 shadow-sm"
           >
             <Wand2 className="h-4 w-4" />
@@ -935,14 +936,43 @@ export function LeadDiscoveryPage() {
               )}
             </AnimatePresence>
 
-            {/* Error Notification */}
+            {/* Error Message with Friendly Alert & Retry Button */}
             {discoveryError && (
-              <div className="p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-500 text-xs flex items-center justify-between font-medium">
-                <span>{discoveryError}</span>
-                <button onClick={() => setDiscoveryError(null)} className="font-bold underline ml-2 cursor-pointer">
-                  Dismiss
-                </button>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-200 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg"
+              >
+                <div className="flex items-center gap-2.5">
+                  <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
+                  <div>
+                    <p className="font-semibold text-amber-300">
+                      {discoveryError.toLowerCase().includes('busy') || discoveryError.toLowerCase().includes('temporarily')
+                        ? 'Search service is busy'
+                        : 'Lead Discovery Notice'}
+                    </p>
+                    <p className="text-amber-200/90 text-[11px] mt-0.5">{discoveryError}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                  <Button
+                    onClick={handleDiscover}
+                    disabled={isRunning}
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5 h-7 text-xs border-amber-500/30 text-amber-300 hover:bg-amber-500/20"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    Retry
+                  </Button>
+                  <button
+                    onClick={() => setDiscoveryError(null)}
+                    className="text-amber-400/80 hover:text-amber-200 text-xs font-semibold px-2 py-1"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </motion.div>
             )}
 
             {/* Empty State before discovery */}
