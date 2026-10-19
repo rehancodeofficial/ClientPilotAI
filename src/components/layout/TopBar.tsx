@@ -8,7 +8,11 @@ import { NotificationBell } from './NotificationPanel'
 import { GlobalSearchModal } from './GlobalSearchModal'
 
 export function TopBar() {
-  const { theme, setTheme } = useTheme()
+  const { theme, resolvedTheme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  const isDark = mounted && (resolvedTheme === 'dark' || theme === 'dark')
+
   const userRole = useAppStore((s) => s.userRole)
   const userEmail = useAppStore((s) => s.userEmail)
   const setUserRole = useAppStore((s) => s.setUserRole)
@@ -64,7 +68,7 @@ export function TopBar() {
           <div className="flex items-center gap-3 px-3.5 py-1.5 clay-inset cursor-pointer hover:bg-(--surface-hover) transition-colors">
             <img src="/logo.png" alt="" className="h-6 w-6 rounded-lg object-cover drop-shadow-md" />
             <span className="text-[14px] font-bold text-(--text-primary) tracking-tight">
-              Acme Software Agency
+              Acme Software
             </span>
             <ChevronDown className="h-3.5 w-3.5 text-(--text-muted)" />
           </div>
@@ -98,12 +102,12 @@ export function TopBar() {
 
         {/* Dark mode toggle */}
         <button 
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} 
-          className="relative h-10 w-16 flex items-center clay-inset p-1"
-          title="Toggle dark mode"
+          onClick={() => setTheme(isDark ? 'light' : 'dark')} 
+          className="relative h-10 w-16 flex items-center clay-inset p-1 cursor-pointer transition-colors"
+          title={isDark ? "Switch to light mode" : "Switch to dark mode"}
         >
-          <div className={`h-8 w-8 rounded-full clay-raised flex items-center justify-center transition-transform duration-300 ${theme === 'dark' ? 'translate-x-6' : 'translate-x-0'}`}>
-            {theme === 'dark' ? <Moon className="h-4 w-4 text-(--primary)" /> : <Sun className="h-4 w-4 text-(--primary)" />}
+          <div className={`h-8 w-8 rounded-full clay-raised flex items-center justify-center transition-transform duration-300 ${isDark ? 'translate-x-6' : 'translate-x-0'}`}>
+            {isDark ? <Moon className="h-4 w-4 text-(--primary)" /> : <Sun className="h-4 w-4 text-(--primary)" />}
           </div>
         </button>
 
