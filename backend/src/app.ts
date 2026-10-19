@@ -77,7 +77,7 @@ app.use(cors({
 
 // Body parser with raw body retention for webhook signature verification
 app.use(express.json({
-  limit: '2mb',
+  limit: '10mb',
   verify: (req: any, _res, buf) => {
     req.rawBody = buf.toString('utf8');
   },
