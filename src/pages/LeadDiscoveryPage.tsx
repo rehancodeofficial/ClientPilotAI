@@ -65,7 +65,6 @@ interface CityPreset {
 interface CountryPreset {
   code: string
   name: string
-  flag: string
   cities: CityPreset[]
 }
 
@@ -73,7 +72,6 @@ const COUNTRY_PRESETS: CountryPreset[] = [
   {
     code: 'US',
     name: 'United States',
-    flag: '🇺🇸',
     cities: [
       { name: 'New York, NY', center: [40.7128, -74.006], label: 'New York (Manhattan)' },
       { name: 'Los Angeles, CA', center: [34.0522, -118.2437], label: 'Los Angeles (Downtown)' },
@@ -88,18 +86,17 @@ const COUNTRY_PRESETS: CountryPreset[] = [
   {
     code: 'UK',
     name: 'United Kingdom',
-    flag: '🇬🇧',
     cities: [
       { name: 'London, UK', center: [51.5074, -0.1278], label: 'London (City & West End)' },
       { name: 'Manchester, UK', center: [53.4808, -2.2426], label: 'Manchester (Central)' },
       { name: 'Birmingham, UK', center: [52.4862, -1.8904], label: 'Birmingham (City Centre)' },
       { name: 'Leeds, UK', center: [53.8008, -1.5491], label: 'Leeds (Central)' },
+      { name: 'Glasgow, UK', center: [55.8642, -4.2518], label: 'Glasgow (City Centre)' },
     ],
   },
   {
     code: 'CA',
     name: 'Canada',
-    flag: '🇨🇦',
     cities: [
       { name: 'Toronto, ON', center: [43.6532, -79.3832], label: 'Toronto (Downtown)' },
       { name: 'Vancouver, BC', center: [49.2827, -123.1207], label: 'Vancouver (Central)' },
@@ -110,7 +107,6 @@ const COUNTRY_PRESETS: CountryPreset[] = [
   {
     code: 'PK',
     name: 'Pakistan',
-    flag: '🇵🇰',
     cities: [
       { name: 'Karachi, Gulshan-e-Iqbal', center: [24.9215, 67.0979], label: 'Karachi (Gulshan-e-Iqbal)' },
       { name: 'Karachi, Clifton & DHA', center: [24.8138, 67.0305], label: 'Karachi (Clifton & DHA)' },
@@ -118,12 +114,12 @@ const COUNTRY_PRESETS: CountryPreset[] = [
       { name: 'Lahore, DHA', center: [31.4707, 74.3986], label: 'Lahore (DHA Phase 5)' },
       { name: 'Islamabad, Blue Area', center: [33.7215, 73.0722], label: 'Islamabad (Blue Area / F-7)' },
       { name: 'Rawalpindi, Saddar', center: [33.5973, 73.0551], label: 'Rawalpindi (Saddar / Cantt)' },
+      { name: 'Faisalabad, Central', center: [31.4504, 73.135], label: 'Faisalabad (D Ground / Clock Tower)' },
     ],
   },
   {
     code: 'AE',
     name: 'United Arab Emirates',
-    flag: '🇦🇪',
     cities: [
       { name: 'Dubai, Downtown', center: [25.2048, 55.2708], label: 'Dubai (Downtown & DIFC)' },
       { name: 'Dubai, Marina', center: [25.0805, 55.1403], label: 'Dubai (Marina & JBR)' },
@@ -132,31 +128,76 @@ const COUNTRY_PRESETS: CountryPreset[] = [
     ],
   },
   {
+    code: 'SA',
+    name: 'Saudi Arabia',
+    cities: [
+      { name: 'Riyadh, Olaya', center: [24.7136, 46.6753], label: 'Riyadh (Olaya / KAFD)' },
+      { name: 'Jeddah, Corniche', center: [21.5433, 39.1728], label: 'Jeddah (Corniche)' },
+      { name: 'Dammam, Central', center: [26.4207, 50.0888], label: 'Dammam (City Center)' },
+    ],
+  },
+  {
     code: 'AU',
     name: 'Australia',
-    flag: '🇦🇺',
     cities: [
       { name: 'Sydney, NSW', center: [-33.8688, 151.2093], label: 'Sydney (CBD)' },
       { name: 'Melbourne, VIC', center: [-37.8136, 144.9631], label: 'Melbourne (CBD)' },
       { name: 'Brisbane, QLD', center: [-27.4698, 153.0251], label: 'Brisbane (City)' },
+      { name: 'Perth, WA', center: [-31.9505, 115.8605], label: 'Perth (CBD)' },
     ],
   },
   {
     code: 'DE',
     name: 'Germany',
-    flag: '🇩🇪',
     cities: [
       { name: 'Berlin, Germany', center: [52.52, 13.405], label: 'Berlin (Mitte)' },
       { name: 'Munich, Germany', center: [48.1351, 11.582], label: 'Munich (Altstadt)' },
       { name: 'Frankfurt, Germany', center: [50.1109, 8.6821], label: 'Frankfurt (Innenstadt)' },
+      { name: 'Hamburg, Germany', center: [53.5511, 9.9937], label: 'Hamburg (Mitte)' },
+    ],
+  },
+  {
+    code: 'FR',
+    name: 'France',
+    cities: [
+      { name: 'Paris, France', center: [48.8566, 2.3522], label: 'Paris (Central)' },
+      { name: 'Lyon, France', center: [45.764, 4.8357], label: 'Lyon (Presqu’île)' },
+      { name: 'Marseille, France', center: [43.2965, 5.3698], label: 'Marseille (Vieux-Port)' },
+    ],
+  },
+  {
+    code: 'IT',
+    name: 'Italy',
+    cities: [
+      { name: 'Rome, Italy', center: [41.9028, 12.4964], label: 'Rome (Centro Storico)' },
+      { name: 'Milan, Italy', center: [45.4642, 9.19], label: 'Milan (Duomo / Brera)' },
+      { name: 'Florence, Italy', center: [43.7696, 11.2558], label: 'Florence (Center)' },
+    ],
+  },
+  {
+    code: 'ES',
+    name: 'Spain',
+    cities: [
+      { name: 'Madrid, Spain', center: [40.4168, -3.7038], label: 'Madrid (Centro)' },
+      { name: 'Barcelona, Spain', center: [41.3879, 2.1699], label: 'Barcelona (Eixample)' },
+      { name: 'Valencia, Spain', center: [39.4699, -0.3763], label: 'Valencia (Ciutat Vella)' },
+    ],
+  },
+  {
+    code: 'IN',
+    name: 'India',
+    cities: [
+      { name: 'Mumbai, MH', center: [19.076, 72.8777], label: 'Mumbai (BKC & South)' },
+      { name: 'Delhi, DL', center: [28.6139, 77.209], label: 'Delhi (Connaught Place)' },
+      { name: 'Bengaluru, KA', center: [12.9716, 77.5946], label: 'Bengaluru (Koramangala / Indiranagar)' },
+      { name: 'Hyderabad, TS', center: [17.385, 78.4867], label: 'Hyderabad (HITEC City)' },
     ],
   },
   {
     code: 'OTHER',
-    name: 'Other Region',
-    flag: '🌍',
+    name: 'Other Region / Custom City',
     cities: [
-      { name: 'Custom', center: [24.9215, 67.0979], label: 'Custom Global City' },
+      { name: 'Custom', center: [24.9215, 67.0979], label: 'Type Custom City / District' },
     ],
   },
 ]
@@ -190,13 +231,13 @@ const NICHE_OPTIONS: NicheOption[] = [
 
 // ── Radius Options ────────────────────────────────────────────
 const RADIUS_OPTIONS = [
-  { value: 1, label: '1 km (Hyperlocal - 5 min walk)' },
-  { value: 3, label: '3 km (Neighborhood Hub)' },
-  { value: 5, label: '5 km (Commercial District - Recommended)' },
-  { value: 10, label: '10 km (Metro Zone)' },
-  { value: 15, label: '15 km (Greater City Area)' },
-  { value: 25, label: '25 km (Regional Suburbs)' },
-  { value: 50, label: '50 km (Metropolitan Radius)' },
+  { value: 1, label: '1 km' },
+  { value: 3, label: '3 km' },
+  { value: 5, label: '5 km' },
+  { value: 7, label: '7 km' },
+  { value: 10, label: '10 km' },
+  { value: 15, label: '15 km' },
+  { value: 25, label: '25 km' },
 ]
 
 // ── Score indicator ───────────────────────────────────────────
@@ -425,25 +466,25 @@ function RectangularMapPanel({
   }, [leads, onLeadClick])
 
   return (
-    <div className="relative w-full h-full min-h-[540px] rounded-2xl overflow-hidden shadow-xl border border-(--border-subtle) clay-floating">
+    <div className="relative w-full h-full min-h-135 rounded-2xl overflow-hidden shadow-xl border border-(--border-subtle) clay-floating">
       {/* Top Floating Rectangular Map Pill */}
-      <div className="absolute top-3 left-3 z-[1000] flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/95 dark:bg-black/90 backdrop-blur-md shadow-md border border-black/10 text-xs">
-        <Compass className="w-3.5 h-3.5 text-(--primary)" />
-        <span className="font-bold text-(--text-primary) truncate max-w-56">{locationTitle}</span>
-        <span className="font-mono text-[10px] text-(--text-muted) px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10">
+      <div className="absolute top-3 left-3 z-1000 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black text-white dark:bg-white dark:text-black shadow-lg border border-black/20 dark:border-white/20 text-xs font-semibold">
+        <Compass className="w-4 h-4 text-(--primary) shrink-0" />
+        <span className="font-bold text-white dark:text-black truncate max-w-56">{locationTitle}</span>
+        <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-white/20 text-white dark:bg-black/10 dark:text-black font-semibold">
           {radius} km scan
         </span>
       </div>
 
       {leads.length > 0 && (
-        <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/95 dark:bg-black/90 backdrop-blur-md shadow-md border border-black/10 text-xs font-bold text-(--primary)">
-          <MapPin className="w-3.5 h-3.5" />
-          <span>{leads.length} Discovered</span>
+        <div className="absolute top-3 right-3 z-1000 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black text-white dark:bg-white dark:text-black shadow-lg border border-black/20 dark:border-white/20 text-xs font-bold">
+          <MapPin className="w-3.5 h-3.5 text-(--primary)" />
+          <span className="text-white dark:text-black font-bold">{leads.length} Discovered</span>
         </div>
       )}
 
       {/* Map Viewport Container */}
-      <div ref={containerRef} className="w-full h-full min-h-[540px]" />
+      <div ref={containerRef} className="w-full h-full min-h-135" />
     </div>
   )
 }
@@ -472,11 +513,12 @@ export function LeadDiscoveryPage() {
   const [locationText, setLocationText] = useState('Karachi, Gulshan-e-Iqbal')
   const [radius, setRadius] = useState(5)
 
-  // Opportunity & Pipeline Filters
+  // Opportunity, Popularity & Leads Filters
   const [scoreFilter, setScoreFilter] = useState<'all' | 'high' | 'medium' | 'critical'>('all')
   const [websiteFilter, setWebsiteFilter] = useState<'all' | 'none' | 'outdated' | 'has_website'>('all')
-  const [sortBy, setSortBy] = useState<'score' | 'distance' | 'name'>('score')
-  const [viewMode, setViewMode] = useState<'split' | 'map' | 'list'>('split')
+  const [popularityFilter, setPopularityFilter] = useState<'all' | 'high_reviews' | 'top_rated'>('all')
+  const [leadsFilter, setLeadsFilter] = useState<'all' | 'has_phone' | 'ready'>('all')
+  const [sortBy, setSortBy] = useState<'score' | 'reviews' | 'distance' | 'name'>('score')
 
   // Execution State
   const [isRunning, setIsRunning] = useState(false)
@@ -619,30 +661,39 @@ export function LeadDiscoveryPage() {
   const filtered = useMemo(() => {
     return discoveryResults
       .filter((l) => {
-        // Score filter
+        // Opportunity Score filter
         if (scoreFilter === 'critical' && l.score < 85) return false
         if (scoreFilter === 'high' && l.score < 75) return false
         if (scoreFilter === 'medium' && (l.score < 50 || l.score >= 75)) return false
 
-        // Website filter
+        // Opportunity Website Gap filter
         if (websiteFilter === 'none' && l.websiteStatus !== 'none') return false
         if (websiteFilter === 'outdated' && l.websiteStatus !== 'outdated') return false
         if (websiteFilter === 'has_website' && l.websiteStatus !== 'has_website') return false
+
+        // Popularity filter
+        if (popularityFilter === 'high_reviews' && (l.reviewCount ?? 0) < 30) return false
+        if (popularityFilter === 'top_rated' && (l.rating ?? 0) < 4.0) return false
+
+        // Leads-based filter
+        if (leadsFilter === 'has_phone' && !l.phone && !l.contactPhone) return false
+        if (leadsFilter === 'ready' && !l.outreachBody && !l.proposalContent) return false
 
         return true
       })
       .sort((a, b) => {
         if (sortBy === 'score') return b.score - a.score
+        if (sortBy === 'reviews') return (b.reviewCount ?? 0) - (a.reviewCount ?? 0)
         if (sortBy === 'distance') return (a.distance || 0) - (b.distance || 0)
         return a.name.localeCompare(b.name)
       })
-  }, [discoveryResults, scoreFilter, websiteFilter, sortBy])
+  }, [discoveryResults, scoreFilter, websiteFilter, popularityFilter, leadsFilter, sortBy])
 
   return (
     <div className="flex flex-col h-full overflow-hidden text-(--text-primary)">
       {/* ── Top Header & Multi-Filter Control Center ── */}
-      <div className="p-4 sm:p-5 shrink-0 space-y-3.5 z-10 clay-floating rounded-none border-b border-(--border-subtle) bg-(--surface)">
-        {/* Row 1: Title, View Switchers, Discovered Count */}
+      <div className="p-4 sm:p-5 shrink-0 space-y-3 z-10 clay-floating rounded-none border-b border-(--border-subtle) bg-(--surface)">
+        {/* Row 1: Title & Discovered Count */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
@@ -658,47 +709,15 @@ export function LeadDiscoveryPage() {
             </p>
           </div>
 
-          {/* View Mode Toggle */}
-          <div className="flex items-center gap-1.5 self-start sm:self-center">
-            <button
-              onClick={() => setViewMode('split')}
-              title="Split View (Rectangular Map + Cards)"
-              className={cn(
-                'px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer',
-                viewMode === 'split' ? 'clay-raised text-(--primary) border border-(--primary)/30' : 'clay-inset text-(--text-muted) hover:text-(--text-primary)'
-              )}
-            >
-              <MapIcon className="h-3.5 w-3.5" />
-              <span>Split View</span>
-            </button>
-
-            <button
-              onClick={() => setViewMode('map')}
-              title="Rectangular Map View"
-              className={cn(
-                'px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer',
-                viewMode === 'map' ? 'clay-raised text-(--primary) border border-(--primary)/30' : 'clay-inset text-(--text-muted) hover:text-(--text-primary)'
-              )}
-            >
-              <Crosshair className="h-3.5 w-3.5" />
-              <span>Map Only</span>
-            </button>
-
-            <button
-              onClick={() => setViewMode('list')}
-              title="List Cards View"
-              className={cn(
-                'px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer',
-                viewMode === 'list' ? 'clay-raised text-(--primary) border border-(--primary)/30' : 'clay-inset text-(--text-muted) hover:text-(--text-primary)'
-              )}
-            >
-              <List className="h-3.5 w-3.5" />
-              <span>Cards Grid</span>
-            </button>
-          </div>
+          {discoveryResults.length > 0 && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-(--primary-soft) text-(--primary) text-xs font-bold border border-(--primary)/20 self-start sm:self-center">
+              <MapPin className="h-3.5 w-3.5" />
+              <span>{filtered.length} Leads Active</span>
+            </div>
+          )}
         </div>
 
-        {/* Row 2: Comprehensive Dropdowns (Country, City, Niche, Radius) + Compact Search Bar */}
+        {/* Row 2: Comprehensive Dropdowns (Country, City, Niche, Radius) + Discover Button */}
         <div className="flex items-center gap-2.5 flex-wrap">
           {/* Country Dropdown */}
           <div className="flex items-center gap-1.5">
@@ -710,7 +729,7 @@ export function LeadDiscoveryPage() {
             >
               {COUNTRY_PRESETS.map((c) => (
                 <option key={c.code} value={c.code}>
-                  {c.flag} {c.name}
+                  {c.name}
                 </option>
               ))}
             </select>
@@ -718,7 +737,7 @@ export function LeadDiscoveryPage() {
 
           {/* City Dropdown */}
           <div className="flex items-center gap-1.5">
-            <Label className="text-xs font-bold text-(--text-muted) shrink-0">City / District:</Label>
+            <Label className="text-xs font-bold text-(--text-muted) shrink-0">City:</Label>
             <select
               value={isCustomCity ? 'CUSTOM_ENTRY' : selectedCityName}
               onChange={(e) => handleCityChange(e.target.value)}
@@ -729,7 +748,7 @@ export function LeadDiscoveryPage() {
                   {city.label}
                 </option>
               ))}
-              <option value="CUSTOM_ENTRY">✏️ Other City (Type Custom)...</option>
+              <option value="CUSTOM_ENTRY">Other City (Custom)...</option>
             </select>
           </div>
 
@@ -740,8 +759,8 @@ export function LeadDiscoveryPage() {
                 value={customCityText}
                 onChange={(e) => setCustomCityText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && geocodeSearch(customCityText)}
-                placeholder="Enter custom city or area..."
-                className="h-9 w-44 text-xs clay-inset border-none bg-(--bg)"
+                placeholder="Enter city or area..."
+                className="h-9 w-40 text-xs clay-inset border-none bg-(--bg)"
               />
               <Button
                 size="sm"
@@ -775,12 +794,12 @@ export function LeadDiscoveryPage() {
             <Input
               value={customNicheText}
               onChange={(e) => setCustomNicheText(e.target.value)}
-              placeholder="e.g. Roofing, Chiropractor..."
-              className="h-9 w-40 text-xs clay-inset border-none bg-(--bg)"
+              placeholder="e.g. Roofing, Legal..."
+              className="h-9 w-36 text-xs clay-inset border-none bg-(--bg)"
             />
           )}
 
-          {/* Radius Selector */}
+          {/* Radius Selector: 1, 3, 5, 7, 10 km */}
           <div className="flex items-center gap-1.5">
             <Label className="text-xs font-bold text-(--text-muted) shrink-0">Radius:</Label>
             <select
@@ -796,14 +815,14 @@ export function LeadDiscoveryPage() {
             </select>
           </div>
 
-          {/* Compact Location Search Input (Decreased Size) */}
-          <div className="relative w-56 shrink-0">
+          {/* Compact Location Search Input */}
+          <div className="relative w-52 shrink-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-(--text-muted)" />
             <Input
               value={geoSearch}
               onChange={(e) => setGeoSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && geocodeSearch()}
-              placeholder="Quick search area..."
+              placeholder="Search specific district..."
               className="pl-8 pr-7 h-9 text-xs clay-inset border-none bg-(--bg)"
             />
             {geoSearch && (
@@ -816,7 +835,7 @@ export function LeadDiscoveryPage() {
             )}
           </div>
 
-          {/* Action Trigger Button */}
+          {/* Discover Opportunities Action Button */}
           <Button
             onClick={handleDiscover}
             isLoading={isRunning}
@@ -828,52 +847,105 @@ export function LeadDiscoveryPage() {
           </Button>
         </div>
 
-        {/* Row 3: Opportunity Filters & Sorting Pills */}
-        <div className="flex items-center justify-between gap-3 flex-wrap pt-1 border-t border-(--border-subtle) text-xs">
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* Score Filter */}
+        {/* Row 3: Opportunity, Popularity & Leads Based Filters (NO EMOJIS) */}
+        <div className="flex items-center justify-between gap-3 flex-wrap pt-2 border-t border-(--border-subtle) text-xs">
+          <div className="flex items-center gap-3.5 flex-wrap">
+            {/* 1. Opportunity Filters: Score & Website Gap */}
             <div className="flex items-center gap-1.5">
-              <span className="font-bold text-(--text-muted)">Min Score:</span>
-              {(['all', 'medium', 'high', 'critical'] as const).map((filterBand) => (
+              <span className="font-bold text-(--text-muted)">Opportunity:</span>
+              {(['all', 'medium', 'high', 'critical'] as const).map((band) => (
                 <button
-                  key={filterBand}
-                  onClick={() => setScoreFilter(filterBand)}
+                  key={band}
+                  onClick={() => setScoreFilter(band)}
                   className={cn(
                     'px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer',
-                    scoreFilter === filterBand
+                    scoreFilter === band
                       ? 'clay-raised text-(--primary) border border-(--primary)/30'
                       : 'clay-inset text-(--text-muted) hover:text-(--text-primary)'
                   )}
                 >
-                  {filterBand === 'all' ? 'All (0+)' : filterBand === 'medium' ? '50-74' : filterBand === 'high' ? '75+' : '85+ Critical'}
+                  {band === 'all' ? 'All Scores' : band === 'medium' ? '50-74' : band === 'high' ? '75+' : '85+ Critical'}
                 </button>
               ))}
-            </div>
-
-            {/* Website Status Filter */}
-            <div className="flex items-center gap-1.5 ml-2">
-              <span className="font-bold text-(--text-muted)">Website Gap:</span>
               <button
                 onClick={() => setWebsiteFilter(websiteFilter === 'none' ? 'all' : 'none')}
                 className={cn(
-                  'px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1',
+                  'px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ml-1',
                   websiteFilter === 'none'
                     ? 'bg-red-500/10 text-red-500 border border-red-500/30'
                     : 'clay-inset text-(--text-muted) hover:text-(--text-primary)'
                 )}
               >
-                <span>🚨 Missing Website</span>
+                Missing Website
               </button>
               <button
                 onClick={() => setWebsiteFilter(websiteFilter === 'outdated' ? 'all' : 'outdated')}
                 className={cn(
-                  'px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1',
+                  'px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer',
                   websiteFilter === 'outdated'
                     ? 'bg-amber-500/10 text-amber-500 border border-amber-500/30'
                     : 'clay-inset text-(--text-muted) hover:text-(--text-primary)'
                 )}
               >
-                <span>⚠️ Outdated</span>
+                Outdated Stack
+              </button>
+            </div>
+
+            <div className="h-4 w-px bg-(--border-subtle) hidden sm:block" />
+
+            {/* 2. Popularity Filters */}
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-(--text-muted)">Popularity:</span>
+              <button
+                onClick={() => setPopularityFilter(popularityFilter === 'high_reviews' ? 'all' : 'high_reviews')}
+                className={cn(
+                  'px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer',
+                  popularityFilter === 'high_reviews'
+                    ? 'clay-raised text-(--primary) border border-(--primary)/30'
+                    : 'clay-inset text-(--text-muted) hover:text-(--text-primary)'
+                )}
+              >
+                30+ Reviews
+              </button>
+              <button
+                onClick={() => setPopularityFilter(popularityFilter === 'top_rated' ? 'all' : 'top_rated')}
+                className={cn(
+                  'px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer',
+                  popularityFilter === 'top_rated'
+                    ? 'clay-raised text-(--primary) border border-(--primary)/30'
+                    : 'clay-inset text-(--text-muted) hover:text-(--text-primary)'
+                )}
+              >
+                4.0+ Stars
+              </button>
+            </div>
+
+            <div className="h-4 w-px bg-(--border-subtle) hidden sm:block" />
+
+            {/* 3. Leads Based Filters */}
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-(--text-muted)">Leads:</span>
+              <button
+                onClick={() => setLeadsFilter(leadsFilter === 'has_phone' ? 'all' : 'has_phone')}
+                className={cn(
+                  'px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer',
+                  leadsFilter === 'has_phone'
+                    ? 'clay-raised text-(--primary) border border-(--primary)/30'
+                    : 'clay-inset text-(--text-muted) hover:text-(--text-primary)'
+                )}
+              >
+                Direct Phone
+              </button>
+              <button
+                onClick={() => setLeadsFilter(leadsFilter === 'ready' ? 'all' : 'ready')}
+                className={cn(
+                  'px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer',
+                  leadsFilter === 'ready'
+                    ? 'clay-raised text-(--primary) border border-(--primary)/30'
+                    : 'clay-inset text-(--text-muted) hover:text-(--text-primary)'
+                )}
+              >
+                Outreach Ready
               </button>
             </div>
           </div>
@@ -886,7 +958,8 @@ export function LeadDiscoveryPage() {
               onChange={(e) => setSortBy(e.target.value as any)}
               className="h-8 px-2.5 text-xs font-semibold rounded-lg clay-inset bg-(--bg) text-(--text-primary) border-none cursor-pointer"
             >
-              <option value="score">Highest Opportunity Score</option>
+              <option value="score">Opportunity Score</option>
+              <option value="reviews">Most Reviews</option>
               <option value="distance">Shortest Distance</option>
               <option value="name">Name (A-Z)</option>
             </select>
@@ -894,31 +967,26 @@ export function LeadDiscoveryPage() {
         </div>
       </div>
 
-      {/* ── Main Viewport Area (Map + Results) ── */}
+      {/* ── Main Viewport Area (Map + Integrated Results) ── */}
       <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden p-4 sm:p-5 gap-5">
-        {/* Map Pane: Increased size, rectangular frame (no circle) */}
-        {(viewMode === 'split' || viewMode === 'map') && (
-          <div className={cn(
-            'flex flex-col transition-all duration-300',
-            viewMode === 'map' ? 'w-full h-full' : 'w-full lg:w-[58%] shrink-0 h-full'
-          )}>
-            <RectangularMapPanel
-              center={mapCenter}
-              radius={radius}
-              leads={filtered}
-              locationTitle={locationText}
-              onMapClick={handleMapClick}
-              onLeadClick={handleLeadClick}
-            />
-          </div>
-        )}
+        {/* Map Pane: Expands dynamically */}
+        <div className={cn(
+          'flex flex-col transition-all duration-300 h-full',
+          hasSearched && filtered.length > 0 ? 'w-full lg:w-[60%] shrink-0' : 'w-full'
+        )}>
+          <RectangularMapPanel
+            center={mapCenter}
+            radius={radius}
+            leads={filtered}
+            locationTitle={locationText}
+            onMapClick={handleMapClick}
+            onLeadClick={handleLeadClick}
+          />
+        </div>
 
         {/* Results Pane */}
-        {(viewMode === 'split' || viewMode === 'list') && (
-          <div className={cn(
-            'flex-1 flex flex-col min-w-0 overflow-y-auto space-y-4 pr-1',
-            viewMode === 'list' ? 'w-full max-w-5xl mx-auto' : ''
-          )}>
+        {hasSearched && (
+          <div className="flex-1 flex flex-col min-w-0 overflow-y-auto space-y-4 pr-1">
             {/* Progress Notification */}
             <AnimatePresence>
               {(isRunning || (steps.length > 0 && discoveryResults.length === 0 && hasSearched)) && (
@@ -936,7 +1004,7 @@ export function LeadDiscoveryPage() {
               )}
             </AnimatePresence>
 
-            {/* Error Message with Friendly Alert & Retry Button */}
+            {/* Error Message with Alert & Retry Button */}
             {discoveryError && (
               <motion.div
                 initial={{ opacity: 0, y: -6 }}
@@ -946,11 +1014,7 @@ export function LeadDiscoveryPage() {
                 <div className="flex items-center gap-2.5">
                   <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
                   <div>
-                    <p className="font-semibold text-amber-300">
-                      {discoveryError.toLowerCase().includes('busy') || discoveryError.toLowerCase().includes('temporarily')
-                        ? 'Search service is busy'
-                        : 'Lead Discovery Notice'}
-                    </p>
+                    <p className="font-semibold text-amber-300">Discovery Notice</p>
                     <p className="text-amber-200/90 text-[11px] mt-0.5">{discoveryError}</p>
                   </div>
                 </div>
@@ -967,7 +1031,7 @@ export function LeadDiscoveryPage() {
                   </Button>
                   <button
                     onClick={() => setDiscoveryError(null)}
-                    className="text-amber-400/80 hover:text-amber-200 text-xs font-semibold px-2 py-1"
+                    className="text-amber-400/80 hover:text-amber-200 text-xs font-semibold px-2 py-1 cursor-pointer"
                   >
                     Dismiss
                   </button>
@@ -975,24 +1039,8 @@ export function LeadDiscoveryPage() {
               </motion.div>
             )}
 
-            {/* Empty State before discovery */}
-            {!hasSearched && !isRunning && (
-              <div className="h-full flex flex-col items-center justify-center py-16 text-center clay-raised rounded-2xl p-6">
-                <div className="h-16 w-16 rounded-2xl clay-inset flex items-center justify-center text-(--primary) mb-4">
-                  <Radar className="h-8 w-8" />
-                </div>
-                <h3 className="text-lg font-bold font-heading text-(--text-primary)">
-                  Target & Discover Commercial Prospects
-                </h3>
-                <p className="text-xs text-(--text-secondary) max-w-md mt-1 leading-relaxed">
-                  Select your target Country, City, and Niche above, adjust the rectangular scan radius, and click{' '}
-                  <strong className="text-(--primary)">Discover Opportunities</strong>. ClientPilot AI will pinpoint businesses with missing websites or outdated tech stacks.
-                </p>
-              </div>
-            )}
-
             {/* Discovered Leads List */}
-            {hasSearched && !isRunning && (
+            {!isRunning && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between px-1">
                   <p className="text-xs font-bold text-(--text-secondary)">
@@ -1007,13 +1055,10 @@ export function LeadDiscoveryPage() {
                   <div className="p-8 text-center clay-inset rounded-2xl space-y-2">
                     <AlertCircle className="w-6 h-6 text-(--text-muted) mx-auto" />
                     <p className="text-xs font-bold text-(--text-primary)">No prospects match the active filter criteria.</p>
-                    <p className="text-[11px] text-(--text-muted)">Try adjusting the Minimum Score or Website Gap filters above.</p>
+                    <p className="text-[11px] text-(--text-muted)">Try adjusting the Opportunity, Popularity, or Leads filters above.</p>
                   </div>
                 ) : (
-                  <div className={cn(
-                    'grid gap-3',
-                    viewMode === 'list' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'
-                  )}>
+                  <div className="grid gap-3 grid-cols-1">
                     {filtered.map((lead, idx) => (
                       <LeadCard
                         key={lead.id}
