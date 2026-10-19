@@ -81,11 +81,11 @@ export function ResourcesPage() {
   const filteredResources = selectedTag === 'All' ? resources : resources.filter(r => r.category === selectedTag)
 
   return (
-    <div className="min-h-screen bg-[#edede8] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#F5F7F5] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white overflow-x-hidden">
       <PublicNavbar />
 
       {/* Hero Section with Ambient Glow & Workspace Overlay */}
-      <section className="relative py-20 sm:py-28 border-b border-black/10 overflow-hidden bg-[#edede8]">
+      <section className="relative py-20 sm:py-28 border-b border-black/10 overflow-hidden bg-[#F5F7F5]">
         {/* Background Image with refined gradient overlay */}
         <div className="absolute inset-0 z-0">
           <img
@@ -93,7 +93,7 @@ export function ResourcesPage() {
             alt="Agency Knowledge Center"
             className="w-full h-full object-cover opacity-10"
           />
-          <div className="absolute inset-0 bg-linear-to-b from-[#edede8]/90 via-[#edede8]/85 to-[#edede8]" />
+          <div className="absolute inset-0 bg-linear-to-b from-[#F5F7F5]/90 via-[#F5F7F5]/85 to-[#F5F7F5]" />
           <div className="absolute top-0 right-1/3 w-96 h-96 bg-lime-pulse/15 rounded-full blur-3xl pointer-events-none" />
         </div>
 
@@ -125,7 +125,7 @@ export function ResourcesPage() {
       </section>
 
       {/* Main Grid Section */}
-      <section className="py-16 sm:py-24 bg-[#edede8]">
+      <section className="py-16 sm:py-24 bg-[#F5F7F5]">
         <div className="max-w-300 mx-auto px-4 sm:px-6 space-y-12">
           
           {/* Resource Cards Grid */}
@@ -195,7 +195,7 @@ export function ResourcesPage() {
             <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
               <Link
                 to="/signup"
-                className="inline-flex items-center justify-center gap-2 px-7 h-12 rounded-full text-xs sm:text-sm font-medium text-graphite-ink bg-white hover:bg-[#edede8] transition-all shadow-sm"
+                className="inline-flex items-center justify-center gap-2 px-7 h-12 rounded-full text-xs sm:text-sm font-medium text-graphite-ink bg-white hover:bg-[#F5F7F5] transition-all shadow-sm"
               >
                 <span>Start Free Account</span>
                 <ArrowRight className="w-4 h-4" />

@@ -38,7 +38,7 @@ export function ResourceArticleLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#edede8] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#F5F7F5] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white overflow-x-hidden">
       {/* Top Reading Progress Indicator */}
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-lime-pulse z-50 origin-left"
@@ -48,9 +48,9 @@ export function ResourceArticleLayout({
       <PublicNavbar />
 
       {/* Hero / Article Header */}
-      <header className="relative py-16 sm:py-24 border-b border-black/10 overflow-hidden bg-[#edede8]">
+      <header className="relative py-16 sm:py-24 border-b border-black/10 overflow-hidden bg-[#F5F7F5]">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-linear-to-b from-[#edede8]/90 via-[#edede8]/85 to-[#edede8]" />
+          <div className="absolute inset-0 bg-linear-to-b from-[#F5F7F5]/90 via-[#F5F7F5]/85 to-[#F5F7F5]" />
           <div className="absolute top-0 right-1/4 w-96 h-96 bg-lime-pulse/10 rounded-full blur-3xl pointer-events-none" />
         </div>
 

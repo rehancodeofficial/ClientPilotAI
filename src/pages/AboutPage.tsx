@@ -49,9 +49,9 @@ const founders = [
 
 export function AboutPage() {
   return (
-    <div className="min-h-screen bg-[#edede8] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#F5F7F5] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white overflow-x-hidden">
       <PublicNavbar />      {/* Hero */}
-      <section className="relative py-24 lg:py-32 border-b border-black/10 overflow-hidden bg-[#edede8]">
+      <section className="relative py-24 lg:py-32 border-b border-black/10 overflow-hidden bg-[#F5F7F5]">
         {/* Background Image with refined gradient overlay */}
         <div className="absolute inset-0 z-0">
           <img
@@ -59,7 +59,7 @@ export function AboutPage() {
             alt="Agency Modern Workspace"
             className="w-full h-full object-cover opacity-35 brightness-95"
           />
-          <div className="absolute inset-0 bg-linear-to-b from-[#edede8]/70 via-[#edede8]/65 to-[#edede8]" />
+          <div className="absolute inset-0 bg-linear-to-b from-[#F5F7F5]/70 via-[#F5F7F5]/65 to-[#F5F7F5]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(76,192,43,0.12),transparent_50%)]" />
         </div>
 
@@ -88,7 +88,7 @@ export function AboutPage() {
       {/* 
       {/* The Minds Behind ClientPilot (Founder Story Section) - Commented out for FYP presentation */}
       {/* 
-      <section className="py-24 bg-[#edede8] border-b border-black/10">
+      <section className="py-24 bg-[#F5F7F5] border-b border-black/10">
         <div className="max-w-300 mx-auto px-4 sm:px-6 space-y-16">
           <div className="max-w-2xl">
             <motion.div
@@ -146,7 +146,7 @@ export function AboutPage() {
                 <div className="space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-5">
                     <div className="relative">
-                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2 border-black/10 shadow-md bg-[#edede8] shrink-0">
+                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2 border-black/10 shadow-md bg-[#F5F7F5] shrink-0">
                         <img
                           src={founder.image}
                           alt={founder.name}
@@ -184,7 +184,7 @@ export function AboutPage() {
                     {founder.focusAreas.map((area) => (
                       <span
                         key={area}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-normal text-charcoal-body bg-[#edede8] border border-black/5 hover:bg-warm-stone transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-normal text-charcoal-body bg-[#F5F7F5] border border-black/5 hover:bg-warm-stone transition-colors"
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-lime-pulse" />
                         {area}
@@ -234,7 +234,7 @@ export function AboutPage() {
               <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col items-start lg:items-end justify-center gap-4">
                 <Link
                   to="/features"
-                  className="group inline-flex items-center justify-center gap-2 px-6 h-12 rounded-full text-sm font-medium text-graphite-ink bg-white hover:bg-[#edede8] transition-all duration-200 shadow-md w-full sm:w-auto"
+                  className="group inline-flex items-center justify-center gap-2 px-6 h-12 rounded-full text-sm font-medium text-graphite-ink bg-white hover:bg-[#F5F7F5] transition-all duration-200 shadow-md w-full sm:w-auto"
                 >
                   <span>Explore ClientPilot</span>
                   <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
@@ -282,7 +282,7 @@ export function AboutPage() {
               transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-6"
             >
-              <div className="rounded-2xl overflow-hidden border border-black/10 shadow-md h-56 bg-[#edede8]">
+              <div className="rounded-2xl overflow-hidden border border-black/10 shadow-md h-56 bg-[#F5F7F5]">
                 <img
                   src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1000&q=80"
                   alt="ClientPilot team agency workspace"
@@ -302,7 +302,7 @@ export function AboutPage() {
                   desc: 'ClientPilot was designed with real feedback from digital agencies, development studios, SEO specialists, and freelancers. Every feature solves a real workflow problem.',
                 },
               ].map((item) => (
-                <div key={item.title} className="p-6 sm:p-7 rounded-2xl bg-[#edede8] border border-black/5 space-y-3">
+                <div key={item.title} className="p-6 sm:p-7 rounded-2xl bg-[#F5F7F5] border border-black/5 space-y-3">
                   <div className="w-10 h-10 rounded-full bg-warm-stone flex items-center justify-center text-iron-nav shadow-xs">
                     <item.icon className="w-5 h-5" />
                   </div>
@@ -324,7 +324,7 @@ export function AboutPage() {
             alt="Agency collaboration"
             className="w-full h-full object-cover opacity-[0.07]"
           />
-          <div className="absolute inset-0 bg-linear-to-b from-[#edede8] via-[#edede8]/95 to-[#edede8]" />
+          <div className="absolute inset-0 bg-linear-to-b from-[#F5F7F5] via-[#F5F7F5]/95 to-[#F5F7F5]" />
           {/* Dot grid pattern */}
           <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, #4cc02b22 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
           {/* Ambient green glow */}
@@ -445,7 +445,7 @@ export function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-[#edede8]">
+      <section className="py-20 bg-[#F5F7F5]">
         <div className="max-w-300 mx-auto px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -463,7 +463,7 @@ export function AboutPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
                 to="/signup"
-                className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-graphite-ink bg-white hover:bg-[#edede8] transition-all"
+                className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-graphite-ink bg-white hover:bg-[#F5F7F5] transition-all"
               >
                 Start Free
                 <ArrowRight className="w-4 h-4" />

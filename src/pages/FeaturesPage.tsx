@@ -258,7 +258,7 @@ export function FeaturesPage() {
       </section>
 
       {/* CTA band */}
-      <section className="py-20 bg-[#edede8]">
+      <section className="py-20 bg-[#F5F7F5]">
         <div className="max-w-300 mx-auto px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -275,7 +275,7 @@ export function FeaturesPage() {
             </p>
             <Link
               to="/signup"
-              className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-graphite-ink bg-white hover:bg-[#edede8] transition-all"
+              className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-graphite-ink bg-white hover:bg-[#F5F7F5] transition-all"
             >
               Get Started Free
               <ArrowRight className="w-4 h-4" />

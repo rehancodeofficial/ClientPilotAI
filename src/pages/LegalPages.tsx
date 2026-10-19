@@ -21,7 +21,7 @@ function LegalHero({ icon: Icon, badge, title, subtitle, date }: {
   date: string
 }) {
   return (
-    <section className="relative py-20 sm:py-28 border-b border-black/10 overflow-hidden bg-[#edede8]">
+    <section className="relative py-20 sm:py-28 border-b border-black/10 overflow-hidden bg-[#F5F7F5]">
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#4cc02b]/8 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-[#4cc02b]/5 rounded-full blur-2xl pointer-events-none" />
       <div className="relative z-10 max-w-[900px] mx-auto px-4 sm:px-6">
@@ -118,7 +118,7 @@ function LegalNavLinks({ exclude }: { exclude: string }) {
 // Privacy Policy
 export function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans selection:bg-[#4cc02b] selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#F5F7F5] text-[#292929] font-sans selection:bg-[#4cc02b] selection:text-white overflow-x-hidden">
       <PublicNavbar />
       <LegalHero
         icon={Shield}
@@ -256,7 +256,7 @@ export function PrivacyPage() {
 // Terms of Service
 export function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans selection:bg-[#4cc02b] selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#F5F7F5] text-[#292929] font-sans selection:bg-[#4cc02b] selection:text-white overflow-x-hidden">
       <PublicNavbar />
       <LegalHero
         icon={FileText}
@@ -348,7 +348,7 @@ export function TermsPage() {
 // Cookie Policy
 export function CookiePolicyPage() {
   return (
-    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans selection:bg-[#4cc02b] selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#F5F7F5] text-[#292929] font-sans selection:bg-[#4cc02b] selection:text-white overflow-x-hidden">
       <PublicNavbar />
       <LegalHero
         icon={Cookie}
@@ -427,7 +427,7 @@ export function CookiePolicyPage() {
 // Acceptable Use Policy
 export function AcceptableUsePage() {
   return (
-    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans selection:bg-[#4cc02b] selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#F5F7F5] text-[#292929] font-sans selection:bg-[#4cc02b] selection:text-white overflow-x-hidden">
       <PublicNavbar />
       <LegalHero
         icon={CheckCircle2}
