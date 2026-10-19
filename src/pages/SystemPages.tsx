@@ -6,7 +6,7 @@ import { AlertTriangle, RefreshCw } from 'lucide-react'
 
 export function NotFoundPage() {
   return (
-    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans flex flex-col justify-between selection:bg-[#4cc02b] selection:text-white">
+    <div className="min-h-screen bg-[#F5F7F5] text-[#292929] font-sans flex flex-col justify-between selection:bg-[#4cc02b] selection:text-white">
       <PublicNavbar />
       <main className="py-20 flex-1 flex items-center justify-center">
         <div className="max-w-md mx-auto px-4 text-center space-y-4">
@@ -30,7 +30,7 @@ export function NotFoundPage() {
 
 export function ErrorPage() {
   return (
-    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans flex flex-col justify-between selection:bg-[#4cc02b] selection:text-white">
+    <div className="min-h-screen bg-[#F5F7F5] text-[#292929] font-sans flex flex-col justify-between selection:bg-[#4cc02b] selection:text-white">
       <PublicNavbar />
       <main className="py-20 flex-1 flex items-center justify-center">
         <div className="max-w-md mx-auto px-4 text-center space-y-4">

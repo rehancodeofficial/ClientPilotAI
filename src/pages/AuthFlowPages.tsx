@@ -18,7 +18,7 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans flex flex-col justify-between selection:bg-[#4cc02b] selection:text-white">
+    <div className="min-h-screen bg-[#F5F7F5] text-[#292929] font-sans flex flex-col justify-between selection:bg-[#4cc02b] selection:text-white">
       <PublicNavbar />
 
       <main className="py-16 sm:py-24">
@@ -44,7 +44,7 @@ export function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="alex@agency.com"
-                    className="w-full px-3.5 py-2 rounded-[6px] bg-[#edede8] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                    className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                   />
                 </div>
 
@@ -97,7 +97,7 @@ export function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans flex flex-col justify-between">
+    <div className="min-h-screen bg-[#F5F7F5] text-[#292929] font-sans flex flex-col justify-between">
       <PublicNavbar />
 
       <main className="py-16 sm:py-24">
@@ -135,7 +135,7 @@ export function ResetPasswordPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-[6px] bg-[#edede8] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                    className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                   />
                 </div>
 
@@ -146,7 +146,7 @@ export function ResetPasswordPage() {
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-[6px] bg-[#edede8] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                    className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                   />
                 </div>
 
@@ -182,7 +182,7 @@ export function VerifyEmailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans flex flex-col justify-between">
+    <div className="min-h-screen bg-[#F5F7F5] text-[#292929] font-sans flex flex-col justify-between">
       <PublicNavbar />
 
       <main className="py-16 sm:py-24">

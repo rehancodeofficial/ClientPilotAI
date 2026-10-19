@@ -1,15 +1,23 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Radar, Kanban, Users, Settings, ChevronLeft, ChevronRight,
   FileText, MessageSquare, Map, BarChart3, FlaskConical, Wand2, ShieldCheck,
+  UserCog,
 } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { cn } from '@/lib/utils'
 
 // ============================================================
-// Navigation Groups — Intelligence / Workspace / System
+// Navigation Groups — Overview (Dashboard on top) / Intelligence / Workspace / System
 // ============================================================
+
+const overviewGroup = {
+  label: 'OVERVIEW',
+  items: [
+    { to: '/app', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  ],
+}
 
 const intelligenceGroup = {
   label: 'INTELLIGENCE',
@@ -24,7 +32,6 @@ const intelligenceGroup = {
 const workspaceGroup = {
   label: 'WORKSPACE',
   items: [
-    { to: '/app', label: 'Dashboard', icon: LayoutDashboard, end: true },
     { to: '/app/leads', label: 'All Opportunities', icon: Users, end: false },
     { to: '/app/pipeline', label: 'Pipeline CRM', icon: Kanban, end: false },
     { to: '/app/messages', label: 'Message Records', icon: MessageSquare, end: false },
@@ -34,14 +41,17 @@ const workspaceGroup = {
 
 const systemGroupUser = {
   label: 'SYSTEM',
-  items: [] as { to: string; label: string; icon: typeof Settings; end: boolean }[],
+  items: [
+    { to: '/app/profile', label: 'Profile Settings', icon: UserCog, end: false },
+  ],
 }
 
 const systemGroupAdmin = {
   label: 'SYSTEM',
   items: [
     { to: '/app/admin', label: 'Admin Panel', icon: ShieldCheck, end: false },
-    { to: '/app/settings', label: 'Settings', icon: Settings, end: false },
+    { to: '/app/settings', label: 'Workspace Settings', icon: Settings, end: false },
+    { to: '/app/profile', label: 'Profile Settings', icon: UserCog, end: false },
   ],
 }
 
@@ -120,10 +130,17 @@ function NavGroup({
 // Sidebar
 // ============================================================
 export function Sidebar() {
+  const navigate = useNavigate()
   const collapsed = useAppStore((s) => s.sidebarCollapsed)
   const toggle = useAppStore((s) => s.toggleSidebar)
   const userRole = useAppStore((s) => s.userRole)
+  const userEmail = useAppStore((s) => s.userEmail)
   const location = useLocation()
+
+  const accountName = userEmail ? userEmail.split('@')[0] : 'Member'
+  const initials = (userEmail ? userEmail.replace(/[^a-zA-Z]/g, '') : 'WA')
+    .slice(0, 2)
+    .toUpperCase() || 'WA'
 
   const systemGroup = userRole === 'admin' ? systemGroupAdmin : systemGroupUser
 
@@ -136,7 +153,7 @@ export function Sidebar() {
         className="clay-floating h-full flex flex-col overflow-hidden relative z-20"
       >
         {/* Logo / Brand */}
-        <div className="h-20 flex items-center px-5 shrink-0">
+        <div className="h-16 flex items-center px-5 shrink-0 border-b border-(--border-subtle)">
           <div className="flex items-center gap-2.5 min-w-0">
             <img
               src="/logo.png"
@@ -164,8 +181,61 @@ export function Sidebar() {
           </div>
         </div>
 
+        {/* Person Profile Header at top of sidebar */}
+        <div
+          onClick={() => navigate('/app/profile')}
+          className="mx-3 mt-3 mb-1 p-2 rounded-2xl clay-inset cursor-pointer hover:bg-(--surface-hover) transition-all flex items-center gap-2.5 group"
+          title="Profile & Account Settings"
+        >
+          <div className="relative shrink-0">
+            <img
+              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80"
+              alt={accountName}
+              className="h-10 w-10 rounded-xl object-cover border-1.5 border-(--primary) shadow-sm"
+              onError={(e) => {
+                const t = e.currentTarget
+                t.style.display = 'none'
+                const fallback = t.nextElementSibling as HTMLElement
+                if (fallback) fallback.style.display = 'flex'
+              }}
+            />
+            <div
+              style={{ display: 'none' }}
+              className="h-10 w-10 rounded-xl clay-raised items-center justify-center text-(--primary) font-black text-sm border border-(--primary)/30"
+            >
+              {initials}
+            </div>
+            {/* Active live indicator */}
+            <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-(--primary) opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-(--primary) border-2 border-(--surface)" />
+            </span>
+          </div>
+
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.div
+                initial={{ opacity: 0, x: -6 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -6 }}
+                className="min-w-0 flex-1"
+              >
+                <p className="text-[13px] font-bold text-(--text-primary) leading-snug truncate group-hover:text-(--primary) transition-colors">
+                  {accountName}
+                </p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded bg-(--primary-soft) text-(--primary)">
+                    {userRole === 'admin' ? 'Administrator' : 'Member'}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
         {/* Nav groups */}
         <nav className="flex-1 overflow-y-auto py-2 px-3">
+          <NavGroup label={overviewGroup.label} items={overviewGroup.items} collapsed={collapsed} location={location} />
           <NavGroup label={intelligenceGroup.label} items={intelligenceGroup.items} collapsed={collapsed} location={location} />
           <NavGroup label={workspaceGroup.label} items={workspaceGroup.items} collapsed={collapsed} location={location} />
           <NavGroup label={systemGroup.label} items={systemGroup.items} collapsed={collapsed} location={location} />

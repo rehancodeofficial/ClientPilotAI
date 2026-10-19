@@ -35,7 +35,7 @@ export function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#edede8] text-[#292929] font-sans flex flex-col justify-between selection:bg-[#4cc02b] selection:text-white">
+    <div className="min-h-screen bg-[#F5F7F5] text-[#292929] font-sans flex flex-col justify-between selection:bg-[#4cc02b] selection:text-white">
       <PublicNavbar />
 
       <main className="py-12 sm:py-20 flex-1 flex items-center justify-center">
@@ -81,7 +81,7 @@ export function OnboardingPage() {
                       value={agencyName}
                       onChange={(e) => setAgencyName(e.target.value)}
                       placeholder="Apex Digital Studio"
-                      className="w-full px-3.5 py-2 rounded-[6px] bg-[#edede8] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                      className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                     />
                   </div>
 
@@ -92,7 +92,7 @@ export function OnboardingPage() {
                       value={website}
                       onChange={(e) => setWebsite(e.target.value)}
                       placeholder="https://apexdigital.com"
-                      className="w-full px-3.5 py-2 rounded-[6px] bg-[#edede8] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                      className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                     />
                   </div>
 
@@ -103,7 +103,7 @@ export function OnboardingPage() {
                         type="text"
                         value={country}
                         onChange={(e) => setCountry(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-[6px] bg-[#edede8] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                        className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                       />
                     </div>
                     <div>
@@ -111,7 +111,7 @@ export function OnboardingPage() {
                       <select
                         value={teamSize}
                         onChange={(e) => setTeamSize(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-[6px] bg-[#edede8] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                        className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                       >
                         <option value="1">Solo / Freelancer</option>
                         <option value="2-10">2–10 members</option>
@@ -146,7 +146,7 @@ export function OnboardingPage() {
                         className={`p-3 rounded-[6px] text-left text-xs font-normal border transition-all flex items-center justify-between ${
                           sel
                             ? 'bg-[#dbdbd2] border-black/20 text-[#292929]'
-                            : 'bg-[#edede8] border-black/5 text-[#6f6f6e] hover:border-black/20'
+                            : 'bg-[#F5F7F5] border-black/5 text-[#6f6f6e] hover:border-black/20'
                         }`}
                       >
                         <span>{srv}</span>
@@ -173,7 +173,7 @@ export function OnboardingPage() {
                       type="text"
                       value={targetIndustries}
                       onChange={(e) => setTargetIndustries(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-[6px] bg-[#edede8] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                      className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                     />
                   </div>
 
@@ -183,7 +183,7 @@ export function OnboardingPage() {
                       type="text"
                       value={targetLocations}
                       onChange={(e) => setTargetLocations(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-[6px] bg-[#edede8] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                      className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                     />
                   </div>
                 </div>
@@ -206,7 +206,7 @@ export function OnboardingPage() {
                     'Discover website technical opportunities',
                     'Streamline developer handoff workflow'
                   ].map((goal, idx) => (
-                    <div key={idx} className="p-3 rounded-[6px] bg-[#edede8] border border-black/5 flex items-center gap-3 text-xs text-[#292929]">
+                    <div key={idx} className="p-3 rounded-[6px] bg-[#F5F7F5] border border-black/5 flex items-center gap-3 text-xs text-[#292929]">
                       <Wand2 className="w-3.5 h-3.5 text-[#353535] shrink-0" />
                       <span>{goal}</span>
                     </div>
