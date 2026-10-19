@@ -512,7 +512,12 @@ export async function loginAdmin({
       const customAuth = user.user_metadata?.custom_auth as CustomAuthMetadata | undefined;
       if (customAuth?.password_hash) {
         const valid = await comparePassword(password, customAuth.password_hash);
-        if (valid && (profile?.role === 'admin' || customAuth.role === 'admin')) {
+        if (valid) {
+          if (profile?.role !== 'admin' && customAuth.role !== 'admin') {
+            const err = new Error('Access denied. This portal is exclusively for System Administrators. Standard accounts must use the regular sign-in page.');
+            (err as any).code = 'NOT_ADMIN';
+            throw err;
+          }
           const session = createAuthSessionToken({
             id: user.id,
             email: normalized,
@@ -534,7 +539,7 @@ export async function loginAdmin({
         }
       }
     }
-    const err = new Error('Invalid administrator credentials.');
+    const err = new Error('Invalid administrator credentials. Access restricted to authorized administrators.');
     (err as any).code = 'INVALID_CREDENTIALS';
     throw err;
   }
