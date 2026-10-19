@@ -36,7 +36,7 @@ const UpdateProfileSchema = z
   .object({
     full_name: z.string().trim().min(1).max(120).optional(),
     timezone: z.string().trim().max(64).optional(),
-    avatar_url: z.string().trim().url().max(2048).optional().or(z.literal('')),
+    avatar_url: z.string().trim().max(4 * 1024 * 1024).optional().or(z.literal('')),
   })
   .strict();
 

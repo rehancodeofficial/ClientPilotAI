@@ -63,15 +63,8 @@ export function TopBar() {
       <header 
         className="h-[74px] shrink-0 flex items-center justify-between px-6 z-10 clay-floating rounded-none border-b border-(--border)"
       >
-        {/* Left: workspace name */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-3 px-3.5 py-1.5 clay-inset cursor-pointer hover:bg-(--surface-hover) transition-colors">
-            <img src="/logo.png" alt="" className="h-6 w-6 rounded-lg object-cover drop-shadow-md" />
-            <span className="text-[14px] font-bold text-(--text-primary) tracking-tight">
-              Acme Software
-            </span>
-            <ChevronDown className="h-3.5 w-3.5 text-(--text-muted)" />
-          </div>
+          
 
           {/* Center-Left: Global Search Button */}
           <button

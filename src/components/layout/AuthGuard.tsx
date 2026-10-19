@@ -12,6 +12,7 @@ export function AuthGuard() {
   const demoToken = useAppStore((s) => s.demoToken)
   const setUserRole = useAppStore((s) => s.setUserRole)
   const setUserEmail = useAppStore((s) => s.setUserEmail)
+  const setAvatarUrl = useAppStore((s) => s.setAvatarUrl)
   const clearAuth = useAppStore((s) => s.clearAuth)
 
   useEffect(() => {
@@ -45,6 +46,7 @@ export function AuthGuard() {
             email: string
             role: 'admin' | 'user' | 'client'
             fullName?: string
+            avatarUrl?: string | null
           }
         }>('/auth/me')
 
@@ -53,6 +55,9 @@ export function AuthGuard() {
         if (response?.user) {
           setUserEmail(response.user.email)
           setUserRole((response.user.role as 'admin' | 'user') || 'user')
+          if (response.user.avatarUrl) {
+            setAvatarUrl(response.user.avatarUrl)
+          }
           setIsAuthenticated(true)
         } else {
           clearAuth()

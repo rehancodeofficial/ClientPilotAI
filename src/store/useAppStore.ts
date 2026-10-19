@@ -31,6 +31,22 @@ export const useAppStore = create<AppState & {
   darkMode: false,
   userRole: null,
   userEmail: null,
+  avatarUrl: typeof window !== 'undefined' ? localStorage.getItem('cp_avatar_url') : null,
+  setAvatarUrl: (url) => {
+    if (typeof window !== 'undefined') {
+      if (url) localStorage.setItem('cp_avatar_url', url);
+      else localStorage.removeItem('cp_avatar_url');
+    }
+    set({ avatarUrl: url });
+  },
+  workspaceName: typeof window !== 'undefined' ? localStorage.getItem('cp_workspace_name') : null,
+  setWorkspaceName: (name) => {
+    if (typeof window !== 'undefined') {
+      if (name) localStorage.setItem('cp_workspace_name', name);
+      else localStorage.removeItem('cp_workspace_name');
+    }
+    set({ workspaceName: name });
+  },
   proposals: [],
   /** Real-data only: notifications start empty and are populated from DB */
   notifications: [],
@@ -52,8 +68,10 @@ export const useAppStore = create<AppState & {
   clearAuth: () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('cp_auth_token');
+      localStorage.removeItem('cp_avatar_url');
+      localStorage.removeItem('cp_workspace_name');
     }
-    set({ authToken: null, demoToken: null, userRole: null, userEmail: null });
+    set({ authToken: null, demoToken: null, userRole: null, userEmail: null, avatarUrl: null, workspaceName: null });
   },
 
   setLeads: (leads: Lead[]) => set({ leads }),

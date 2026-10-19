@@ -444,6 +444,8 @@ export interface AppState {
   darkMode: boolean;
   userRole: 'admin' | 'user' | null;
   userEmail: string | null;
+  avatarUrl: string | null;
+  workspaceName: string | null;
   proposals: Proposal[];
   notifications: Notification[];
 
@@ -457,6 +459,8 @@ export interface AppState {
   toggleDarkMode: () => void;
   setUserRole: (role: 'admin' | 'user' | null) => void;
   setUserEmail: (email: string | null) => void;
+  setAvatarUrl: (url: string | null) => void;
+  setWorkspaceName: (name: string | null) => void;
   updateLeadStage: (id: string, stage: PipelineStage) => void;
   updateLeadOutreach: (id: string, message: OutreachMessage) => void;
   updateLead: (id: string, updates: Partial<Lead>) => void;
