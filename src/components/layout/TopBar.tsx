@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Moon, Sun, ChevronDown, LogOut, Search } from 'lucide-react'
+import { Moon, Sun, ChevronDown, LogOut, Search, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { useTheme } from 'next-themes'
 import { supabase } from '@/lib/supabaseClient'
@@ -19,6 +19,8 @@ export function TopBar() {
   const avatarUrl = useAppStore((s) => s.avatarUrl)
   const workspaceName = useAppStore((s) => s.workspaceName)
   const setWorkspaceName = useAppStore((s) => s.setWorkspaceName)
+  const sidebarCollapsed = useAppStore((s) => s.sidebarCollapsed)
+  const toggleSidebar = useAppStore((s) => s.toggleSidebar)
 
   // Derived from the signed-in address.
   const accountName = userEmail ? userEmail.split('@')[0] : 'Account'
@@ -81,8 +83,21 @@ export function TopBar() {
       <header 
         className="h-18.5 shrink-0 flex items-center justify-between px-6 z-10 clay-floating rounded-none border-b border-(--border-subtle)"
       >
-        {/* Left: dynamic workspace name */}
-        <div className="flex items-center gap-3">
+        {/* Left: dynamic workspace name & sidebar collapse toggle */}
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-xl clay-inset hover:bg-(--surface-hover) text-(--text-secondary) hover:text-(--text-primary) transition-all cursor-pointer flex items-center justify-center shrink-0"
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {sidebarCollapsed ? (
+              <PanelLeftOpen className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose className="h-4 w-4" />
+            )}
+          </button>
+
           <div className="flex items-center gap-3 px-3.5 py-1.5 clay-inset cursor-pointer hover:bg-(--surface-hover) transition-colors">
             <img src="/logo.png" alt="" className="h-6 w-6 rounded-lg object-cover drop-shadow-md" />
             <span className="text-[14px] font-bold text-(--text-primary) tracking-tight">
