@@ -37,6 +37,7 @@ import { AiLeadQualificationFrameworkArticle } from '@/pages/resources/AiLeadQua
 import { FaqPage } from '@/pages/FaqPage'
 import { ContactPage } from '@/pages/ContactPage'
 import { LoginPage } from '@/pages/LoginPage'
+import { AdminLoginPage } from '@/pages/AdminLoginPage'
 import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from '@/pages/AuthFlowPages'
 import { OnboardingPage } from '@/pages/OnboardingPage'
 import { PrivacyPage, TermsPage, CookiePolicyPage, AcceptableUsePage } from '@/pages/LegalPages'

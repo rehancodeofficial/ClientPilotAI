@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
 import { useAppStore } from '@/store/useAppStore'
-import { Loader2, Eye, EyeOff, Zap, User, ArrowRight, Shield, Wand2, KeyRound, Mail, CheckCircle2 } from 'lucide-react'
+import { Loader2, Eye, EyeOff, User, ArrowRight, Shield, Wand2, KeyRound, Mail, CheckCircle2 } from 'lucide-react'
 
 interface LoginPageProps {
   initialMode?: 'login' | 'signup'
