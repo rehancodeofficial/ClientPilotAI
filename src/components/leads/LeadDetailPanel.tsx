@@ -4,13 +4,13 @@ import {
   X, MapPin, Phone, Globe, ExternalLink, Wand2,
   Send, Save, CheckCircle2, Store, Mail, AlertCircle,
   Loader2, AtSign, Shield, Smartphone, ShoppingCart, Calendar,
-  FileText, Activity, Users, Zap,
+  FileText, Activity, Users, Zap, Copy, Check,
   Star, BarChart3, Target, MessageSquare, AlertTriangle,
-  LayoutDashboard, ChevronRight, Info, RefreshCw, Award, TrendingUp,
+  LayoutDashboard, ChevronRight, Info, RefreshCw, Award, TrendingUp, Navigation,
 } from 'lucide-react'
 import { CAT_ICON } from '@/lib/icons'
 import {
-  Button, Badge, Sheet, Skeleton, Separator, Textarea, Progress,
+  Button, Badge, Skeleton, Separator, Textarea, Progress,
 } from '@/components/ui'
 import {
   prepareLead, generateOutreach, sendOutreach, saveDraft,
@@ -23,6 +23,68 @@ import type {
   OutcomeEventType,
 } from '@/types'
 import { cn, getCategoryLabel, getScoreColor, getPipelineLabel } from '@/lib/utils'
+
+// Curated high-resolution business imagery by category
+const CATEGORY_IMAGES: Record<string, string[]> = {
+  restaurant: [
+    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=900&auto=format&fit=crop&q=80',
+  ],
+  cafe: [
+    'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=900&auto=format&fit=crop&q=80',
+  ],
+  clinic: [
+    'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=900&auto=format&fit=crop&q=80',
+  ],
+  salon: [
+    'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=900&auto=format&fit=crop&q=80',
+  ],
+  auto_service: [
+    'https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=900&auto=format&fit=crop&q=80',
+  ],
+  gym: [
+    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=900&auto=format&fit=crop&q=80',
+  ],
+  retail: [
+    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=900&auto=format&fit=crop&q=80',
+  ],
+  real_estate: [
+    'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=900&auto=format&fit=crop&q=80',
+  ],
+  pharmacy: [
+    'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1576602976047-174e57a47881?w=900&auto=format&fit=crop&q=80',
+  ],
+  electronics: [
+    'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=900&auto=format&fit=crop&q=80',
+  ],
+  tailor: [
+    'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=900&auto=format&fit=crop&q=80',
+  ],
+  jewellery: [
+    'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=900&auto=format&fit=crop&q=80',
+  ],
+  default: [
+    'https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=900&auto=format&fit=crop&q=80',
+  ],
+}
 
 // ============================================================
 // Constants & helpers
@@ -236,188 +298,421 @@ function ScoreGauge({
 }
 
 // ============================================================
-// Tab: Overview
+// Tab: Overview (Redesigned with Business Imagery, Direct Contact & Opportunity Details)
 // ============================================================
 function OverviewTab({ lead }: { lead: Lead }) {
   const opp = lead.opportunityAnalysis
   const audit = lead.audit
   const maturityLevel = (opp?.currentMaturityLevel ?? audit?.digitalMaturityLevel ?? 1) as DigitalMaturityLevel
+  const [copiedPhone, setCopiedPhone] = useState(false)
+  const [copiedEmail, setCopiedEmail] = useState(false)
+  const [activeImgIndex, setActiveImgIndex] = useState(0)
+  const updateLeadStore = useAppStore((s) => s.updateLead)
+
+  const images = useMemo(() => {
+    return CATEGORY_IMAGES[lead.category] || CATEGORY_IMAGES.default
+  }, [lead.category])
+
+  const copyToClipboard = (text: string, type: 'phone' | 'email') => {
+    navigator.clipboard.writeText(text)
+    if (type === 'phone') {
+      setCopiedPhone(true)
+      setTimeout(() => setCopiedPhone(false), 2000)
+    } else {
+      setCopiedEmail(true)
+      setTimeout(() => setCopiedEmail(false), 2000)
+    }
+  }
+
+  const mapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    `${lead.name} ${lead.address || ''} ${lead.city}`
+  )}`
 
   return (
-    <div className="space-y-5">
-      {/* Score Gauges */}
-      <div className="flex items-start justify-around gap-4 py-3">
-        <ScoreGauge
-          score={opp?.opportunityScore ?? lead.score}
-          label="Opportunity Score"
-          color={getScoreColor(opp?.opportunityScore ?? lead.score)}
-        />
-        <ScoreGauge
-          score={opp?.confidenceScore ?? 50}
-          label="Confidence"
-          color="#8b5cf6"
-        />
-        <ScoreGauge
-          score={audit?.auditScore ?? 0}
-          label="Digital Audit"
-          color="#0ea5e9"
-        />
+    <div className="space-y-6">
+      {/* ── Top Hero Showcase: Visual Gallery + Comprehensive Contact & Identity ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        {/* Visual Imagery Gallery (5 Columns) */}
+        <div className="lg:col-span-5 flex flex-col gap-2.5">
+          <div className="relative h-60 w-full rounded-2xl overflow-hidden bg-zinc-900 border border-black/10 dark:border-white/10 shadow-md group">
+            <img
+              src={images[activeImgIndex] || images[0]}
+              alt={lead.name}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            {/* Top Badges Overlay */}
+            <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
+              <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-black/70 text-white backdrop-blur-md border border-white/20">
+                {getCategoryLabel(lead.category)}
+              </span>
+              {lead.distance != null && (
+                <span className="px-2 py-1 rounded-lg text-[10px] font-mono font-semibold bg-black/60 text-white backdrop-blur-md">
+                  {lead.distance < 1 ? `${Math.round(lead.distance * 1000)}m away` : `${lead.distance.toFixed(1)} km`}
+                </span>
+              )}
+            </div>
+
+            {/* Bottom Gradient with Rating */}
+            <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-center justify-between text-white">
+              <div className="flex items-center gap-1.5">
+                <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                <span className="text-xs font-bold">{lead.rating ? lead.rating.toFixed(1) : '4.5'}</span>
+                <span className="text-[11px] text-zinc-300">({lead.reviewCount ?? 0} reviews)</span>
+              </div>
+              <span className="text-[10px] font-mono text-zinc-300">OSM / Local Verified</span>
+            </div>
+          </div>
+
+          {/* Thumbnail strip */}
+          {images.length > 1 && (
+            <div className="flex items-center gap-2">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveImgIndex(idx)}
+                  className={cn(
+                    'h-14 flex-1 rounded-xl overflow-hidden border-2 transition-all cursor-pointer',
+                    activeImgIndex === idx
+                      ? 'border-(--primary) scale-[1.02] shadow-sm'
+                      : 'border-transparent opacity-70 hover:opacity-100'
+                  )}
+                >
+                  <img src={img} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Contact & Commercial Info Card (7 Columns) */}
+        <div className="lg:col-span-7 flex flex-col justify-between p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 space-y-4">
+          <div>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-(--primary)">
+                  Commercial Entity · {lead.city}
+                </span>
+                <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mt-0.5">{lead.name}</h3>
+              </div>
+              <span
+                className="text-xs font-bold px-2.5 py-1 rounded-xl"
+                style={{
+                  color: getScoreColor(opp?.opportunityScore ?? lead.score),
+                  background: `${getScoreColor(opp?.opportunityScore ?? lead.score)}15`,
+                  border: `1px solid ${getScoreColor(opp?.opportunityScore ?? lead.score)}30`,
+                }}
+              >
+                Score {opp?.opportunityScore ?? lead.score}/100
+              </span>
+            </div>
+          </div>
+
+          {/* Key Contact Items */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            {/* Address */}
+            <div className="p-3 rounded-xl bg-white dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700/60 flex flex-col justify-between gap-2">
+              <div className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 text-(--primary) shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-zinc-400 block">Physical Address</span>
+                  <p className="text-zinc-800 dark:text-zinc-200 line-clamp-2 mt-0.5">
+                    {lead.address || `${lead.city}, Commercial Zone`}
+                  </p>
+                </div>
+              </div>
+              <a
+                href={mapSearchUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-bold text-(--primary) hover:underline flex items-center gap-1 mt-1 self-start"
+              >
+                <span>View on Google Maps</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+
+            {/* Phone */}
+            <div className="p-3 rounded-xl bg-white dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700/60 flex flex-col justify-between gap-2">
+              <div className="flex items-start gap-2">
+                <Phone className="h-4 w-4 text-(--primary) shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-zinc-400 block">Phone Contact</span>
+                  <p className="font-mono font-semibold text-zinc-900 dark:text-zinc-100 truncate mt-0.5">
+                    {lead.contactPhone || lead.phone || 'No direct phone listed'}
+                  </p>
+                </div>
+              </div>
+              {(lead.contactPhone || lead.phone) ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <a
+                    href={`tel:${lead.contactPhone || lead.phone}`}
+                    className="text-[11px] font-bold text-(--primary) hover:underline"
+                  >
+                    Call Business
+                  </a>
+                  <span className="text-zinc-300 dark:text-zinc-600">·</span>
+                  <button
+                    onClick={() => copyToClipboard(lead.contactPhone || lead.phone || '', 'phone')}
+                    className="text-[11px] text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 flex items-center gap-1 cursor-pointer"
+                  >
+                    {copiedPhone ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                    <span>{copiedPhone ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+              ) : (
+                <span className="text-[11px] text-amber-500 font-medium">In-person outreach required</span>
+              )}
+            </div>
+
+            {/* Website Status */}
+            <div className="p-3 rounded-xl bg-white dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700/60 flex flex-col justify-between gap-2">
+              <div className="flex items-start gap-2">
+                <Globe className="h-4 w-4 text-(--primary) shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-zinc-400 block">Online Presence</span>
+                  <div className="mt-1">
+                    {lead.websiteStatus === 'none' ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-red-500/10 text-red-500 border border-red-500/20">
+                        No Website Detected
+                      </span>
+                    ) : lead.websiteStatus === 'outdated' ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                        Outdated Web Stack
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                        Active Website
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {(lead.websiteUrl || lead.website) ? (
+                <a
+                  href={lead.websiteUrl || lead.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[11px] font-bold text-(--primary) hover:underline flex items-center gap-1 mt-1 truncate"
+                >
+                  <span className="truncate">{lead.websiteUrl || lead.website}</span>
+                  <ExternalLink className="h-3 w-3 shrink-0" />
+                </a>
+              ) : (
+                <span className="text-[11px] text-red-500 font-semibold">Ready for Website Pitch</span>
+              )}
+            </div>
+
+            {/* Email / Digital Reach */}
+            <div className="p-3 rounded-xl bg-white dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700/60 flex flex-col justify-between gap-2">
+              <div className="flex items-start gap-2">
+                <Mail className="h-4 w-4 text-(--primary) shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-zinc-400 block">Direct Email</span>
+                  <p className="font-mono text-zinc-900 dark:text-zinc-100 truncate mt-0.5">
+                    {lead.contactEmail || 'Not published publicly'}
+                  </p>
+                </div>
+              </div>
+              {lead.contactEmail ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <a href={`mailto:${lead.contactEmail}`} className="text-[11px] font-bold text-(--primary) hover:underline">
+                    Send Email
+                  </a>
+                  <span className="text-zinc-300 dark:text-zinc-600">·</span>
+                  <button
+                    onClick={() => copyToClipboard(lead.contactEmail || '', 'email')}
+                    className="text-[11px] text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 flex items-center gap-1 cursor-pointer"
+                  >
+                    {copiedEmail ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                    <span>{copiedEmail ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+              ) : (
+                <span className="text-[11px] text-zinc-400">Available via phone / visit</span>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Digital Maturity Ladder (0 Invisible -> 4 Optimized) */}
-      <div className="rounded-xl border border-(--border) bg-(--surface) p-4 space-y-3">
+      {/* ── Key Score Gauges ── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider block">Opportunity Score</span>
+            <span className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mt-1 block">
+              {opp?.opportunityScore ?? lead.score}
+              <span className="text-xs text-zinc-400 font-normal ml-1">/ 100</span>
+            </span>
+            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 block">
+              High Conversion Probability
+            </span>
+          </div>
+          <ScoreGauge
+            score={opp?.opportunityScore ?? lead.score}
+            label=""
+            color={getScoreColor(opp?.opportunityScore ?? lead.score)}
+            size={74}
+          />
+        </div>
+
+        <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider block">AI Confidence</span>
+            <span className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mt-1 block">
+              {opp?.confidenceScore ?? 50}
+              <span className="text-xs text-zinc-400 font-normal ml-1">%</span>
+            </span>
+            <span className="text-[11px] text-violet-500 font-medium mt-0.5 block">
+              Multi-signal verified
+            </span>
+          </div>
+          <ScoreGauge
+            score={opp?.confidenceScore ?? 50}
+            label=""
+            color="#8b5cf6"
+            size={74}
+          />
+        </div>
+
+        <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider block">Digital Audit</span>
+            <span className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mt-1 block">
+              {audit?.auditScore ?? 0}
+              <span className="text-xs text-zinc-400 font-normal ml-1">/ 100</span>
+            </span>
+            <span className="text-[11px] text-sky-500 font-medium mt-0.5 block">
+              {audit?.websiteExists ? 'Technical deficit found' : 'Zero digital footprint'}
+            </span>
+          </div>
+          <ScoreGauge
+            score={audit?.auditScore ?? 0}
+            label=""
+            color="#0ea5e9"
+            size={74}
+          />
+        </div>
+      </div>
+
+      {/* ── Digital Maturity Ladder ── */}
+      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold text-(--text-muted) uppercase tracking-wider">Digital Maturity Ladder</span>
-          <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full', MATURITY_BG[maturityLevel], MATURITY_COLORS[maturityLevel])}>
-            Level {maturityLevel}: {MATURITY_LABELS[maturityLevel]}
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-(--primary)" />
+            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
+              Digital Maturity Progression
+            </span>
+          </div>
+          <span className={cn('text-xs font-bold px-3 py-1 rounded-full', MATURITY_BG[maturityLevel], MATURITY_COLORS[maturityLevel])}>
+            Current: Level {maturityLevel} ({MATURITY_LABELS[maturityLevel]})
           </span>
         </div>
 
         {/* 5-step interactive ladder */}
-        <div className="grid grid-cols-5 gap-1.5 pt-1">
+        <div className="grid grid-cols-5 gap-2 pt-1">
           {[0, 1, 2, 3, 4].map((lvl) => {
-            const isCurrent = maturityLevel === lvl;
-            const isPassed = maturityLevel > lvl;
+            const isCurrent = maturityLevel === lvl
+            const isPassed = maturityLevel > lvl
             return (
-              <div key={lvl} className="text-center space-y-1">
+              <div key={lvl} className="text-center space-y-1.5">
                 <div
                   className={cn(
-                    'h-2 rounded-full transition-all',
+                    'h-2.5 rounded-full transition-all',
                     isCurrent
-                      ? 'bg-(--primary) ring-2 ring-(--primary)/30'
+                      ? 'bg-(--primary) ring-4 ring-(--primary)/20'
                       : isPassed
                       ? 'bg-emerald-500'
-                      : 'bg-(--border)'
+                      : 'bg-zinc-200 dark:bg-zinc-800'
                   )}
                 />
-                <span className={cn(
-                  'text-[10px] block truncate',
-                  isCurrent ? 'font-bold text-(--primary)' : 'text-(--text-muted)'
-                )}>
+                <span
+                  className={cn(
+                    'text-[11px] block truncate',
+                    isCurrent ? 'font-bold text-(--primary)' : 'text-zinc-400'
+                  )}
+                >
                   {lvl}: {MATURITY_LABELS[lvl as DigitalMaturityLevel]}
                 </span>
               </div>
-            );
+            )
           })}
         </div>
 
-        <div className="flex items-center justify-between text-xs text-(--text-secondary) pt-1 border-t border-(--border)">
-          <span>Current: <strong className="text-(--text-primary)">{MATURITY_LABELS[maturityLevel]}</strong></span>
-          <span>Target: <strong className="text-(--primary)">Transactional (L3)</strong></span>
-          <span>Gap: <strong className="text-amber-500">{Math.max(0, 3 - maturityLevel)} Levels</strong></span>
+        <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+          <span>Current Level: <strong className="text-zinc-900 dark:text-zinc-100">{MATURITY_LABELS[maturityLevel]}</strong></span>
+          <span>Target Standard: <strong className="text-(--primary)">Transactional (L3)</strong></span>
+          <span>Growth Gap: <strong className="text-amber-500">{Math.max(0, 3 - maturityLevel)} Levels</strong></span>
         </div>
       </div>
 
-      {/* WHY THIS OPPORTUNITY? Signature Explainer Component */}
-      <div className="rounded-xl border border-(--border) bg-(--surface-raised) p-4 space-y-3">
+      {/* ── Why This Opportunity? Cards ── */}
+      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 p-5 space-y-3.5">
         <div className="flex items-center gap-2">
-          <div className="h-6 w-6 rounded-lg bg-(--primary-soft) flex items-center justify-center">
+          <div className="h-6 w-6 rounded-lg bg-(--primary)/15 flex items-center justify-center">
             <Wand2 className="h-3.5 w-3.5 text-(--primary)" />
           </div>
-          <span className="text-xs font-bold text-(--text-primary) uppercase tracking-wider">
-            Why This Opportunity?
+          <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
+            Why This Opportunity? (AI Analysis)
           </span>
         </div>
 
-        <div className="space-y-2 text-xs">
-          <div className="flex items-start gap-2.5 p-2 rounded-lg bg-(--surface) border border-(--border)">
-            <span className="font-mono text-[10px] font-bold text-(--primary) shrink-0 mt-0.5">01</span>
-            <div>
-              <p className="font-semibold text-(--text-primary)">
-                {lead.websiteStatus === 'none'
-                  ? 'No digital website presence detected'
-                  : 'Outdated web presence lacking mobile/transactional flow'}
-              </p>
-              <p className="text-[11px] text-(--text-muted) mt-0.5">✓ Verified via web inspection and DNS audit</p>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+          <div className="p-3.5 rounded-xl bg-white dark:bg-zinc-800/90 border border-zinc-200 dark:border-zinc-700/60 space-y-1.5">
+            <span className="font-mono text-[10px] font-bold text-(--primary)">01 · WEB PRESENCE</span>
+            <p className="font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
+              {lead.websiteStatus === 'none'
+                ? 'No digital website presence detected'
+                : 'Outdated web presence lacking mobile/transactional flow'}
+            </p>
+            <p className="text-[11px] text-zinc-400">Verified via web inspection and DNS audit</p>
           </div>
 
-          <div className="flex items-start gap-2.5 p-2 rounded-lg bg-(--surface) border border-(--border)">
-            <span className="font-mono text-[10px] font-bold text-(--primary) shrink-0 mt-0.5">02</span>
-            <div>
-              <p className="font-semibold text-(--text-primary)">
-                High customer volume ({lead.reviewCount ?? 0} reviews) with zero transactional capture
-              </p>
-              <p className="text-[11px] text-(--text-muted) mt-0.5">✓ Verified from Google Maps / OSM activity signals</p>
-            </div>
+          <div className="p-3.5 rounded-xl bg-white dark:bg-zinc-800/90 border border-zinc-200 dark:border-zinc-700/60 space-y-1.5">
+            <span className="font-mono text-[10px] font-bold text-(--primary)">02 · REVENUE CAPTURE</span>
+            <p className="font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
+              High foot-traffic ({lead.reviewCount ?? 0} reviews) with zero online booking
+            </p>
+            <p className="text-[11px] text-zinc-400">Verified from Google Maps / OSM activity signals</p>
           </div>
 
-          <div className="flex items-start gap-2.5 p-2 rounded-lg bg-(--surface) border border-(--border)">
-            <span className="font-mono text-[10px] font-bold text-(--primary) shrink-0 mt-0.5">03</span>
-            <div>
-              <p className="font-semibold text-(--text-primary)">
-                Competitor digital gap in {lead.city} ({getCategoryLabel(lead.category)})
-              </p>
-              <p className="text-[11px] text-(--text-muted) mt-0.5">✓ Derived from local radius benchmark density</p>
-            </div>
+          <div className="p-3.5 rounded-xl bg-white dark:bg-zinc-800/90 border border-zinc-200 dark:border-zinc-700/60 space-y-1.5">
+            <span className="font-mono text-[10px] font-bold text-(--primary)">03 · COMPETITIVE GAP</span>
+            <p className="font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
+              Competitor digital gap in {lead.city} ({getCategoryLabel(lead.category)})
+            </p>
+            <p className="text-[11px] text-zinc-400">Derived from local radius benchmark density</p>
           </div>
         </div>
 
         {/* Next Best Action Banner */}
-        <div className="mt-2 p-3 rounded-xl bg-(--primary-soft) border border-(--primary)/20 flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-(--primary)/10 border border-(--primary)/20 flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold text-(--primary) uppercase tracking-wide">Next Best Action</span>
-            <p className="text-xs font-semibold text-(--text-primary)">
+            <span className="text-[10px] font-bold text-(--primary) uppercase tracking-wide block">Next Best Action</span>
+            <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5">
               {opp?.recommendedNextAction?.action || 'Prepare evidence-grounded outreach email'}
             </p>
           </div>
-          <Badge variant="default" className="text-[10px]">
+          <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase bg-(--primary) text-white shrink-0">
             High Impact
-          </Badge>
+          </span>
         </div>
       </div>
 
-      {/* Primary Opportunity */}
-      {opp?.primaryOpportunity && (
-        <div className="rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/40 p-4">
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <Target className="h-3.5 w-3.5 text-indigo-500" />
-            <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">Primary Opportunity</span>
-          </div>
-          <p className="text-sm text-zinc-800 dark:text-zinc-200 leading-relaxed">{opp.primaryOpportunity}</p>
+      {/* ── Pipeline Progression Stepper ── */}
+      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wide">
+            Pipeline Progression Stage
+          </p>
+          <span className="text-xs font-semibold text-(--primary)">
+            Current: {getPipelineLabel(lead.pipelineStage)}
+          </span>
         </div>
-      )}
-
-      {/* Quick metadata */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-          <MapPin className="h-4 w-4 text-zinc-400 shrink-0" />
-          <span>{lead.address}, {lead.city}</span>
-        </div>
-        {(lead.phone || lead.contactPhone) && (
-          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-            <Phone className="h-4 w-4 text-zinc-400 shrink-0" />
-            <span className="font-mono">{lead.contactPhone || lead.phone}</span>
-          </div>
-        )}
-        <div className="flex items-center gap-2 text-sm">
-          <Globe className="h-4 w-4 text-zinc-400 shrink-0" />
-          <Badge variant={lead.websiteStatus === 'none' ? 'warning' : 'secondary'}>
-            {lead.websiteStatus === 'none' ? 'No website detected' : lead.websiteStatus === 'outdated' ? 'Outdated site' : 'Has website'}
-          </Badge>
-          {(lead.websiteUrl || lead.website) && (
-            <a
-              href={lead.websiteUrl || lead.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-indigo-500 hover:underline flex items-center gap-0.5 truncate max-w-35"
-            >
-              Visit <ExternalLink className="h-3 w-3 shrink-0" />
-            </a>
-          )}
-        </div>
-        {lead.rating && (
-          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-            <Star className="h-4 w-4 text-amber-400 shrink-0" />
-            <span>{lead.rating.toFixed(1)} ({lead.reviewCount ?? 0} reviews)</span>
-          </div>
-        )}
-      </div>
-
-      {/* Pipeline Stage */}
-      <div>
-        <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide mb-3">Pipeline Stage</p>
-        <StageStepper current={lead.pipelineStage} onAdvance={() => {}} />
+        <StageStepper
+          current={lead.pipelineStage}
+          onAdvance={(nextStage) => updateLeadStore(lead.id, { pipelineStage: nextStage })}
+        />
       </div>
     </div>
   )
@@ -1169,42 +1464,68 @@ export function LeadDetailPanel() {
   }, [lead?.id])
 
   useEffect(() => {
-    if (!selectedLeadId) { preparedLeadRef.current = null; setActiveTab('overview') }
-  }, [selectedLeadId])
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedLeadId(null)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [setSelectedLeadId])
 
-
+  if (!selectedLeadId) return null
 
   return (
-    <Sheet open={!!selectedLeadId} onClose={() => setSelectedLeadId(null)} width="w-[600px]">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-5 py-4">
-        {!lead ? (
-          <div className="flex items-center justify-between">
-            <div className="space-y-2"><Skeleton className="h-5 w-48" /><Skeleton className="h-4 w-32" /></div>
-            <button onClick={() => setSelectedLeadId(null)} className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 shrink-0">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="h-10 w-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xl shrink-0">
-                  {(() => { const Icon = CAT_ICON[lead.category] || Store; return <Icon className="h-6 w-6" /> })()}
-                </div>
-                <div className="min-w-0">
-                  <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 truncate">{lead.name}</h2>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">{getCategoryLabel(lead.category)} · {lead.city}</p>
-                    {lead.opportunityAnalysis && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: getScoreColor(lead.opportunityAnalysis.opportunityScore), background: `${getScoreColor(lead.opportunityAnalysis.opportunityScore)}20` }}>
-                        Score {lead.opportunityAnalysis.opportunityScore}
+    <div
+      className="fixed inset-0 z-[1100] bg-black/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+      onClick={() => setSelectedLeadId(null)}
+    >
+      <div
+        className="relative w-full max-w-5xl my-auto bg-white dark:bg-[#141714] text-(--text-primary) rounded-2xl border border-black/10 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-white/95 dark:bg-[#141714]/95 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 px-6 py-4">
+          {!lead ? (
+            <div className="flex items-center justify-between">
+              <div className="space-y-2"><Skeleton className="h-5 w-48" /><Skeleton className="h-4 w-32" /></div>
+              <button
+                onClick={() => setSelectedLeadId(null)}
+                className="h-9 w-9 flex items-center justify-center rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 shrink-0 cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="h-11 w-11 rounded-xl bg-(--primary)/10 text-(--primary) flex items-center justify-center text-xl shrink-0 border border-(--primary)/20">
+                    {(() => { const Icon = CAT_ICON[lead.category] || Store; return <Icon className="h-6 w-6" /> })()}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">{lead.name}</h2>
+                      <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-md bg-(--primary)/15 text-(--primary)">
+                        {getCategoryLabel(lead.category)}
                       </span>
-                    )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">{lead.address ? `${lead.address}, ${lead.city}` : lead.city}</p>
+                      {lead.opportunityAnalysis && (
+                        <span
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                          style={{
+                            color: getScoreColor(lead.opportunityAnalysis.opportunityScore),
+                            background: `${getScoreColor(lead.opportunityAnalysis.opportunityScore)}20`,
+                          }}
+                        >
+                          Score {lead.opportunityAnalysis.opportunityScore}/100
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-                <div className="flex items-center gap-2 shrink-0 ml-2">
+
+                <div className="flex items-center gap-2 shrink-0 ml-3">
                   <Button
                     size="sm"
                     onClick={() => {
@@ -1214,85 +1535,86 @@ export function LeadDetailPanel() {
                       }).catch(() => updateLeadStore(lead.id, { isPreparing: false }))
                     }}
                     isLoading={lead.isPreparing}
-                    className="text-xs h-8 px-3 gap-1.5 shadow-sm"
+                    className="text-xs h-9 px-4 gap-1.5 shadow-sm font-bold"
                   >
                     <Wand2 className="h-3.5 w-3.5" />
                     <span>Prepare Opportunity</span>
                   </Button>
                   <button
                     onClick={() => setSelectedLeadId(null)}
-                    className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-(--surface-hover) text-(--text-muted) hover:text-(--text-primary) transition-colors shrink-0"
+                    className="h-9 w-9 flex items-center justify-center rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors shrink-0 cursor-pointer"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-5 w-5" />
                   </button>
                 </div>
               </div>
 
-            {/* Tab Bar */}
-            <div className="flex gap-0.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
-              {TABS.map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setActiveTab(id)}
-                  className={cn(
-                    'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all shrink-0',
-                    activeTab === id
-                      ? 'bg-(--primary) text-white shadow-sm'
-                      : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                  )}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {label}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="p-5">
-        {!lead ? (
-          <div className="space-y-4">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
-        ) : (
-          <>
-            {/* Preparation / error banners */}
-            <AnimatePresence>
-              {lead.isPreparing && (
-                <motion.div key="prep-banner" className="mb-4">
-                  <PreparationBanner lead={lead} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-            {lead.lastError && !lead.isPreparing && (
-              <div className="flex items-center gap-2 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 rounded-lg px-3 py-2 mb-4">
-                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                Partial enrichment: {lead.lastError}
+              {/* Tab Bar */}
+              <div className="flex gap-1 overflow-x-auto scrollbar-hide -mx-1 px-1">
+                {TABS.map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    onClick={() => setActiveTab(id)}
+                    className={cn(
+                      'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0 cursor-pointer',
+                      activeTab === id
+                        ? 'bg-(--primary) text-white shadow-sm'
+                        : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {label}
+                  </button>
+                ))}
               </div>
-            )}
+            </>
+          )}
+        </div>
 
-            {/* Tab Content */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.15 }}
-              >
-                {activeTab === 'overview' && <OverviewTab lead={lead} />}
-                {activeTab === 'audit' && <DigitalAuditTab lead={lead} />}
-                {activeTab === 'opportunity' && <OpportunityTab lead={lead} />}
-                {activeTab === 'evidence' && <EvidenceTab lead={lead} />}
-                {activeTab === 'competitors' && <CompetitorsTab lead={lead} />}
-                {activeTab === 'outreach' && <OutreachTab key={lead.id} lead={lead} />}
-                {activeTab === 'proposal' && <ProposalTab key={`prop-${lead.id}`} lead={lead} />}
-                {activeTab === 'activity' && <ActivityTab lead={lead} />}
-              </motion.div>
-            </AnimatePresence>
-          </>
-        )}
+        {/* Scrollable Content Body */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {!lead ? (
+            <div className="space-y-4">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
+          ) : (
+            <>
+              {/* Preparation / error banners */}
+              <AnimatePresence>
+                {lead.isPreparing && (
+                  <motion.div key="prep-banner" className="mb-4">
+                    <PreparationBanner lead={lead} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {lead.lastError && !lead.isPreparing && (
+                <div className="flex items-center gap-2 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 rounded-xl px-3 py-2 mb-4 border border-amber-500/20">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  Partial enrichment: {lead.lastError}
+                </div>
+              )}
+
+              {/* Tab Content */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  {activeTab === 'overview' && <OverviewTab lead={lead} />}
+                  {activeTab === 'audit' && <DigitalAuditTab lead={lead} />}
+                  {activeTab === 'opportunity' && <OpportunityTab lead={lead} />}
+                  {activeTab === 'evidence' && <EvidenceTab lead={lead} />}
+                  {activeTab === 'competitors' && <CompetitorsTab lead={lead} />}
+                  {activeTab === 'outreach' && <OutreachTab key={lead.id} lead={lead} />}
+                  {activeTab === 'proposal' && <ProposalTab key={`prop-${lead.id}`} lead={lead} />}
+                  {activeTab === 'activity' && <ActivityTab lead={lead} />}
+                </motion.div>
+              </AnimatePresence>
+            </>
+          )}
+        </div>
       </div>
-    </Sheet>
+    </div>
   )
 }
