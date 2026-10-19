@@ -85,6 +85,11 @@ function App() {
         {/* ── Auth & Onboarding pages ────────────────────────── */}
         <Route path="/login" element={<LoginPage initialMode="login" />} />
         <Route path="/sign-in" element={<LoginPage initialMode="login" />} />
+        <Route path="/signin" element={<LoginPage initialMode="login" />} />
+        <Route path="/signin/adminlog" element={<AdminLoginPage />} />
+        <Route path="/signin/adminlog/*" element={<AdminLoginPage />} />
+        <Route path="/sign-in/adminlog" element={<AdminLoginPage />} />
+        <Route path="/sign-in/adminlog/*" element={<AdminLoginPage />} />
         <Route path="/signup" element={<LoginPage initialMode="signup" />} />
         <Route path="/sign-up" element={<LoginPage initialMode="signup" />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
