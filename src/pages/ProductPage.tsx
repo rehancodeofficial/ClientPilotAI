@@ -13,8 +13,8 @@ const sections = [
     subtitle: 'Find businesses matching your target market.',
     desc: 'Scan open map databases and business directories using target keywords, locations, industries, and business models. Filter out irrelevant entities before spending energy on technical evaluation.',
     icon: Search,
-    accent: '#4cc02b',
-    bg: 'from-[#eaf5e7] to-[#f4f7f2]',
+    accent: '#4AC329',
+    bg: 'from-[#DDE7D0]/50 to-[#F7F6F6]',
     tags: ['Industry filters', 'Location targeting', 'Contact enrichment', 'Maps integration'],
     img: 'https://images.unsplash.com/photo-1577415124269-fc1140a69e91?auto=format&fit=crop&w=800&q=80',
   },
@@ -25,8 +25,8 @@ const sections = [
     subtitle: 'Understand websites and digital presence.',
     desc: 'Deep multi-vector analysis across technical performance, mobile UX, SEO tags, accessibility compliance, conversion paths, and business capabilities. 40+ signals per site, automatically.',
     icon: Globe,
-    accent: '#2f851d',
-    bg: 'from-[#f0f5ed] to-[#f7faf5]',
+    accent: '#2B7A1A',
+    bg: 'from-[#DDE7D0]/30 to-[#F7F6F6]',
     tags: ['Core Web Vitals', 'SEO analysis', 'Mobile audit', 'Accessibility'],
     img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
   },
@@ -37,8 +37,8 @@ const sections = [
     subtitle: 'Convert findings into agency deliverables.',
     desc: 'ClientPilot doesn\'t just show errors — it maps technical deficiencies directly to commercial agency deliverables like custom web development, booking flows, or SEO revamps.',
     icon: Wand2,
-    accent: '#4cc02b',
-    bg: 'from-[#eaf5e7] to-[#f4f7f2]',
+    accent: '#4AC329',
+    bg: 'from-[#DDE7D0]/50 to-[#F7F6F6]',
     tags: ['Gap mapping', 'Service matching', 'Revenue estimate', 'Priority ranking'],
     img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
   },
@@ -49,8 +49,8 @@ const sections = [
     subtitle: 'Prioritize using transparent signals.',
     desc: 'Understand exactly why a prospect scored 84/100 using clear breakdowns: severity, service fit, evidence confidence, business fit, reachability, and commercial potential.',
     icon: Target,
-    accent: '#2f851d',
-    bg: 'from-[#f0f5ed] to-[#f7faf5]',
+    accent: '#2B7A1A',
+    bg: 'from-[#DDE7D0]/30 to-[#F7F6F6]',
     tags: ['Lead scoring', 'Budget signals', 'Decision-makers', 'Intent signals'],
     img: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?auto=format&fit=crop&w=800&q=80',
   },
@@ -61,8 +61,8 @@ const sections = [
     subtitle: 'Create evidence-backed personalized outreach.',
     desc: 'Generate tailored outreach drafts referencing real, verified website gaps. Every draft requires human review before dispatch, maintaining full brand authority.',
     icon: Mail,
-    accent: '#4cc02b',
-    bg: 'from-[#eaf5e7] to-[#f4f7f2]',
+    accent: '#4AC329',
+    bg: 'from-[#DDE7D0]/50 to-[#F7F6F6]',
     tags: ['Evidence-based', 'Tone options', 'Follow-up sequences', 'A/B variants'],
     img: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80',
   },
@@ -73,8 +73,8 @@ const sections = [
     subtitle: 'Convert opportunities into actionable requirements.',
     desc: 'Seamlessly structure won opportunities into developer-ready task briefs with problem description, evidence, affected URLs, recommended fix, and acceptance criteria.',
     icon: Code2,
-    accent: '#2f851d',
-    bg: 'from-[#f0f5ed] to-[#f7faf5]',
+    accent: '#2B7A1A',
+    bg: 'from-[#DDE7D0]/30 to-[#F7F6F6]',
     tags: ['Technical briefs', 'Effort estimates', 'Priority ordering', 'Client-ready'],
     img: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80',
   },
@@ -85,8 +85,8 @@ const sections = [
     subtitle: 'Verify implemented improvements.',
     desc: 'Run post-project audits to confirm that implemented code changes resolved the original detected gap. Results categorized as Pass / Partial / Fail / Needs Review.',
     icon: ShieldCheck,
-    accent: '#4cc02b',
-    bg: 'from-[#eaf5e7] to-[#f4f7f2]',
+    accent: '#4AC329',
+    bg: 'from-[#DDE7D0]/50 to-[#F7F6F6]',
     tags: ['Pass/Fail audits', 'Before/after compare', 'Client reports', 'Auto-recheck'],
     img: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80',
   },
@@ -97,8 +97,8 @@ const sections = [
     subtitle: 'Learn from your agency\'s decisions.',
     desc: 'ClientPilot continuously refines lead qualification based on which recommendations your agency accepts, rejects, or closes into revenue. Gets smarter with every deal.',
     icon: Brain,
-    accent: '#2f851d',
-    bg: 'from-[#f0f5ed] to-[#f7faf5]',
+    accent: '#2B7A1A',
+    bg: 'from-[#DDE7D0]/30 to-[#F7F6F6]',
     tags: ['Outcome learning', 'Win/loss signals', 'Preference memory', 'Smarter scoring'],
     img: 'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?auto=format&fit=crop&w=800&q=80',
   },
@@ -106,20 +106,20 @@ const sections = [
 
 export function ProductPage() {
   return (
-    <div className="min-h-screen bg-[#edede8] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white">
+    <div className="min-h-screen bg-warm-ivory text-charcoal-body font-sans selection:bg-lime-green selection:text-rich-black">
       <PublicNavbar />
 
       {/* Hero */}
-      <section className="relative py-20 sm:py-28 border-b border-black/10 text-center overflow-hidden bg-[#edede8]">
+      <section className="relative py-20 sm:py-28 border-b border-black/10 text-center overflow-hidden bg-warm-ivory">
         <div className="absolute inset-0 z-0">
           <img
             src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=2000&q=80"
             alt="Product Digital Presence Workspace"
             className="w-full h-full object-cover opacity-10"
           />
-          <div className="absolute inset-0 bg-linear-to-b from-[#edede8]/90 via-[#edede8]/85 to-[#edede8]" />
-          <div className="absolute top-0 right-1/4 w-96 h-96 bg-lime-pulse/15 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-lime-pulse/8 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute inset-0 bg-linear-to-b from-warm-ivory/90 via-warm-ivory/85 to-warm-ivory" />
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-lime-green/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-lime-green/8 rounded-full blur-2xl pointer-events-none" />
         </div>
 
         <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6 space-y-6">
@@ -271,7 +271,7 @@ export function ProductPage() {
               <h2 className="text-3xl sm:text-4xl font-normal tracking-tight font-heading">Ready to see it in action?</h2>
               <p className="text-white/60 max-w-md mx-auto text-base">Start free. No credit card required.</p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                <Link to="/signup" className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-graphite-ink bg-white hover:bg-[#edede8] transition-all">
+                <Link to="/signup" className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-graphite-ink bg-white hover:bg-warm-ivory transition-all">
                   Start Free <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link to="/how-it-works" className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-white border border-white/20 hover:border-white/40 transition-all">

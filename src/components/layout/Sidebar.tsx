@@ -86,15 +86,15 @@ function NavGroup({
               className={cn(
                 'flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-bold text-[13px] transition-all relative overflow-hidden',
                 isActive
-                  ? 'clay-raised bg-(--primary) text-[#171a17] shadow-sm'
+                  ? 'clay-raised bg-(--primary) text-[#101010] shadow-sm'
                   : 'text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
               )}
               title={collapsed ? itemLabel : undefined}
             >
               {isActive && (
-                <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#171a17]" />
+                <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#101010]" />
               )}
-              <Icon className={cn('h-[17px] w-[17px] shrink-0', isActive ? 'text-[#171a17] ml-1' : '')} />
+              <Icon className={cn('h-[17px] w-[17px] shrink-0', isActive ? 'text-[#101010] ml-1' : '')} />
               <AnimatePresence>
                 {!collapsed && (
                   <motion.span

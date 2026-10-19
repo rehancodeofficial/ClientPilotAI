@@ -9,6 +9,7 @@ import {
   verifyEmailOtp,
   resendEmailOtp,
   loginWithPassword,
+  loginAdmin,
   requestPasswordReset,
   resetPasswordWithOtp,
   changeUserPassword,
@@ -66,8 +67,13 @@ const ResendOtpSchema = z.object({
 });
 
 const LoginSchema = z.object({
-  email: z.string().trim().email('Invalid email address'),
+  email: z.string().trim().min(1, 'Email is required'),
   password: z.string().min(1, 'Password is required'),
+});
+
+const AdminLoginSchema = z.object({
+  email: z.string().trim().min(1, 'Admin email or username is required'),
+  password: z.string().min(1, 'Admin password is required'),
 });
 
 const ForgotPasswordSchema = z.object({
@@ -170,6 +176,35 @@ router.post('/resend-otp', resendLimiter, async (req, res) => {
 });
 
 /**
+ * POST /api/auth/admin-login
+ * Direct Administrator Authentication (No signup required)
+ */
+router.post('/admin-login', authLimiter, async (req, res) => {
+  const parsed = AdminLoginSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: parsed.error.issues[0]?.message || 'Validation error',
+      code: 'VALIDATION_FAILED',
+    });
+  }
+
+  try {
+    const result = await loginAdmin(parsed.data);
+    res.status(200).json({
+      success: true,
+      message: 'Administrator authentication successful',
+      ...result,
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    res.status(401).json({
+      error: message || 'Invalid administrator credentials.',
+      code: 'INVALID_CREDENTIALS',
+    });
+  }
+});
+
+/**
  * POST /api/auth/login
  */
 router.post('/login', authLimiter, async (req, res) => {
@@ -221,6 +256,25 @@ router.get('/me', authMiddleware, async (req, res) => {
       .maybeSingle();
 
     if (!profile) {
+      if (user.role === 'admin' || (user as any).app_metadata?.role === 'admin') {
+        return res.status(200).json({
+          user: {
+            id: user.sub,
+            email: user.email || 'admin@clientpilot.ai',
+            role: 'admin',
+            fullName: 'System Administrator',
+            workspaceId: user.demo_workspace_id || '00000000-0000-0000-0000-000000000001',
+            avatarUrl: null,
+          },
+          profile: {
+            id: user.sub,
+            email: user.email || 'admin@clientpilot.ai',
+            role: 'admin',
+            full_name: 'System Administrator',
+            workspace_id: user.demo_workspace_id || '00000000-0000-0000-0000-000000000001',
+          },
+        });
+      }
       return res.status(404).json({ error: 'User profile not found', code: 'NOT_FOUND' });
     }
 

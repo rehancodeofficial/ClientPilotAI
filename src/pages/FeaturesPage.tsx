@@ -18,8 +18,8 @@ const fadeUp = {
 }
 
 const accents = [
-  '#4cc02b', '#2f851d', '#4cc02b', '#2f851d', '#4cc02b', '#2f851d',
-  '#4cc02b', '#2f851d', '#4cc02b', '#2f851d', '#4cc02b', '#2f851d', '#4cc02b', '#2f851d'
+  '#4AC329', '#2B7A1A', '#4AC329', '#2B7A1A', '#4AC329', '#2B7A1A',
+  '#4AC329', '#2B7A1A', '#4AC329', '#2B7A1A', '#4AC329', '#2B7A1A', '#4AC329', '#2B7A1A'
 ]
 
 const features = [
@@ -139,11 +139,11 @@ const features = [
 
 export function FeaturesPage() {
   return (
-    <div className="min-h-screen bg-[#edede8] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-warm-ivory text-charcoal-body font-sans selection:bg-lime-green selection:text-rich-black overflow-x-hidden">
       <PublicNavbar />
 
       {/* Hero */}
-      <section className="py-20 lg:py-28 bg-[#edede8] border-b border-black/10">
+      <section className="py-20 lg:py-28 bg-warm-ivory border-b border-black/10">
         <div className="max-w-300 mx-auto px-4 sm:px-6">
           <motion.h1
             variants={fadeUp} custom={0.1}
@@ -191,7 +191,7 @@ export function FeaturesPage() {
         <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {features.map((f, idx) => {
-              const accent = accents[idx] || '#4cc02b'
+              const accent = accents[idx] || '#4AC329'
               return (
                 <motion.div
                   key={f.title}

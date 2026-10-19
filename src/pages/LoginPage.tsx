@@ -486,57 +486,11 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
     setMode(targetMode)
     navigate(targetMode === 'login' ? '/login' : '/signup')
   }
-
-  const handleDemoLogin = async (role: 'admin' | 'user') => {
-    setLoading(true)
-    setError(null)
-    try {
-      let rawApiUrl = (import.meta.env.VITE_API_URL || '/api').trim()
-      if (rawApiUrl.startsWith('http')) {
-        if (rawApiUrl.endsWith('/')) rawApiUrl = rawApiUrl.slice(0, -1)
-        if (!rawApiUrl.endsWith('/api')) rawApiUrl += '/api'
-      } else if (!rawApiUrl.startsWith('/api')) {
-        rawApiUrl = '/api'
-      }
-
-      const response = await fetch(`${rawApiUrl}/auth/demo`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role }),
-      })
-
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({ error: 'Demo login failed' }))
-        throw new Error(err.error || 'Demo login failed')
-      }
-
-      const { token } = await response.json()
-      useAppStore.getState().setDemoToken(token)
-      setUserEmail(
-        role === 'admin' ? 'admin@demo.clientpilotai' : 'user@demo.clientpilotai'
-      )
-      setUserRole(role)
-      navigate(role === 'admin' ? '/app/admin' : '/app')
-    } catch (err) {
-      // Previously this granted "role-only access" and navigated straight to
-      // the admin dashboard whenever the demo endpoint failed — entry with no
-      // token and no verification of any kind. A failed demo login is now
-      // simply a failed login.
-      setError(
-        err instanceof Error
-          ? `Demo sign-in unavailable: ${err.message}`
-          : 'Demo sign-in is unavailable right now.'
-      )
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <div style={{
       display: 'flex', width: '100vw', height: '100vh',
       overflow: 'hidden', fontFamily: 'var(--font-sans)',
-      background: '#0d0f12',
+      background: 'var(--bg)',
     }}>
       <style>{`
         @keyframes auth-shake {
@@ -604,17 +558,6 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
         .auth-social-btn:active:not(:disabled) {
           transform: translateY(0);
         }
-        .auth-demo-btn {
-          flex: 1; height: 44px; border-radius: 12px; font-size: 12px; font-weight: 600;
-          font-family: var(--font-sans); cursor: pointer;
-          display: flex; align-items: center; justify-content: center; gap: 6px;
-          transition: transform 300ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 200ms, background 200ms;
-        }
-        .auth-demo-btn:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        .auth-demo-btn:disabled { opacity: 0.45; cursor: not-allowed; }
         .auth-toggle-btn {
           background: none; border: none; color: #141414; font-weight: 700;
           font-family: var(--font-sans); font-size: inherit; cursor: pointer; padding: 0;
@@ -634,7 +577,7 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
         className="auth-left"
         style={{
           width: '46%', height: '100%',
-          background: '#edebe4',
+          background: 'var(--bg)',
           position: 'relative',
           display: 'flex', flexDirection: 'column',
           justifyContent: 'space-between',
@@ -1421,70 +1364,6 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
                         <button className="auth-toggle-btn" onClick={() => handleStateToggle('signup')}>Sign up free</button>
                       </>
                     )}
-                  </div>
-
-                  {/* Divider */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '18px 0' }}>
-                    <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.06)' }} />
-                    <span style={{ fontSize: 10, fontWeight: 700, color: '#8f8f8e', textTransform: 'uppercase', letterSpacing: '1px', fontFamily: 'monospace' }}>
-                      Demo Access
-                    </span>
-                    <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.06)' }} />
-                  </div>
-
-                  {/* Test Accounts Quick-Fill */}
-                  <div style={{ marginTop: 14, padding: '10px 12px', borderRadius: 8, background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.06)' }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: '#6f6f6e', marginBottom: 8 }}>
-                      Quick Fill Real Test Accounts:
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEmail('admin@clientpilotai.com')
-                          setPassword('Admin123!Client')
-                          setMode('login')
-                        }}
-                        style={{
-                          fontSize: 11,
-                          padding: '6px 8px',
-                          borderRadius: 6,
-                          border: '1px solid rgba(0,0,0,0.1)',
-                          background: '#fff',
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4
-                        }}
-                      >
-                        <Zap size={11} style={{ color: '#4cc02b' }} />
-                        <span>Admin</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEmail('user@clientpilotai.com')
-                          setPassword('User123!Client')
-                          setMode('login')
-                        }}
-                        style={{
-                          fontSize: 11,
-                          padding: '6px 8px',
-                          borderRadius: 6,
-                          border: '1px solid rgba(0,0,0,0.1)',
-                          background: '#fff',
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4
-                        }}
-                      >
-                        <User size={11} style={{ color: '#4cc02b' }} />
-                        <span>Agency / User</span>
-                      </button>
-                    </div>
                   </div>
                 </motion.div>
               )}

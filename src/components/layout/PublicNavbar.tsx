@@ -58,8 +58,8 @@ export function PublicNavbar() {
     <header
       className={`sticky top-0 z-50 transition-colors duration-300 font-sans ${
         scrolled
-          ? 'bg-[#edede8]/98 backdrop-blur-md border-b border-black/10 shadow-[0_2px_16px_rgba(0,0,0,0.05)] py-2.5'
-          : 'bg-[#edede8] border-b border-black/8 py-3.5'
+          ? 'bg-warm-ivory/98 backdrop-blur-md border-b border-black/10 shadow-[0_2px_16px_rgba(16,16,16,0.05)] py-2.5'
+          : 'bg-warm-ivory border-b border-black/8 py-3.5'
       }`}
     >
       <div className="max-w-310 mx-auto px-4 sm:px-6 flex items-center justify-between">
@@ -229,7 +229,7 @@ export function PublicNavbar() {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="xl:hidden bg-[#edede8] border-b border-black/10 overflow-hidden shadow-lg"
+            className="xl:hidden bg-warm-ivory border-b border-black/10 overflow-hidden shadow-lg"
           >
             <div className="max-w-310 mx-auto px-4 sm:px-6 pt-3 pb-6 space-y-4">
               {/* Responsive Navigation Grid (1 col on mobile, 3 cols on tablet) */}

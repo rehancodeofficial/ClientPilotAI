@@ -136,11 +136,11 @@ export function PricingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   return (
-    <div className="min-h-screen bg-[#edede8] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-warm-ivory text-charcoal-body font-sans selection:bg-lime-green selection:text-rich-black overflow-x-hidden">
       <PublicNavbar />
 
       {/* Hero */}
-      <section className="relative py-20 lg:py-28 border-b border-black/10 overflow-hidden bg-[#edede8]">
+      <section className="relative py-20 lg:py-28 border-b border-black/10 overflow-hidden bg-warm-ivory">
         {/* Background Image with refined gradient overlay */}
         <div className="absolute inset-0 z-0">
           <img
@@ -148,8 +148,8 @@ export function PricingPage() {
             alt="Agency Growth"
             className="w-full h-full object-cover opacity-10"
           />
-          <div className="absolute inset-0 bg-linear-to-b from-[#edede8]/90 via-[#edede8]/85 to-[#edede8]" />
-          <div className="absolute top-0 right-1/4 w-96 h-96 bg-lime-pulse/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute inset-0 bg-linear-to-b from-warm-ivory/90 via-warm-ivory/85 to-warm-ivory" />
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-lime-green/15 rounded-full blur-3xl pointer-events-none" />
         </div>
 
         <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6 text-left">
@@ -215,8 +215,8 @@ export function PricingPage() {
                 whileHover={{ y: -4 }}
                 className={`relative p-6 sm:p-7 rounded-2xl border flex flex-col justify-between transition-all duration-200 ${
                   tier.featured
-                    ? 'bg-[#eaf5e7] border-lime-pulse/40 shadow-[0_8px_30px_rgba(76,192,43,0.12)]'
-                    : 'bg-white border-black/8 hover:border-black/15 shadow-sm'
+                    ? 'bg-soft-sage/40 border-pale-green-border shadow-[0_8px_30px_rgba(74,195,41,0.14)]'
+                    : 'bg-pure-white border-black/8 hover:border-black/15 shadow-sm'
                 }`}
               >
                 {tier.badge && (
@@ -385,7 +385,7 @@ export function PricingPage() {
                 <tr className="border-b border-black/8">
                   <th className="text-left py-3 pr-4 text-charcoal-body font-normal w-48">Feature</th>
                   {['Free', 'Starter', 'Agency', 'Pro', 'Enterprise'].map((t) => (
-                    <th key={t} className={`text-center py-3 px-2 font-normal ${t === 'Agency' ? 'text-charcoal-body bg-[#edede8] rounded-t-lg font-semibold' : 'text-slate-caption'}`}>{t}</th>
+                    <th key={t} className={`text-center py-3 px-2 font-normal ${t === 'Agency' ? 'text-charcoal-body bg-soft-sage/50 rounded-t-lg font-semibold' : 'text-slate-caption'}`}>{t}</th>
                   ))}
                 </tr>
               </thead>
@@ -407,7 +407,7 @@ export function PricingPage() {
                     {row.vals.map((v, i) => (
                       <td key={i} className={`py-3 px-2 text-center text-xs ${
                         v === '—' ? 'text-pebble' : 'text-charcoal-body'
-                      } ${i === 2 ? 'bg-[#edede8] font-medium' : ''}`}>
+                      } ${i === 2 ? 'bg-soft-sage/40 font-medium' : ''}`}>
                         {v}
                       </td>
                     ))}
@@ -420,7 +420,7 @@ export function PricingPage() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-[#edede8] border-b border-black/10">
+      <section className="py-20 bg-warm-ivory border-b border-black/10">
         <div className="max-w-200 mx-auto px-4 sm:px-6">
           <motion.h2
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -468,7 +468,7 @@ export function PricingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 bg-[#edede8]">
+      <section className="py-20 bg-warm-ivory">
         <div className="max-w-300 mx-auto px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -486,7 +486,7 @@ export function PricingPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
                 to="/signup"
-                className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-graphite-ink bg-white hover:bg-[#edede8] transition-all"
+                className="inline-flex items-center gap-2 px-8 h-12 rounded-full text-sm text-graphite-ink bg-white hover:bg-warm-ivory transition-all"
               >
                 Start Free
                 <ArrowRight className="w-4 h-4" />

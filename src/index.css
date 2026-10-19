@@ -5,75 +5,119 @@
 @import "tailwindcss";
 
 /* ============================================================
-   TAILWIND THEME EXTENSIONS — Updated Brand Palette
+   TAILWIND THEME EXTENSIONS — Prescribed Brand Palette
    ============================================================ */
 @theme {
   --font-sans: 'Switzer', 'Inter', system-ui, sans-serif;
   --font-heading: 'Switzer', system-ui, sans-serif;
   --font-switzer: 'Switzer', system-ui, sans-serif;
 
-  --color-primary-green: #4cc02b;
-  --color-white: #ffffff;
-  --color-rich-black: #171a17;
-  --color-warm-ivory: #f4f5ef;
-  --color-sage-gray: #e5e8e0;
-  --color-soft-green-hover: #e9f7e4;
-  --color-deep-green: #287d19;
+  /* 1. Core Prescribed Color Palette */
+  --color-warm-ivory: #F5F7F5;
+  --color-clean-gray: #F5F7F5;
+  --color-rich-black: #101010;
+  --color-lime-green: #4AC329;
+  --color-pure-white: #FFFFFF;
 
+  /* 2. Supporting Prescribed Colors */
+  --color-muted-gray: #676864;
+  --color-soft-sage: #DDE7D0;
+  --color-pale-green-border: #B2DCA0;
+  --color-off-white: #F7F6F6;
+
+  /* Brand Aliases & Backward Compatibility */
+  --color-lime-pulse: #4AC329;
+  --color-primary-green: #4AC329;
+  --color-parrot-green: #4AC329;
+  --color-deep-green: #2B7A1A;
+  --color-forest-green: #2B7A1A;
+
+  --color-white: #FFFFFF;
+  --color-frosted-white: #FFFFFF;
+
+  --color-linen-canvas: #F5F7F5;
+  --color-charcoal-body: #101010;
+  --color-graphite-ink: #101010;
+  --color-iron-nav: #101010;
+
+  --color-slate-caption: #676864;
+  --color-ash-subheading: #676864;
+
+  --color-sage-gray: #DDE7D0;
+  --color-soft-green-hover: #DDE7D0;
+  --color-soft-lime: #DDE7D0;
+  --color-warm-stone: #F7F6F6;
+  --color-pebble: #DDE7D0;
+  --color-quartz: #DDE7D0;
+  --color-onyx-border: #B2DCA0;
+
+  /* Semantic Theme Mappings */
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-elevated: var(--surface-elevated);
   
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-soft: var(--primary-soft);
+  --color-primary-deep: var(--primary-deep);
   
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
   
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
   
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-accent: var(--border-accent);
+
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
+  --color-info: var(--info);
 }
 
 /* ============================================================
-   DESIGN TOKENS — Updated Brand System
+   DESIGN TOKENS — Prescribed Brand System
    ============================================================ */
 :root {
-  /* Neutral Canvas & Surfaces */
-  --bg: #f4f5ef;
-  --surface: #ffffff;
-  --surface-raised: #e5e8e0;
-  --surface-hover: #e9f7e4;
-  --surface-elevated: #ffffff;
+  /* Neutral Canvas & Surfaces: Clean, Cool Light Gray (#F5F7F5) */
+  --bg: #F5F7F5;                 /* Clean, Cool Light Gray — Main page background */
+  --surface: #FFFFFF;            /* Pure White — Metric cards, panels, elevated surfaces */
+  --surface-raised: #F7F6F6;     /* Off White — Secondary panels, input backgrounds */
+  --surface-hover: #DDE7D0;      /* Soft Sage — Subtle green surfaces and status backgrounds */
+  --surface-elevated: #FFFFFF;
   
-  /* Primary Actions & Accents: Use #4CC02B for primary actions, active navigation, and highlights */
-  --primary: #4cc02b;
-  --primary-hover: #3ea322;
-  --primary-soft: #e9f7e4;
-  --primary-deep: #287d19;
+  /* Primary Actions & Accents: Lime Green #4AC329 */
+  --primary: #4AC329;
+  --primary-hover: #41B023;
+  --primary-soft: #DDE7D0;       /* Soft Sage */
+  --primary-deep: #2B7A1A;
   
   /* Accent & Pulse */
-  --accent: #4cc02b;
-  --accent-hover: #287d19;
-  --accent-soft: #e9f7e4;
+  --accent: #4AC329;
+  --accent-hover: #3CA520;
+  --accent-soft: #DDE7D0;
   
-  /* Typography: Rich black #171A17 */
-  --text-primary: #171a17;
-  --text-secondary: #585d56;
-  --text-muted: #7f857d;
+  /* Typography: Rich Black #101010 & Muted Gray #676864 */
+  --text-primary: #101010;       /* Headlines, primary labels, strong contrast */
+  --text-secondary: #676864;     /* Body copy, descriptions, secondary labels */
+  --text-muted: #676864;
 
-  /* Borders: Sage gray with opacity */
-  --border: rgba(23, 26, 23, 0.12);
-  --border-subtle: rgba(23, 26, 23, 0.06);
+  /* Borders: Pale Green Border #B2DCA0 */
+  --border: #B2DCA0;             /* Pills, badges, outlines, and focus accents */
+  --border-subtle: rgba(16, 16, 16, 0.08);
+  --border-accent: #B2DCA0;
   
   /* Semantic Status Indicators */
-  --success: #4cc02b;
+  --success: #4AC329;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --info: #171a17;
+  --info: #101010;
 
   /* Standard Radius Tokens */
   --radius-sm: 6px;
@@ -82,34 +126,49 @@
   --radius-xl: 200px;
 
   /* Precision Elevation & Shadows */
-  --shadow-sm: 0 1px 2px rgba(23, 26, 23, 0.04);
-  --shadow-md: 0 4px 16px rgba(23, 26, 23, 0.06);
-  --shadow-lg: 0 18px 55px rgba(23, 26, 23, 0.12);
-  --shadow-xl: 0 32px 68px rgba(23, 26, 23, 0.25);
+  --shadow-sm: 0 1px 2px rgba(16, 16, 16, 0.04);
+  --shadow-md: 0 4px 16px rgba(16, 16, 16, 0.06);
+  --shadow-lg: 0 18px 55px rgba(16, 16, 16, 0.08);
+  --shadow-xl: 0 32px 68px rgba(16, 16, 16, 0.14);
+
+  /* Claymorphism & Surface Tokens */
+  --shadow-clay-raised: 0 4px 18px -2px rgba(16, 16, 16, 0.06), 0 2px 6px -1px rgba(16, 16, 16, 0.04);
+  --shadow-clay-floating: 0 16px 36px -8px rgba(16, 16, 16, 0.1), 0 4px 12px -2px rgba(16, 16, 16, 0.05);
+  --shadow-clay-inset: inset 0 2px 4px 0 rgba(16, 16, 16, 0.05);
+  --shadow-clay-raised-hover: 0 10px 28px -4px rgba(74, 195, 41, 0.2), 0 4px 12px -2px rgba(16, 16, 16, 0.06);
+  --shadow-clay-focus-ring: 0 0 0 3px rgba(74, 195, 41, 0.3);
+  --gradient-clay: none;
+  --gradient-clay-primary: none;
 }
 
 .dark {
-  --bg: #121412;
-  --surface: #171a17;
-  --surface-raised: #202420;
-  --surface-hover: #252b24;
-  --surface-elevated: #1d211d;
+  --bg: #0E100E;
+  --surface: #141714;
+  --surface-raised: #1A1F1A;
+  --surface-hover: #222922;
+  --surface-elevated: #181C18;
 
-  --primary: #4cc02b;
-  --primary-hover: #5cd338;
-  --primary-soft: rgba(76, 192, 43, 0.15);
-  --primary-deep: #287d19;
+  --primary: #4AC329;
+  --primary-hover: #56D633;
+  --primary-soft: rgba(74, 195, 41, 0.15);
+  --primary-deep: #2B7A1A;
 
-  --accent: #4cc02b;
-  --accent-hover: #5cd338;
-  --accent-soft: rgba(76, 192, 43, 0.15);
+  --accent: #4AC329;
+  --accent-hover: #56D633;
+  --accent-soft: rgba(74, 195, 41, 0.15);
 
-  --text-primary: #f4f5ef;
-  --text-secondary: #a3a9a1;
-  --text-muted: #727970;
+  --text-primary: #F5F7F5;
+  --text-secondary: #9FA19B;
+  --text-muted: #72746E;
 
-  --border: rgba(255, 255, 255, 0.1);
-  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border: rgba(178, 220, 160, 0.25);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-accent: #4AC329;
+
+  --shadow-clay-raised: 0 6px 20px -2px rgba(0, 0, 0, 0.4);
+  --shadow-clay-floating: 0 16px 36px -8px rgba(0, 0, 0, 0.6);
+  --shadow-clay-inset: inset 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+  --shadow-clay-raised-hover: 0 12px 30px -4px rgba(74, 195, 41, 0.25);
 }
 
 
@@ -192,11 +251,16 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   outline: none;
 }
 
+::selection {
+  background-color: #4AC329;
+  color: #101010;
+}
+
 /* Primary Button */
 .clay-btn-primary {
   background-color: var(--primary);
   background-image: var(--gradient-clay-primary);
-  color: #171a17;
+  color: #101010;
   border-radius: 20px;
   box-shadow: var(--shadow-clay-raised);
   font-weight: 700;

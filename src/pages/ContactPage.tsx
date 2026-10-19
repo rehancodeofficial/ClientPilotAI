@@ -86,14 +86,14 @@ export function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#edede8] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-warm-ivory text-charcoal-body font-sans selection:bg-lime-green selection:text-rich-black overflow-x-hidden">
       <PublicNavbar />
 
       {/* Hero Section with Ambient Green Glow */}
-      <section className="relative py-20 sm:py-28 border-b border-black/10 overflow-hidden bg-[#edede8]">
+      <section className="relative py-20 sm:py-28 border-b border-black/10 overflow-hidden bg-warm-ivory">
         {/* Soft Ambient Background Elements */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-lime-pulse/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-lime-pulse/5 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-lime-green/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-lime-green/5 rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6">
           <div className="text-center max-w-3xl mx-auto space-y-4">
@@ -112,7 +112,7 @@ export function ContactPage() {
               custom={0.15}
               initial="hidden"
               animate="visible"
-              className="text-base sm:text-lg text-[#5c5c5b] max-w-2xl mx-auto leading-relaxed"
+              className="text-base sm:text-lg text-muted-gray max-w-2xl mx-auto leading-relaxed"
             >
               Have questions about ClientPilot, our intelligence methodology, pricing tiers, or custom API volume? Connect directly with our team.
             </motion.p>
@@ -121,7 +121,7 @@ export function ContactPage() {
       </section>
 
       {/* Main Content: Form + Value & Direct Channels */}
-      <section className="py-16 sm:py-24 bg-[#edede8]">
+      <section className="py-16 sm:py-24 bg-warm-ivory">
         <div className="max-w-300 mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             
@@ -146,12 +146,12 @@ export function ContactPage() {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 rounded-xl bg-[#eaf5e7] text-[#2a7a18] border border-lime-pulse/40 text-xs sm:text-sm flex items-start gap-3 shadow-xs"
+                  className="mb-6 p-4 rounded-xl bg-soft-sage/40 text-[#206312] border border-pale-green-border text-xs sm:text-sm flex items-start gap-3 shadow-xs"
                 >
-                  <CheckCircle2 className="w-5 h-5 text-lime-pulse shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-5 h-5 text-lime-green shrink-0 mt-0.5" />
                   <div>
                     <span className="font-semibold block text-[#1b5e10]">Thank you! Your message has been received.</span>
-                    <span className="text-[#2a7a18] text-xs">Our partnerships and sales team will review your note and get back to you shortly.</span>
+                    <span className="text-[#206312] text-xs">Our partnerships and sales team will review your note and get back to you shortly.</span>
                   </div>
                 </motion.div>
               )}
@@ -203,11 +203,11 @@ export function ContactPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Alex Rivera"
-                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#f8f8f6] border border-black/10 text-sm text-graphite-ink placeholder:text-[#a0a09e] focus:outline-none focus:border-lime-pulse focus:ring-2 focus:ring-lime-pulse/20 focus:bg-white transition-all"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-off-white border border-black/10 text-sm text-graphite-ink placeholder:text-muted-gray focus:outline-none focus:border-lime-green focus:ring-2 focus:ring-lime-green/20 focus:bg-pure-white transition-all"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-[#4a4a49] mb-1.5">
+                    <label className="block text-xs font-medium text-muted-gray mb-1.5">
                       Work Email <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -216,7 +216,7 @@ export function ContactPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="alex@vertexagency.com"
-                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#f8f8f6] border border-black/10 text-sm text-graphite-ink placeholder:text-[#a0a09e] focus:outline-none focus:border-lime-pulse focus:ring-2 focus:ring-lime-pulse/20 focus:bg-white transition-all"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-off-white border border-black/10 text-sm text-graphite-ink placeholder:text-muted-gray focus:outline-none focus:border-lime-green focus:ring-2 focus:ring-lime-green/20 focus:bg-pure-white transition-all"
                     />
                   </div>
                 </div>
@@ -224,7 +224,7 @@ export function ContactPage() {
                 {/* Company & Subject */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-[#4a4a49] mb-1.5">
+                    <label className="block text-xs font-medium text-muted-gray mb-1.5">
                       Agency / Company Name
                     </label>
                     <input
@@ -232,11 +232,11 @@ export function ContactPage() {
                       value={company}
                       onChange={(e) => setCompany(e.target.value)}
                       placeholder="Vertex Interactive"
-                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#f8f8f6] border border-black/10 text-sm text-graphite-ink placeholder:text-[#a0a09e] focus:outline-none focus:border-lime-pulse focus:ring-2 focus:ring-lime-pulse/20 focus:bg-white transition-all"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-off-white border border-black/10 text-sm text-graphite-ink placeholder:text-muted-gray focus:outline-none focus:border-lime-green focus:ring-2 focus:ring-lime-green/20 focus:bg-pure-white transition-all"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-[#4a4a49] mb-1.5">
+                    <label className="block text-xs font-medium text-muted-gray mb-1.5">
                       Subject
                     </label>
                     <input
@@ -244,14 +244,14 @@ export function ContactPage() {
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
                       placeholder="Scaling agency discovery volume"
-                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#f8f8f6] border border-black/10 text-sm text-graphite-ink placeholder:text-neutral-400 focus:outline-none focus:border-lime-pulse focus:ring-2 focus:ring-lime-pulse/20 focus:bg-white transition-all"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-off-white border border-black/10 text-sm text-graphite-ink placeholder:text-muted-gray focus:outline-none focus:border-lime-green focus:ring-2 focus:ring-lime-green/20 focus:bg-pure-white transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Message */}
                 <div>
-                  <label className="block text-xs font-medium text-[#4a4a49] mb-1.5">
+                  <label className="block text-xs font-medium text-muted-gray mb-1.5">
                     How can we help? <span className="text-red-500">*</span>
                   </label>
                   <textarea
@@ -260,7 +260,7 @@ export function ContactPage() {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Tell us about your agency, your team size, and what you're looking to achieve with ClientPilot..."
-                    className="w-full px-3.5 py-2.5 rounded-lg bg-[#f8f8f6] border border-black/10 text-sm text-graphite-ink placeholder:text-[#a0a09e] focus:outline-none focus:border-lime-pulse focus:ring-2 focus:ring-lime-pulse/20 focus:bg-white transition-all resize-y"
+                    className="w-full px-3.5 py-2.5 rounded-lg bg-off-white border border-black/10 text-sm text-graphite-ink placeholder:text-muted-gray focus:outline-none focus:border-lime-green focus:ring-2 focus:ring-lime-green/20 focus:bg-pure-white transition-all resize-y"
                   />
                 </div>
 
@@ -272,13 +272,13 @@ export function ContactPage() {
                 >
                   {status === 'loading' ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin text-lime-pulse" />
+                      <Loader2 className="w-4 h-4 animate-spin text-lime-green" />
                       <span>Sending inquiry...</span>
                     </>
                   ) : (
                     <>
                       <span>Send Message</span>
-                      <Send className="w-4 h-4 text-lime-pulse transition-transform group-hover:translate-x-1" />
+                      <Send className="w-4 h-4 text-lime-green transition-transform group-hover:translate-x-1" />
                     </>
                   )}
                 </button>
@@ -292,33 +292,33 @@ export function ContactPage() {
               transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
               className="lg:col-span-5 space-y-6"
             >
-              {/* Highlight Card with Light Greenish Accent */}
-              <div className="p-7 rounded-2xl bg-[#eaf5e7] border border-lime-pulse/40 shadow-[0_8px_30px_rgba(76,192,43,0.1)] space-y-4">
-                <div className="flex items-center gap-2 text-xs font-mono text-[#2e7d1b] font-semibold uppercase">
-                  <Wand2 className="w-4 h-4 text-lime-pulse" />
+              {/* Highlight Card with Soft Sage Accent */}
+              <div className="p-7 rounded-2xl bg-soft-sage/40 border border-pale-green-border shadow-[0_8px_30px_rgba(74,195,41,0.1)] space-y-4">
+                <div className="flex items-center gap-2 text-xs font-mono text-[#206312] font-semibold uppercase">
+                  <Wand2 className="w-4 h-4 text-lime-green" />
                   <span>Custom Agency Workflows</span>
                 </div>
                 <h3 className="text-xl font-normal text-graphite-ink font-heading leading-snug">
                   Need a tailored rollout for 10+ seats or custom API integrations?
                 </h3>
-                <p className="text-xs sm:text-sm text-[#4a4a49] leading-relaxed">
+                <p className="text-xs sm:text-sm text-muted-gray leading-relaxed">
                   We work closely with agency leadership to build customized discovery parameters, white-label developer briefs, and automated webhook pipelines.
                 </p>
-                <div className="pt-2 flex items-center gap-2 text-xs font-mono text-[#2a7a18]">
-                  <span className="w-2 h-2 rounded-full bg-lime-pulse" />
+                <div className="pt-2 flex items-center gap-2 text-xs font-mono text-[#206312]">
+                  <span className="w-2 h-2 rounded-full bg-lime-green" />
                   <span>Dedicated solutions engineer assigned</span>
                 </div>
               </div>
 
               {/* Direct Details Card */}
-              <div className="p-7 rounded-2xl bg-white border border-black/8 shadow-sm space-y-5">
+              <div className="p-7 rounded-2xl bg-pure-white border border-black/8 shadow-sm space-y-5">
                 <span className="text-[11px] font-mono uppercase text-ash-subheading tracking-wider block">
                   Direct Inquiries
                 </span>
 
                 <div className="space-y-4">
                   <div className="flex items-start gap-3.5">
-                    <div className="w-9 h-9 rounded-xl bg-[#f4f4ef] border border-black/5 flex items-center justify-center text-charcoal-body shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-warm-ivory border border-black/5 flex items-center justify-center text-charcoal-body shrink-0">
                       <Mail className="w-4 h-4" />
                     </div>
                     <div>

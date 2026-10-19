@@ -62,11 +62,11 @@ export function FaqPage() {
   const filteredFaqs = activeCategory === 'All' ? faqs : faqs.filter(f => f.cat === activeCategory)
 
   return (
-    <div className="min-h-screen bg-[#edede8] text-charcoal-body font-sans selection:bg-lime-pulse selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-warm-ivory text-charcoal-body font-sans selection:bg-lime-green selection:text-rich-black overflow-x-hidden">
       <PublicNavbar />
 
       {/* Hero Section with Ambient Glow & Workspace Photo Overlay */}
-      <section className="relative py-20 sm:py-28 border-b border-black/10 overflow-hidden bg-[#edede8]">
+      <section className="relative py-20 sm:py-28 border-b border-black/10 overflow-hidden bg-warm-ivory">
         {/* Background Image with refined gradient overlay */}
         <div className="absolute inset-0 z-0">
           <img
@@ -74,15 +74,15 @@ export function FaqPage() {
             alt="Agency Support"
             className="w-full h-full object-cover opacity-10"
           />
-          <div className="absolute inset-0 bg-linear-to-b from-[#edede8]/90 via-[#edede8]/85 to-[#edede8]" />
-          <div className="absolute top-0 right-1/4 w-96 h-96 bg-lime-pulse/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute inset-0 bg-linear-to-b from-warm-ivory/90 via-warm-ivory/85 to-warm-ivory" />
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-lime-green/15 rounded-full blur-3xl pointer-events-none" />
         </div>
 
         <div className="relative z-10 max-w-300 mx-auto px-4 sm:px-6 text-center space-y-4">
           <h1 className="text-5xl sm:text-6xl lg:text-[72px] font-normal text-graphite-ink tracking-tight font-heading max-w-3xl mx-auto leading-[1.04]">
             Frequently Asked Questions
           </h1>
-          <p className="text-base sm:text-lg text-[#5c5c5b] max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg text-muted-gray max-w-2xl mx-auto leading-relaxed">
             Everything you need to know about ClientPilot AI, our audit methodology, integrations, and pricing.
           </p>
 
@@ -94,7 +94,7 @@ export function FaqPage() {
                 onClick={() => setActiveCategory(cat)}
                 className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                   activeCategory === cat
-                    ? 'bg-graphite-ink text-white shadow-xs ring-2 ring-lime-pulse/40'
+                    ? 'bg-graphite-ink text-white shadow-xs ring-2 ring-lime-green/40'
                     : 'bg-white/80 border border-black/8 text-[#4a4a49] hover:bg-white hover:text-graphite-ink'
                 }`}
               >
@@ -106,7 +106,7 @@ export function FaqPage() {
       </section>
 
       {/* Accordion List */}
-      <section className="py-16 sm:py-20 bg-[#edede8]">
+      <section className="py-16 sm:py-20 bg-warm-ivory">
         <div className="max-w-215 mx-auto px-4 sm:px-6 space-y-4">
           {filteredFaqs.map((faq, idx) => {
             const isOpen = openIndex === idx
@@ -118,21 +118,21 @@ export function FaqPage() {
                 transition={{ duration: 0.3, delay: idx * 0.04 }}
                 className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
                   isOpen
-                    ? 'bg-white border-lime-pulse/40 shadow-[0_4px_20px_rgba(76,192,43,0.08)]'
+                    ? 'bg-white border-pale-green-border shadow-[0_4px_20px_rgba(74,195,41,0.12)]'
                     : 'bg-white border-black/8 shadow-xs hover:border-black/15'
                 }`}
               >
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
-                  className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 font-medium text-base text-graphite-ink hover:text-lime-pulse transition-colors cursor-pointer"
+                  className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 font-medium text-base text-graphite-ink hover:text-lime-green transition-colors cursor-pointer"
                 >
                   <span className="font-heading text-[16px] sm:text-[17px] flex items-center gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-lime-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-lime-green" />
                     {faq.q}
                   </span>
                   <ChevronDown
                     className={`w-4 h-4 text-ash-subheading shrink-0 transition-transform duration-200 ${
-                      isOpen ? 'rotate-180 text-lime-pulse' : ''
+                      isOpen ? 'rotate-180 text-lime-green' : ''
                     }`}
                   />
                 </button>
@@ -144,7 +144,7 @@ export function FaqPage() {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <div className="px-5 sm:px-6 pb-6 text-sm text-[#5c5c5b] leading-relaxed border-t border-black/5 pt-3">
+                      <div className="px-5 sm:px-6 pb-6 text-sm text-muted-gray leading-relaxed border-t border-black/5 pt-3">
                         {faq.a}
                       </div>
                     </motion.div>
@@ -155,9 +155,9 @@ export function FaqPage() {
           })}
 
           {/* Quick Help Box */}
-          <div className="mt-12 p-8 rounded-2xl bg-[#eaf5e7] border border-lime-pulse/30 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
+          <div className="mt-12 p-8 rounded-2xl bg-soft-sage/40 border border-pale-green-border flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
             <div className="space-y-1 text-center sm:text-left">
-              <div className="inline-flex items-center gap-1.5 text-xs font-mono text-[#2e7d1b] font-semibold">
+              <div className="inline-flex items-center gap-1.5 text-xs font-mono text-[#206312] font-semibold">
                 <MessageCircle className="w-4 h-4" />
                 <span>Still have questions?</span>
               </div>

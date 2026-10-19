@@ -307,7 +307,7 @@ export function AdminDashboardPage() {
                   onClick={() => setRoleFilter(r)}
                   className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-all capitalize ${
                     roleFilter === r
-                      ? 'bg-(--primary) text-[#171a17] shadow-sm'
+                      ? 'bg-(--primary) text-[#101010] shadow-sm'
                       : 'text-(--text-secondary) hover:text-(--text-primary)'
                   }`}
                 >
