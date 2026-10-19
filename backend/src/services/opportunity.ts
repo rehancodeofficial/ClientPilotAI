@@ -102,7 +102,7 @@ function stripCodeFence(text: string): string {
 }
 
 /**
- * Analyzes a business opportunity using a hybrid rule-based + AgentRouter LLM approach.
+ * Analyzes a business opportunity using a hybrid rule-based + LLM approach.
  * Never invents facts; anchors all outputs to the provided digital audit & evidence chain.
  */
 export async function analyzeBusinessOpportunity(
@@ -196,7 +196,7 @@ export async function analyzeBusinessOpportunity(
   }
   confidenceScore = Math.min(95, Math.max(25, confidenceScore));
 
-  // 4. Formulate Prompt for AgentRouter Qualitative Synthesis
+  // 4. Formulate the prompt for the LLM's qualitative synthesis
   const prompt = `
 You are the Chief Opportunity Analyst of Client Pilot AI, an intelligent B2B business intelligence engine for software agencies.
 Analyze the following empirical business data and digital audit findings.
@@ -299,7 +299,7 @@ Return valid JSON conforming to the requested schema.
           response_format: { type: 'json_object' },
         });
       } catch (formatError: unknown) {
-        // Some AgentRouter models reject JSON mode; retry once without it.
+        // Some models reject JSON mode; retry once without it.
         console.warn(
           '[OpportunityService] response_format not supported by model, retrying without JSON mode:',
           formatError instanceof Error ? formatError.message : String(formatError)
@@ -321,7 +321,7 @@ Return valid JSON conforming to the requested schema.
       }
     }
   } catch (err: unknown) {
-    console.warn('[OpportunityService] AgentRouter synthesis fallback used:', err instanceof Error ? err.message : String(err));
+    console.warn('[OpportunityService] LLM synthesis fallback used:', err instanceof Error ? err.message : String(err));
   }
 
   // Add AI inferences as flagged evidence items

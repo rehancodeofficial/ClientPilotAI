@@ -276,7 +276,7 @@ router.get('/system', async (req, res) => {
     const { error } = await supabaseAdmin.from('profiles').select('count', { count: 'exact', head: true });
     
     // Check AI and email flags
-    const hasAiKey = !!(process.env.GEMINI_API_KEY || process.env.AGENTROUTER_API_KEY || process.env.OPENAI_API_KEY);
+    const hasAiKey = !!(process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY);
     const hasEmailProvider = !!(process.env.RESEND_API_KEY);
 
     res.json({

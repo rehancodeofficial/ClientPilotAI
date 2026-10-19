@@ -364,26 +364,26 @@ router.post('/:id/outreach', async (req, res) => {
       'This business lacks a modern digital presence and would benefit from our services.';
 
     console.log(`[Outreach:${id}] AI reasoning snippet: "${reasoning.slice(0, 100)}"`);
-    console.log(`[Outreach:${id}] → Sending outreach prompt to AgentRouter...`);
+    console.log(`[Outreach:${id}] → Sending outreach prompt to the AI provider...`);
 
-    // ── Step 4: Call AgentRouter ───────────────────────────────────────
+    // ── Step 4: Call the AI provider ───────────────────────────────────
     const outreach = await generateOutreach(lead.business_name, lead.category, reasoning);
 
     if (!outreach) {
       console.error(
         `[Outreach:${id}] ❌ generateOutreach returned null. ` +
-        `Check [AI:Outreach] logs above for the specific AgentRouter error.`
+        `Check [AI:Outreach] logs above for the specific provider error.`
       );
       return res.status(500).json({
         success: false,
         error:
           'Outreach generation returned null — common causes: ' +
-          'missing or invalid AGENTROUTER_API_KEY, AgentRouter quota exhausted, unavailable model, or network error. ' +
+          'a missing or invalid AI provider key, an exhausted quota, an unavailable model, or a network error. ' +
           'Check server logs for [AI:Outreach] details.',
       });
     }
 
-    console.log(`[Outreach:${id}] ✅ AgentRouter returned outreach. Subject: "${outreach.subject}"`);
+    console.log(`[Outreach:${id}] ✅ Provider returned outreach. Subject: "${outreach.subject}"`);
 
     const now = new Date().toISOString();
 
@@ -727,7 +727,7 @@ router.post('/:id/prepare', async (req, res) => {
 
       // ── Outreach generation ──────────────────────────────────────────
       if (force || !alreadyHasOutreach) {
-        console.log(`[Prepare:${id}] → Requesting outreach from AgentRouter...`);
+        console.log(`[Prepare:${id}] → Requesting outreach from the AI provider...`);
         try {
           const outreach = await generateOutreach(lead.business_name, lead.category, aiReasoning);
           if (outreach) {
@@ -754,7 +754,9 @@ router.post('/:id/prepare', async (req, res) => {
               console.log(`[Prepare:${id}] ✅ outreach_messages saved to Supabase`);
             }
           } else {
-            const msg = 'Outreach generation returned null — AgentRouter call may have failed or returned empty. Check [AI:Outreach] logs above.';
+            const msg =
+              'Outreach generation returned nothing. The AI provider call failed or came back empty — ' +
+              'see the [AI:Outreach] log entry for the provider\'s own error.';
             lastError = msg;
             console.error(`[Prepare:${id}] ❌ ${msg}`);
           }
@@ -766,7 +768,7 @@ router.post('/:id/prepare', async (req, res) => {
 
       // ── Proposal generation ──────────────────────────────────────────
       if (force || !alreadyHasProposal) {
-        console.log(`[Prepare:${id}] → Requesting proposal from AgentRouter...`);
+        console.log(`[Prepare:${id}] → Requesting proposal from the AI provider...`);
         try {
           const proposal = await generateProposal(
             lead.business_name,
@@ -799,7 +801,9 @@ router.post('/:id/prepare', async (req, res) => {
               console.log(`[Prepare:${id}] ✅ proposals table saved to Supabase`);
             }
           } else {
-            const msg = 'Proposal generation returned null — AgentRouter call may have failed. Check [AI:Proposal] logs above.';
+            const msg =
+              'Proposal generation returned nothing. The AI provider call failed or came back empty — ' +
+              'see the [AI:Proposal] log entry for the provider\'s own error.';
             if (!lastError) lastError = msg;
             console.error(`[Prepare:${id}] ❌ ${msg}`);
           }

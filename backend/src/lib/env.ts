@@ -120,22 +120,20 @@ if (!supabaseJwtSecret) {
 // generation. Without a key those endpoints must return a clear 503 rather than
 // writing empty or placeholder rows to the database.
 
-const agentRouterApiKey = read('AGENTROUTER_API_KEY');
 const geminiApiKey = read('GEMINI_API_KEY');
 const openAiApiKey = read('OPENAI_API_KEY');
 
 export const aiProviderKeys = {
-  agentRouter: agentRouterApiKey,
   gemini: geminiApiKey,
   openAi: openAiApiKey,
 };
 
 /** True when at least one AI provider credential is present. */
-export const hasAnyAiKey = Boolean(agentRouterApiKey || geminiApiKey || openAiApiKey);
+export const hasAnyAiKey = Boolean(geminiApiKey || openAiApiKey);
 
 if (!hasAnyAiKey) {
   warnings.push(
-    'No AI provider key is set (AGENTROUTER_API_KEY, GEMINI_API_KEY or OPENAI_API_KEY). ' +
+    'No AI provider key is set (GEMINI_API_KEY or OPENAI_API_KEY). ' +
       'Lead scoring, outreach generation and proposal generation will return HTTP 503.'
   );
 }
@@ -148,13 +146,7 @@ if (geminiApiKey && !geminiApiKey.startsWith('AIza')) {
 }
 
 /** The provider the AI layer will actually use, for the boot summary. */
-const activeAiProvider = agentRouterApiKey
-  ? 'AgentRouter'
-  : geminiApiKey
-    ? 'Google Gemini'
-    : openAiApiKey
-      ? 'OpenAI'
-      : 'none';
+const activeAiProvider = geminiApiKey ? 'Google Gemini' : openAiApiKey ? 'OpenAI' : 'none';
 
 // ─── Optional: email delivery ─────────────────────────────────────────────────
 

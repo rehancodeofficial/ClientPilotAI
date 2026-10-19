@@ -2,7 +2,7 @@
  * /api/ai — AI diagnostics routes
  *
  * GET /api/ai/test    — Standalone AI provider connectivity test (no auth required)
- * GET /api/ai/models  — Lists the models AgentRouter exposes to the configured key
+ * GET /api/ai/models  — Lists the models the active provider exposes to the key
  *
  * The API key itself is NEVER returned, echoed, or logged by these routes.
  */
@@ -28,7 +28,7 @@ const describeConfig = () => ({
   model: getResolvedModel(),
 });
 
-// GET /api/ai/test — sends a lightweight prompt to AgentRouter and reports results.
+// GET /api/ai/test — sends a lightweight prompt to the provider and reports results.
 router.get('/test', async (_req, res) => {
   const startMs = Date.now();
   console.log('[AI:TestEndpoint] Starting AI provider connectivity test...');
@@ -37,7 +37,7 @@ router.get('/test', async (_req, res) => {
     return res.status(503).json({
       success: false,
       error:
-        'No AI provider key is set. Add GEMINI_API_KEY (or AGENTROUTER_API_KEY / OPENAI_API_KEY) to backend/.env.',
+        'No AI provider key is set. Add GEMINI_API_KEY (or OPENAI_API_KEY) to backend/.env.',
       config: describeConfig(),
       latencyMs: Date.now() - startMs,
     });
@@ -69,15 +69,15 @@ router.get('/test', async (_req, res) => {
   });
 });
 
-// GET /api/ai/models — reports which models this AgentRouter key can use.
+// GET /api/ai/models — reports which models this provider key can use.
 router.get('/models', async (_req, res) => {
   const startMs = Date.now();
-  console.log('[AI:ModelsEndpoint] Requesting model list from AgentRouter...');
+  console.log(`[AI:ModelsEndpoint] Requesting model list from ${getProviderLabel()}...`);
 
   if (!hasApiKey()) {
     return res.status(503).json({
       success: false,
-      error: 'AGENTROUTER_API_KEY is not set in backend/.env. Please add your API key.',
+      error: 'No AI provider key is set in backend/.env. Add GEMINI_API_KEY (or OPENAI_API_KEY).',
       config: describeConfig(),
     });
   }
@@ -99,7 +99,7 @@ router.get('/models', async (_req, res) => {
     console.error(`[AI:ModelsEndpoint] ❌ Failed to list models: ${message}`);
     return res.status(503).json({
       success: false,
-      error: `Could not list AgentRouter models: ${message}`,
+      error: `Could not list ${getProviderLabel()} models: ${message}`,
       config: describeConfig(),
       latencyMs: Date.now() - startMs,
     });

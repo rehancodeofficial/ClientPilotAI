@@ -17,6 +17,7 @@ import {
   getBaseUrl,
   getModelFallbacks,
   getProviderLabel,
+  markModelBusy,
   markModelRetired,
   getResolvedModel,
   hasApiKey,
@@ -126,7 +127,7 @@ async function callAiProvider<T>(
     return {
       success: false,
       error:
-        'No AI provider key is set in backend/.env. Add GEMINI_API_KEY (or AGENTROUTER_API_KEY / OPENAI_API_KEY).',
+        'No AI provider key is set in backend/.env. Add GEMINI_API_KEY (or OPENAI_API_KEY).',
       latencyMs: 0,
       model,
     };
@@ -185,6 +186,8 @@ async function callAiProvider<T>(
         if (status !== 404 && status !== 503 && status !== 429) throw err;
         // A 404 means the id is retired, not busy: do not try it again later.
         if (status === 404) markModelRetired(candidate);
+        // A 429/503 is temporary, so pause this model rather than retiring it.
+        else markModelBusy(candidate);
         lastTransportError = err;
         console.warn(`[AI:${label}] ⚠️  "${candidate}" returned HTTP ${status}; trying the next model.`);
       }

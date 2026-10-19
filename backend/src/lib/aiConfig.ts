@@ -2,16 +2,15 @@
  * AI provider configuration.
  *
  * Every AI request in ClientPilot goes through an OpenAI-compatible chat
- * completions endpoint. Three providers are supported, and the one to use is
+ * completions endpoint. Two providers are supported, and the one to use is
  * decided purely by which API key is present in the server environment:
  *
- *   AGENTROUTER_API_KEY → AgentRouter   (https://agentrouter.org/v1)
- *   GEMINI_API_KEY      → Google Gemini (OpenAI-compatible endpoint)
- *   OPENAI_API_KEY      → OpenAI        (https://api.openai.com/v1)
+ *   GEMINI_API_KEY → Google Gemini (OpenAI-compatible endpoint) — the default
+ *   OPENAI_API_KEY → OpenAI        (https://api.openai.com/v1)
  *
  * Gemini is reached through Google's own OpenAI-compatible layer rather than
- * the @google/generative-ai SDK, so the single `client.chat.completions.create`
- * call in services/openai.ts works unchanged across all three providers.
+ * the @google/generative-ai SDK, so the single `chat.completions.create` call
+ * in services/openai.ts works unchanged for either provider.
  *
  * API keys are read ONLY from the server environment. They are never returned
  * to clients, embedded in API responses, or written to logs.
@@ -19,31 +18,13 @@
 
 import OpenAI from 'openai';
 
-export type AiProvider = 'agentrouter' | 'gemini' | 'openai' | 'none';
+export type AiProvider = 'gemini' | 'openai' | 'none';
 
-export const AGENTROUTER_BASE_URL = 'https://agentrouter.org/v1';
 export const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai';
 export const OPENAI_BASE_URL = 'https://api.openai.com/v1';
 
-/** Kept for backwards compatibility with earlier imports. */
-export const DEFAULT_BASE_URL = AGENTROUTER_BASE_URL;
-
-/**
- * Gemini models preferred when routing through AgentRouter.
- *
- * Not used for the direct Gemini provider: Google retires model ids (2.5-flash
- * is already closed to new keys and answers HTTP 404), so the direct list lives
- * in MODEL_PREFERENCE_BY_PROVIDER and is walked as a fallback chain.
- */
-export const GEMINI_MODELS: readonly string[] = [
-  'gemini-2.5-flash',
-  'gemini-2.0-flash',
-  'gemini-flash-latest',
-];
-
 /** Chat models to try, in descending order of preference, per provider. */
 const MODEL_PREFERENCE_BY_PROVIDER: Record<Exclude<AiProvider, 'none'>, readonly string[]> = {
-  agentrouter: [...GEMINI_MODELS, 'deepseek-v4-flash', 'gpt-6-astra', 'gpt-4o-mini'],
   gemini: [
     'gemini-3.8-flash',
     'gemini-3.7-flash',
@@ -55,27 +36,17 @@ const MODEL_PREFERENCE_BY_PROVIDER: Record<Exclude<AiProvider, 'none'>, readonly
   openai: ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini'],
 };
 
-/** Kept for backwards compatibility; reflects the active provider. */
-export const MODEL_PREFERENCE: readonly string[] = MODEL_PREFERENCE_BY_PROVIDER.agentrouter;
-
 const DEFAULT_MODEL_BY_PROVIDER: Record<Exclude<AiProvider, 'none'>, string> = {
-  agentrouter: 'deepseek-v4-flash',
   gemini: 'gemini-flash-latest',
   openai: 'gpt-4o-mini',
 };
 
-export const DEFAULT_MODEL = DEFAULT_MODEL_BY_PROVIDER.agentrouter;
+export const DEFAULT_MODEL = DEFAULT_MODEL_BY_PROVIDER.gemini;
 
 const read = (name: string): string => (process.env[name] || '').trim();
 
-/**
- * The provider in use, decided by which key is configured.
- *
- * AgentRouter wins when both are set, because an explicitly configured router
- * key is a deliberate choice; Gemini is the normal single-key configuration.
- */
+/** The provider in use, decided by which key is configured. */
 export const getProvider = (): AiProvider => {
-  if (read('AGENTROUTER_API_KEY')) return 'agentrouter';
   if (read('GEMINI_API_KEY')) return 'gemini';
   if (read('OPENAI_API_KEY')) return 'openai';
   return 'none';
@@ -84,8 +55,6 @@ export const getProvider = (): AiProvider => {
 /** Human-readable provider name, safe to log and to show in diagnostics. */
 export const getProviderLabel = (): string => {
   switch (getProvider()) {
-    case 'agentrouter':
-      return 'AgentRouter';
     case 'gemini':
       return 'Google Gemini';
     case 'openai':
@@ -97,8 +66,6 @@ export const getProviderLabel = (): string => {
 
 export const getApiKey = (): string => {
   switch (getProvider()) {
-    case 'agentrouter':
-      return read('AGENTROUTER_API_KEY');
     case 'gemini':
       return read('GEMINI_API_KEY');
     case 'openai':
@@ -109,22 +76,10 @@ export const getApiKey = (): string => {
 };
 
 export const getBaseUrl = (): string => {
-  const override = read('AI_BASE_URL') || read('AGENTROUTER_BASE_URL');
-  const base = (() => {
-    switch (getProvider()) {
-      case 'agentrouter':
-        return AGENTROUTER_BASE_URL;
-      case 'gemini':
-        return GEMINI_BASE_URL;
-      case 'openai':
-        return OPENAI_BASE_URL;
-      default:
-        return AGENTROUTER_BASE_URL;
-    }
-  })();
-  // An explicit override only applies to the provider it was written for.
-  const effective = override && getProvider() === 'agentrouter' ? override : read('AI_BASE_URL') || base;
-  return effective.trim().replace(/\/+$/, '');
+  const override = read('AI_BASE_URL');
+  if (override) return override.trim().replace(/\/+$/, '');
+  const base = getProvider() === 'openai' ? OPENAI_BASE_URL : GEMINI_BASE_URL;
+  return base.replace(/\/+$/, '');
 };
 
 export const hasApiKey = (): boolean => getApiKey().length > 0;
@@ -132,8 +87,6 @@ export const hasApiKey = (): boolean => getApiKey().length > 0;
 /** The model name configured for the active provider, if any. */
 const configuredModel = (): string => {
   switch (getProvider()) {
-    case 'agentrouter':
-      return read('AGENTROUTER_MODEL') || read('AI_MODEL');
     case 'gemini':
       return read('GEMINI_MODEL') || read('AI_MODEL');
     case 'openai':
@@ -158,16 +111,6 @@ export const getResolvedModel = (): string => resolvedModel;
 export const isModelResolved = (): boolean => resolutionDone;
 
 /**
- * The models to try for one request, in order: the resolved model first, then
- * the rest of the provider's preference list.
- *
- * Google both retires model ids (HTTP 404 — "no longer available to new users")
- * and sheds load on free-tier keys (HTTP 503 — "experiencing high demand"), so a
- * single hard-coded model makes AI features fail for reasons that have nothing
- * to do with this application. Walking the chain keeps scoring and drafting
- * working through both.
- */
-/**
  * Model ids the provider has answered 404 for in this process.
  *
  * Google keeps retired ids in its /models listing but refuses them at call
@@ -182,21 +125,68 @@ export const markModelRetired = (model: string): void => {
   if (model) retiredModels.add(model);
 };
 
+/**
+ * Models that recently answered 429/503, with the time they may be tried again.
+ *
+ * On a free-tier key the newest models rate-limit constantly, and a single
+ * "prepare" run makes four or more AI calls. Without this, every one of those
+ * calls walks the same four rate-limited models first, paying a round trip
+ * each time — the difference between a prepare that takes ~30 seconds and one
+ * that takes three minutes. The cooldown is deliberately short so capacity is
+ * picked back up as soon as it returns.
+ */
+const MODEL_COOLDOWN_MS = Number(process.env.AI_MODEL_COOLDOWN_MS || 60_000);
+const busyUntil = new Map<string, number>();
+
+/** Records a model that answered 429 or 503, pausing it briefly. */
+export const markModelBusy = (model: string): void => {
+  if (model) busyUntil.set(model, Date.now() + MODEL_COOLDOWN_MS);
+};
+
+const isBusy = (model: string): boolean => {
+  const until = busyUntil.get(model);
+  if (until === undefined) return false;
+  if (Date.now() >= until) {
+    busyUntil.delete(model);
+    return false;
+  }
+  return true;
+};
+
+/**
+ * The models to try for one request, in order: the resolved model first, then
+ * the rest of the provider's preference list.
+ *
+ * Google both retires model ids (HTTP 404 — "no longer available to new users")
+ * and sheds load on free-tier keys (HTTP 503 — "experiencing high demand"), so a
+ * single hard-coded model makes AI features fail for reasons that have nothing
+ * to do with this application. Walking the chain keeps scoring and drafting
+ * working through both.
+ */
 export const getModelFallbacks = (): string[] => {
   const provider = getProvider();
   if (provider === 'none') return [getResolvedModel()];
-  const chain = [getResolvedModel(), ...MODEL_PREFERENCE_BY_PROVIDER[provider]];
-  const usable = [...new Set(chain.filter((model) => model.length > 0 && !retiredModels.has(model)))];
-  // Never return an empty chain: if every id has been marked retired, try the
-  // configured one again rather than failing without a request.
-  return usable.length > 0 ? usable : [getResolvedModel()];
+  const chain = [...new Set(
+    [getResolvedModel(), ...MODEL_PREFERENCE_BY_PROVIDER[provider]].filter(
+      (model) => model.length > 0 && !retiredModels.has(model)
+    )
+  )];
+
+  // Models cooling off after a 429/503 go to the back rather than being
+  // dropped: if every model is rate-limited, trying a busy one still beats
+  // failing without a request.
+  const ready = chain.filter((model) => !isBusy(model));
+  const cooling = chain.filter((model) => isBusy(model));
+  const ordered = [...ready, ...cooling];
+
+  return ordered.length > 0 ? ordered : [getResolvedModel()];
 };
 
 /** Creates a fresh OpenAI SDK client pointed at the active provider. */
 export const createAiClient = (apiKey: string = getApiKey()): OpenAI => {
   if (!apiKey) {
     throw new Error(
-      'No AI provider key is configured. Set GEMINI_API_KEY (or AGENTROUTER_API_KEY / OPENAI_API_KEY) in the backend environment.'
+      'No AI provider key is configured. Set GEMINI_API_KEY (or OPENAI_API_KEY) in the backend environment.'
     );
   }
   return new OpenAI({ apiKey, baseURL: getBaseUrl() });
@@ -223,7 +213,7 @@ export async function listAvailableModels(): Promise<string[]> {
 
   const payload = (await response.json()) as { data?: Array<{ id?: unknown }> };
   return (payload.data ?? [])
-    // Gemini returns ids as "models/gemini-2.5-flash"; chat completions wants
+    // Gemini returns ids as "models/gemini-3.5-flash"; chat completions wants
     // the bare name, and accepts either.
     .map((entry) => (typeof entry.id === 'string' ? entry.id.trim().replace(/^models\//, '') : ''))
     .filter((id) => id.length > 0);
@@ -249,7 +239,7 @@ export async function resolveModelName(force = false): Promise<string> {
   if (!hasApiKey()) {
     resolvedModel = envModel || defaultModel();
     console.warn(
-      '[AI] No provider key is set (GEMINI_API_KEY / AGENTROUTER_API_KEY / OPENAI_API_KEY). ' +
+      '[AI] No provider key is set (GEMINI_API_KEY / OPENAI_API_KEY). ' +
         `Using "${resolvedModel}" until one is configured.`
     );
     return resolvedModel;
