@@ -1,7 +1,7 @@
 /**
  * /api/ai — AI diagnostics routes
  *
- * GET /api/ai/test    — Standalone AgentRouter connectivity test (no auth required)
+ * GET /api/ai/test    — Standalone AI provider connectivity test (no auth required)
  * GET /api/ai/models  — Lists the models AgentRouter exposes to the configured key
  *
  * The API key itself is NEVER returned, echoed, or logged by these routes.
@@ -11,6 +11,7 @@ import { Router } from 'express';
 import { testAiConnection } from '../services/openai';
 import {
   getBaseUrl,
+  getProviderLabel,
   getResolvedModel,
   hasApiKey,
   listAvailableModels,
@@ -21,6 +22,7 @@ const router = Router();
 
 /** Non-secret snapshot of the current AI configuration. */
 const describeConfig = () => ({
+  provider: getProviderLabel(),
   key_present: hasApiKey(),
   base_url: getBaseUrl(),
   model: getResolvedModel(),
@@ -29,12 +31,13 @@ const describeConfig = () => ({
 // GET /api/ai/test — sends a lightweight prompt to AgentRouter and reports results.
 router.get('/test', async (_req, res) => {
   const startMs = Date.now();
-  console.log('[AI:TestEndpoint] Starting AgentRouter connectivity test...');
+  console.log('[AI:TestEndpoint] Starting AI provider connectivity test...');
 
   if (!hasApiKey()) {
     return res.status(503).json({
       success: false,
-      error: 'AGENTROUTER_API_KEY is not set in backend/.env. Please add your API key.',
+      error:
+        'No AI provider key is set. Add GEMINI_API_KEY (or AGENTROUTER_API_KEY / OPENAI_API_KEY) to backend/.env.',
       config: describeConfig(),
       latencyMs: Date.now() - startMs,
     });
@@ -44,7 +47,7 @@ router.get('/test', async (_req, res) => {
   const totalMs = Date.now() - startMs;
 
   if (result.success) {
-    console.log(`[AI:TestEndpoint] ✅ AgentRouter is reachable (${totalMs}ms)`);
+    console.log(`[AI:TestEndpoint] ✅ provider is reachable (${totalMs}ms)`);
     return res.status(200).json({
       success: true,
       message: result.data.message,
@@ -55,7 +58,7 @@ router.get('/test', async (_req, res) => {
     });
   }
 
-  console.error(`[AI:TestEndpoint] ❌ AgentRouter test failed (${totalMs}ms): ${result.error}`);
+  console.error(`[AI:TestEndpoint] ❌ provider test failed (${totalMs}ms): ${result.error}`);
   return res.status(503).json({
     success: false,
     error: result.error,

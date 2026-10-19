@@ -1,7 +1,7 @@
 /**
- * AI Service — AgentRouter (https://agentrouter.org/v1)
+ * AI Service — provider-agnostic chat completions
  *
- * Uses the OpenAI SDK pointed at AgentRouter's OpenAI-compatible chat
+ * Uses the OpenAI SDK pointed at the active provider's OpenAI-compatible chat
  * completions endpoint. Provider configuration and model selection live in
  * ../lib/aiConfig so there is a single source of truth for the API key, base
  * URL and model actually in use.
@@ -15,6 +15,7 @@ import {
   createAiClient,
   getApiKey,
   getBaseUrl,
+  getProviderLabel,
   getResolvedModel,
   hasApiKey,
 } from '../lib/aiConfig';
@@ -79,27 +80,27 @@ function describeApiError(error: unknown): ApiErrorDetails {
 /** Maps a provider failure to a safe, user-facing message (never echoes the key). */
 function toUserFacingError({ status, message }: ApiErrorDetails): string {
   if (status === 401 || status === 403) {
-    return 'AgentRouter rejected the request. Verify AGENTROUTER_API_KEY in backend/.env is valid.';
+    return `${getProviderLabel()} rejected the API key. Check that the key in backend/.env is valid and has not been revoked.`;
   }
   if (status === 402) {
-    return 'AgentRouter budget pool quota is exhausted. Wait for the next quota batch or switch to a DeepSeek model.';
+    return `${getProviderLabel()} quota is exhausted. Wait for the quota to reset, or switch to a model with remaining capacity.`;
   }
   if (status === 404) {
-    return `AgentRouter does not offer the configured model "${getResolvedModel()}". Set AGENTROUTER_MODEL to an available model.`;
+    return `${getProviderLabel()} does not offer the configured model "${getResolvedModel()}". Set the model environment variable to one the provider lists.`;
   }
   if (status === 429) {
-    return 'AgentRouter rate limit reached. Please retry in a moment.';
+    return `${getProviderLabel()} rate limit reached. Please retry in a moment.`;
   }
   if (message.includes('401') || message.includes('Unauthorized') || message.includes('unauthorized')) {
-    return 'AgentRouter rejected the request. Verify AGENTROUTER_API_KEY in backend/.env is valid.';
+    return `${getProviderLabel()} rejected the API key. Check that the key in backend/.env is valid and has not been revoked.`;
   }
   if (message.includes('402') || message.includes('quota')) {
-    return 'AgentRouter budget pool quota is exhausted. Wait for the next quota batch or switch to a DeepSeek model.';
+    return `${getProviderLabel()} quota is exhausted. Wait for the quota to reset, or switch to a model with remaining capacity.`;
   }
   if (message.includes('429') || message.includes('rate limit')) {
-    return 'AgentRouter rate limit reached. Please retry in a moment.';
+    return `${getProviderLabel()} rate limit reached. Please retry in a moment.`;
   }
-  return `AgentRouter API error: ${message}`;
+  return `${getProviderLabel()} API error: ${message}`;
 }
 
 /** True when the provider rejected `response_format` rather than the request itself. */
@@ -110,7 +111,7 @@ function isUnsupportedResponseFormat({ status, message }: ApiErrorDetails): bool
 
 // ─── Shared helper ────────────────────────────────────────────────────────────
 
-async function callAgentRouter<T>(
+async function callAiProvider<T>(
   label: string,
   systemInstruction: string,
   userPrompt: string,
@@ -122,7 +123,8 @@ async function callAgentRouter<T>(
   if (!hasApiKey()) {
     return {
       success: false,
-      error: 'AGENTROUTER_API_KEY is not set in backend/.env. Please add your AgentRouter API key.',
+      error:
+        'No AI provider key is set in backend/.env. Add GEMINI_API_KEY (or AGENTROUTER_API_KEY / OPENAI_API_KEY).',
       latencyMs: 0,
       model,
     };
@@ -137,7 +139,7 @@ async function callAgentRouter<T>(
   ];
 
   console.log(
-    `[AI:${label}] → Sending request to AgentRouter (${getBaseUrl()}, model: ${model})`
+    `[AI:${label}] → Sending request to ${getProviderLabel()} (${getBaseUrl()}, model: ${model})`
   );
 
   try {
@@ -152,7 +154,7 @@ async function callAgentRouter<T>(
         response_format: { type: 'json_object' },
       });
     } catch (firstError: unknown) {
-      // Some AgentRouter models reject JSON mode; retry once without it.
+      // Some models reject JSON mode; retry once without it.
       if (!isUnsupportedResponseFormat(describeApiError(firstError))) throw firstError;
       console.warn(`[AI:${label}] ⚠️  Model rejected response_format; retrying without JSON mode.`);
       response = await client.chat.completions.create({ model, messages, temperature: 0.3 });
@@ -162,10 +164,10 @@ async function callAgentRouter<T>(
     const rawText = response.choices[0]?.message?.content || '';
 
     if (!rawText || rawText.trim() === '') {
-      console.error(`[AI:${label}] ❌ Empty response from AgentRouter (${latencyMs}ms)`);
+      console.error(`[AI:${label}] ❌ Empty response from ${getProviderLabel()} (${latencyMs}ms)`);
       return {
         success: false,
-        error: 'AgentRouter returned an empty response.',
+        error: `${getProviderLabel()} returned an empty response.`,
         latencyMs,
         model,
       };
@@ -228,7 +230,7 @@ export const scoreLead = async (
   address: string,
   hasWebsite: boolean
 ): Promise<ScoreOutput | null> => {
-  const result = await callAgentRouter(
+  const result = await callAiProvider(
     'ScoreLead',
     'You are an AI lead scoring engine. Output JSON only matching: {"overall_score": 0-100, "digital_presence_gap": 0-10, "category_fit": 0-10, "review_activity": 0-10, "market_density": 0-10, "competitor_presence": 0-10, "ai_reasoning": "..."}',
     `Evaluate this business as a potential client for web development, digital transformation, or software services.
@@ -254,7 +256,7 @@ export const generateOutreach = async (
   category: string,
   scoreReasoning: string
 ): Promise<OutreachOutput | null> => {
-  const result = await callAgentRouter(
+  const result = await callAiProvider(
     'Outreach',
     'You are a B2B sales copywriter. Output JSON only: {"subject": "...", "body": "...", "follow_up": "...", "whatsapp_body": "..."}',
     `Write a personalized cold outreach package for this business owner offering software & web development services.
@@ -289,7 +291,7 @@ export const generateProposal = async (
   aiAnalysis?: string,
   rawOsmTags?: Record<string, unknown>
 ): Promise<{ title: string; content: string } | null> => {
-  const result = await callAgentRouter(
+  const result = await callAiProvider(
     'Proposal',
     'You are a professional business consultant. Output JSON only: {"title": "...", "content": "..."}',
     `Write a customized software/web services proposal for:
@@ -313,7 +315,7 @@ Return JSON: {"title": "...", "content": "...markdown content..."}`,
 };
 
 export const testAiConnection = async (): Promise<AIResult<{ message: string }>> => {
-  return callAgentRouter(
+  return callAiProvider(
     'ConnectivityTest',
     'You are a helpful assistant. Respond with JSON.',
     'Generate a 1-sentence friendly greeting for ClientPilot AI. Return JSON: {"message": "..."}',

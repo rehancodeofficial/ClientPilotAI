@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { supabaseAdmin } from '../lib/supabase';
 import { discoverBusinessesByLocation, searchNearbyBusinesses, OSMGeocodingError, OSMOverpassError } from '../services/osm';
+import { enqueueAudits } from '../services/auditQueue';
 import { scoreLead, generateOutreach, generateProposal } from '../services/openai';
 import { getResolvedModel } from '../lib/aiConfig';
 import { enrichLeadContact } from '../services/enrichment';
@@ -252,9 +253,20 @@ router.post('/discover', async (req, res) => {
       }
     }
 
+    // Audit every newly stored lead in the background. Discovery returns at
+    // once; the website reports land a few seconds later and populate the
+    // Market Intelligence, Zones and Evaluation views.
+    const storedLeadIds = newLeads
+      .map((lead) => lead.id as string)
+      .filter((id) => typeof id === 'string' && !id.startsWith('osm-'));
+    if (storedLeadIds.length > 0) {
+      enqueueAudits(profile.workspace_id, storedLeadIds);
+    }
+
     res.json({
       leads: newLeads,
       count: newLeads.length,
+      auditsQueued: storedLeadIds.length,
       geocodedLocation: discovery.geocodedLocation,
       radiusMeters: discovery.radiusMeters,
       categories: discovery.categories,

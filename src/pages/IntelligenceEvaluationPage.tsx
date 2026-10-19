@@ -14,14 +14,19 @@ import { useAppStore } from '@/store/useAppStore';
 export function IntelligenceEvaluationPage() {
   const [stats, setStats] = useState<ModelEvaluationStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchStats = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const data = await getModelEvaluation();
       setStats(data);
     } catch (err) {
-      console.error('Failed to load model evaluation:', err);
+      // A logged-only failure left the page rendering zeros that looked like a
+      // genuine result. Report it instead.
+      setError(err instanceof Error ? err.message : 'The evaluation could not be computed.');
+      setStats(null);
     } finally {
       setIsLoading(false);
     }
@@ -60,6 +65,18 @@ export function IntelligenceEvaluationPage() {
           Recompute Evaluation
         </Button>
       </div>
+
+      {error && (
+        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-950/30">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+          <div>
+            <p className="text-sm font-semibold text-red-700 dark:text-red-300">
+              Evaluation could not be computed
+            </p>
+            <p className="mt-0.5 text-xs text-red-600/90 dark:text-red-300/80">{error}</p>
+          </div>
+        </div>
+      )}
 
       {/* Academic Research Questions Card */}
       <div className="clay-raised p-6 space-y-4">

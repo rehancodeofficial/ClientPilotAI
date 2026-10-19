@@ -38,7 +38,7 @@ export async function deleteProposalApi(proposalId: string) {
   return apiDelete<any>(`/proposals/${proposalId}`);
 }
 
-import { fetchLeads } from '@/api/businesses';
+import { fetchLeads, mapDbLeadToLead } from '@/api/businesses';
 import type { Lead } from '@/types';
 
 // ─── Lead helpers ─────────────────────────────────────────────────────────────
@@ -82,32 +82,59 @@ export async function saveDraft(leadId: string, draft: any) {
   });
 }
 
-// ─── prepareLead shim (backward compat) ──────────────────────────────────────
+// ─── prepareLead ──────────────────────────────────────────────────────────────
+
+interface PrepareResponse {
+  lead: Record<string, unknown>;
+  proposal: { title?: string | null; content?: string | null } | null;
+  audit: unknown;
+  opportunityAnalysis: unknown;
+  competitorAnalysis: unknown;
+  error: string | null;
+}
+
+/**
+ * Runs the full preparation pipeline for a lead: audit, opportunity analysis,
+ * competitor benchmark, outreach draft and proposal.
+ *
+ * This used to be a stub that returned the literal strings "Prepared Proposal"
+ * and "Prepared proposal content" without calling the server at all, so the
+ * drawer showed invented content and the real pipeline never ran. It now calls
+ * `POST /api/leads/:id/prepare` and maps the response through the same database
+ * to UI conversion the lead list uses.
+ */
 export async function prepareLead(leadId: string, force?: boolean) {
+  const result = await apiPost<PrepareResponse>(`/leads/${leadId}/prepare`, { force: Boolean(force) });
+
   return {
-    lead: { isPreparing: false },
-    proposalTitle: 'Prepared Proposal',
-    proposalContent: 'Prepared proposal content',
-    partialError: null as string | null,
+    lead: mapDbLeadToLead(result.lead as never),
+    proposalTitle: result.proposal?.title ?? null,
+    proposalContent: result.proposal?.content ?? null,
+    partialError: result.error ?? null,
   };
 }
 
 // ─── Intelligence helpers ─────────────────────────────────────────────────────
+/**
+ * Model evaluation statistics. Errors propagate so the page can report them;
+ * swallowing them rendered an empty evaluation that looked like a real result.
+ */
 export async function getModelEvaluation(): Promise<any> {
-  try {
-    return await apiGet<any>('/intelligence/evaluation');
-  } catch {
-    return null;
-  }
+  return apiGet<any>('/intelligence/evaluation');
 }
 
+/**
+ * Opportunity zones, aggregated by area.
+ *
+ * Calls `/opportunities/zones`, which is where the route actually lives — the
+ * previous path (`/intelligence/zones`) does not exist, and the catch-all
+ * returned an empty array, so the Zones map was permanently blank with no error
+ * anywhere. The response is a bare array, not `{ zones }`.
+ */
 export async function getOpportunityZones(): Promise<any[]> {
-  try {
-    const result = await apiGet<{ zones: any[] }>('/intelligence/zones');
-    return result.zones || [];
-  } catch {
-    return [];
-  }
+  const result = await apiGet<any[] | { zones: any[] }>('/opportunities/zones');
+  if (Array.isArray(result)) return result;
+  return result?.zones ?? [];
 }
 
 // ─── Dashboard stats ──────────────────────────────────────────────────────────

@@ -16,11 +16,13 @@ import {
   prepareLead, generateOutreach, sendOutreach, saveDraft,
   saveProposalApi, updateProposalStatusApi,
 } from '@/lib/apiClient'
+import { runAudit } from '@/api/audits'
+import { WebsiteAuditReportView } from '@/components/leads/WebsiteAuditReportView'
 import { useAppStore } from '@/store/useAppStore'
 import type {
   Lead, PipelineStage, Proposal,
   DetectionStatus, DigitalMaturityLevel, EvidenceItem,
-  OutcomeEventType,
+  OutcomeEventType, DigitalAudit,
 } from '@/types'
 import { cn, getCategoryLabel, getScoreColor, getPipelineLabel } from '@/lib/utils'
 
@@ -722,13 +724,88 @@ function OverviewTab({ lead }: { lead: Lead }) {
 // Tab: Digital Audit
 // ============================================================
 function DigitalAuditTab({ lead }: { lead: Lead }) {
+  const updateLead = useAppStore((s) => s.updateLead)
+  const addNotification = useAppStore((s) => s.addNotification)
+  const [running, setRunning] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
   const audit = lead.audit
+  const report = audit?.auditData?.websiteAudit ?? null
+  const hasWebsite = Boolean(lead.websiteUrl || lead.website)
+
+  /**
+   * Re-runs the audit against the live site and folds the fresh row back into
+   * the store, so the drawer updates without a page reload.
+   */
+  const handleRun = async () => {
+    setRunning(true)
+    setError(null)
+    try {
+      const saved = (await runAudit(lead.id)) as unknown as Record<string, any>
+      const fresh: DigitalAudit = {
+        id: saved.id,
+        leadId: saved.lead_id ?? lead.id,
+        workspaceId: saved.workspace_id ?? '',
+        websiteExists: saved.website_exists ?? 'unknown',
+        httpsEnabled: saved.https_enabled ?? 'unknown',
+        mobileIndicator: saved.mobile_indicator ?? 'unknown',
+        bookingDetected: saved.booking_detected ?? 'unknown',
+        orderingDetected: saved.ordering_detected ?? 'unknown',
+        contactFormDetected: saved.contact_form_detected ?? 'unknown',
+        socialPresenceDetected: saved.social_presence_detected ?? 'unknown',
+        digitalMaturityLevel: (saved.digital_maturity_level ?? 0) as DigitalMaturityLevel,
+        auditScore: saved.audit_score ?? 0,
+        auditData: saved.audit_data,
+        evidence: saved.evidence ?? [],
+        createdAt: saved.created_at,
+        updatedAt: saved.updated_at,
+      }
+      updateLead(lead.id, { audit: fresh })
+
+      const health = fresh.auditData?.websiteHealthScore
+      addNotification({
+        type: 'lead',
+        title: 'Website audit complete',
+        message:
+          health !== null && health !== undefined
+            ? `${lead.name}: ${health}/100 (grade ${fresh.auditData?.websiteGrade}).`
+            : `${lead.name}: no reachable website found.`,
+      })
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'The audit could not be completed.')
+    } finally {
+      setRunning(false)
+    }
+  }
+
+  const RunButton = (
+    <Button size="sm" variant="outline" onClick={handleRun} disabled={running}>
+      {running ? (
+        <>
+          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Auditing website…
+        </>
+      ) : (
+        <>
+          <RefreshCw className="h-3.5 w-3.5" /> {audit ? 'Re-run audit' : 'Run website audit'}
+        </>
+      )}
+    </Button>
+  )
+
   if (!audit) {
     return (
-      <div className="rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 px-4 py-10 text-center">
-        <BarChart3 className="h-8 w-8 text-zinc-300 dark:text-zinc-600 mx-auto mb-2" />
-        <p className="text-sm font-medium text-zinc-400">No audit data yet</p>
-        <p className="text-xs text-zinc-400 mt-1">Run "Prepare Opportunity" to trigger the digital audit engine.</p>
+      <div className="space-y-3">
+        <div className="rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 px-4 py-10 text-center">
+          <BarChart3 className="mx-auto mb-2 h-8 w-8 text-zinc-300 dark:text-zinc-600" />
+          <p className="text-sm font-medium text-zinc-400">No audit yet</p>
+          <p className="mx-auto mt-1 max-w-xs text-xs text-zinc-400">
+            {hasWebsite
+              ? 'Run the audit to fetch the live site and score its speed, search visibility, security, mobile experience, accessibility, content and conversion readiness.'
+              : 'No website is on record for this business. The audit will still score its public listing presence.'}
+          </p>
+          <div className="mt-4 flex justify-center">{RunButton}</div>
+          {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
+        </div>
       </div>
     )
   }
@@ -753,25 +830,59 @@ function DigitalAuditTab({ lead }: { lead: Lead }) {
 
   return (
     <div className="space-y-5">
-      {/* Overall Audit Score */}
-      <div className="flex items-center gap-4">
-        <ScoreGauge score={audit.auditScore} label="Audit Score" color="#0ea5e9" />
-        <div>
-          <p className="text-lg font-black text-zinc-800 dark:text-zinc-100">{audit.auditScore}/100</p>
-          <p className="text-xs text-zinc-500">Overall Digital Presence</p>
-          <p className={cn('text-sm font-bold mt-1', MATURITY_COLORS[audit.digitalMaturityLevel])}>
-            Level {audit.digitalMaturityLevel} — {MATURITY_LABELS[audit.digitalMaturityLevel]}
-          </p>
+      {/* Header: overall business presence + re-run */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-4">
+          <ScoreGauge score={audit.auditScore} label="Audit Score" color="#0ea5e9" />
+          <div>
+            <p className="text-lg font-black text-zinc-800 dark:text-zinc-100">{audit.auditScore}/100</p>
+            <p className="text-xs text-zinc-500">Overall Digital Presence</p>
+            <p className={cn('mt-1 text-sm font-bold', MATURITY_COLORS[audit.digitalMaturityLevel])}>
+              Level {audit.digitalMaturityLevel} — {MATURITY_LABELS[audit.digitalMaturityLevel]}
+            </p>
+          </div>
         </div>
+        {RunButton}
       </div>
 
-      {/* Category Scores */}
+      {error && (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-950/40 dark:text-red-300">
+          {error}
+        </p>
+      )}
+
+      {/* The technical website report — the heart of the audit */}
+      {report ? (
+        <>
+          <Separator />
+          <div>
+            <p className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-zinc-500">
+              <Globe className="h-3.5 w-3.5" /> Website technical report
+            </p>
+            <WebsiteAuditReportView report={report} />
+          </div>
+        </>
+      ) : (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 dark:border-amber-900/50 dark:bg-amber-950/20">
+          <p className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300">
+            <AlertTriangle className="h-3.5 w-3.5" /> No website to audit
+          </p>
+          <p className="mt-1 text-[12px] leading-relaxed text-amber-700/90 dark:text-amber-200/80">
+            This business has no website on record, so only its public listing could be assessed. That gap is
+            itself the opportunity — there is nothing for a customer to find beyond the directory entry.
+          </p>
+        </div>
+      )}
+
+      <Separator />
+
+      {/* Legacy presence sub-scores */}
       <div>
-        <p className="text-xs font-bold text-zinc-500 uppercase tracking-wide mb-2">Category Breakdown</p>
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-zinc-500">Presence Breakdown</p>
         <div className="space-y-2">
           {categoryScores.map(({ label, value, icon: Icon }) => (
             <div key={label}>
-              <div className="flex items-center justify-between mb-0.5">
+              <div className="mb-0.5 flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Icon className="h-3.5 w-3.5 text-zinc-400" />
                   <span className="text-xs text-zinc-600 dark:text-zinc-400">{label}</span>
@@ -786,12 +897,15 @@ function DigitalAuditTab({ lead }: { lead: Lead }) {
 
       <Separator />
 
-      {/* Feature Detection Grid */}
+      {/* Feature detection */}
       <div>
-        <p className="text-xs font-bold text-zinc-500 uppercase tracking-wide mb-3">Feature Detection</p>
+        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-zinc-500">Feature Detection</p>
         <div className="grid grid-cols-1 gap-2">
           {detectionItems.map(({ label, status, icon: Icon }) => (
-            <div key={label} className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50">
+            <div
+              key={label}
+              className="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-1.5 dark:bg-zinc-800/50"
+            >
               <div className="flex items-center gap-2">
                 <Icon className="h-3.5 w-3.5 text-zinc-400" />
                 <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">{label}</span>
@@ -801,6 +915,17 @@ function DigitalAuditTab({ lead }: { lead: Lead }) {
           ))}
         </div>
       </div>
+
+      {audit.auditData.detectedServices.length > 0 && (
+        <div>
+          <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-zinc-500">Detected Services</p>
+          <div className="flex flex-wrap gap-1.5">
+            {audit.auditData.detectedServices.map((service) => (
+              <Badge key={service} variant="secondary">{service}</Badge>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
