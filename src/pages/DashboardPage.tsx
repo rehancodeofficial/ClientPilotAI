@@ -27,6 +27,7 @@ import { apiGet, apiPost } from '@/api/client'
 import { useAppStore } from '@/store/useAppStore'
 import { LeadDetailPanel } from '@/components/leads/LeadDetailPanel'
 import type { Lead } from '@/types'
+import { cn } from '@/lib/utils'
 
 interface DashboardSummaryResponse {
   metrics: {

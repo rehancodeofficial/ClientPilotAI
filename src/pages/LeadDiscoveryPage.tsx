@@ -474,7 +474,7 @@ export function LeadDiscoveryPage() {
 
   // Opportunity & Pipeline Filters
   const [scoreFilter, setScoreFilter] = useState<'all' | 'high' | 'medium' | 'critical'>('all')
-  const [websiteFilter, setWebsiteFilter] = useState<'all' | 'none' | 'outdated' | 'active'>('all')
+  const [websiteFilter, setWebsiteFilter] = useState<'all' | 'none' | 'outdated' | 'has_website'>('all')
   const [sortBy, setSortBy] = useState<'score' | 'distance' | 'name'>('score')
   const [viewMode, setViewMode] = useState<'split' | 'map' | 'list'>('split')
 
@@ -627,7 +627,7 @@ export function LeadDiscoveryPage() {
         // Website filter
         if (websiteFilter === 'none' && l.websiteStatus !== 'none') return false
         if (websiteFilter === 'outdated' && l.websiteStatus !== 'outdated') return false
-        if (websiteFilter === 'active' && l.websiteStatus !== 'active') return false
+        if (websiteFilter === 'has_website' && l.websiteStatus !== 'has_website') return false
 
         return true
       })
