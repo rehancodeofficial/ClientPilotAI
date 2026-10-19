@@ -16,10 +16,11 @@ export function TopBar() {
   const userRole = useAppStore((s) => s.userRole)
   const userEmail = useAppStore((s) => s.userEmail)
   const setUserRole = useAppStore((s) => s.setUserRole)
+  const avatarUrl = useAppStore((s) => s.avatarUrl)
+  const workspaceName = useAppStore((s) => s.workspaceName)
+  const setWorkspaceName = useAppStore((s) => s.setWorkspaceName)
 
-  // Derived from the signed-in address. The previous markup showed the literal
-  // strings 'Admin User' / 'Normal User' and fell back to 'user@example.com',
-  // so the header displayed an invented identity for every real account.
+  // Derived from the signed-in address.
   const accountName = userEmail ? userEmail.split('@')[0] : 'Account'
   const initials = (userEmail ? userEmail.replace(/[^a-zA-Z]/g, '') : 'AC')
     .slice(0, 2)
@@ -27,6 +28,23 @@ export function TopBar() {
   const setUserEmail = useAppStore((s) => s.setUserEmail)
   const navigate = useNavigate()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+
+  // Fetch real workspace name dynamically if not in store
+  useEffect(() => {
+    if (!workspaceName) {
+      import('@/api/client').then(({ apiGet }) => {
+        apiGet<{ workspace: { name?: string } }>('/workspace')
+          .then((res) => {
+            if (res?.workspace?.name) {
+              setWorkspaceName(res.workspace.name)
+            }
+          })
+          .catch(() => {})
+      })
+    }
+  }, [workspaceName, setWorkspaceName])
+
+  const displayWorkspace = workspaceName || (userEmail ? `${userEmail.split('@')[0]}'s Workspace` : 'Workspace')
 
   // Global keyboard shortcut: ⌘K or Ctrl+K
   useEffect(() => {
@@ -61,10 +79,17 @@ export function TopBar() {
   return (
     <>
       <header 
-        className="h-[74px] shrink-0 flex items-center justify-between px-6 z-10 clay-floating rounded-none border-b border-(--border)"
+        className="h-18.5 shrink-0 flex items-center justify-between px-6 z-10 clay-floating rounded-none border-b border-(--border)"
       >
+        {/* Left: dynamic workspace name */}
         <div className="flex items-center gap-3">
-          
+          <div className="flex items-center gap-3 px-3.5 py-1.5 clay-inset cursor-pointer hover:bg-(--surface-hover) transition-colors">
+            <img src="/logo.png" alt="" className="h-6 w-6 rounded-lg object-cover drop-shadow-md" />
+            <span className="text-[14px] font-bold text-(--text-primary) tracking-tight">
+              {displayWorkspace}
+            </span>
+            <ChevronDown className="h-3.5 w-3.5 text-(--text-muted)" />
+          </div>
 
           {/* Center-Left: Global Search Button */}
           <button
@@ -110,9 +135,28 @@ export function TopBar() {
           onClick={() => navigate('/app/profile')}
           title="User Profile"
         >
-          <div className="h-11 w-11 rounded-full clay-raised flex items-center justify-center text-(--primary) font-bold text-sm shrink-0">
-            {initials}
-          </div>
+          {avatarUrl ? (
+            <div className="h-11 w-11 rounded-full overflow-hidden clay-raised border-1.5 border-(--primary) shrink-0 flex items-center justify-center bg-(--surface)">
+              <img
+                src={avatarUrl}
+                alt={accountName}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  const t = e.currentTarget
+                  t.style.display = 'none'
+                  const fb = t.nextElementSibling as HTMLElement
+                  if (fb) fb.style.display = 'flex'
+                }}
+              />
+              <div style={{ display: 'none' }} className="h-full w-full items-center justify-center text-(--primary) font-bold text-sm">
+                {initials}
+              </div>
+            </div>
+          ) : (
+            <div className="h-11 w-11 rounded-full clay-raised flex items-center justify-center text-(--primary) font-bold text-sm shrink-0">
+              {initials}
+            </div>
+          )}
           <div className="hidden sm:block">
             <p className="text-[13px] font-bold text-(--text-primary) leading-none">
               {accountName}
