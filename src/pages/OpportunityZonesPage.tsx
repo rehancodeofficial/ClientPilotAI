@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import L from 'leaflet';
 import {
   MapPin, Radar, Filter, RefreshCw, Layers, Compass, Building2,
-  CheckCircle2, ArrowUpRight, Target, Wand2
+  CheckCircle2, ArrowUpRight, Target, Wand2, AlertTriangle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Select, Slider } from '@/components/ui';
 import { getOpportunityZones, getAllLeads } from '@/lib/apiClient';
@@ -39,6 +39,7 @@ export function OpportunityZonesPage() {
   const [minScore, setMinScore] = useState<number>(70);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
@@ -66,6 +67,7 @@ export function OpportunityZonesPage() {
 
   const loadData = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const [fetchedZones, fetchedLeads] = await Promise.all([
         getOpportunityZones(),
@@ -77,7 +79,10 @@ export function OpportunityZonesPage() {
         setSelectedZone(fetchedZones[0]);
       }
     } catch (err) {
-      console.error('Failed to load opportunity zones:', err);
+      // The zones request used to be swallowed entirely, so a failed call and a
+      // workspace with no zones looked identical: an empty map.
+      setError(err instanceof Error ? err.message : 'Opportunity zones could not be loaded.');
+      setZones([]);
     } finally {
       setIsLoading(false);
     }
@@ -191,6 +196,18 @@ export function OpportunityZonesPage() {
           Reload Zones
         </Button>
       </div>
+
+      {error && (
+        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-950/30">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+          <div>
+            <p className="text-sm font-semibold text-red-700 dark:text-red-300">
+              Opportunity zones could not be loaded
+            </p>
+            <p className="mt-0.5 text-xs text-red-600/90 dark:text-red-300/80">{error}</p>
+          </div>
+        </div>
+      )}
 
       {/* Filter Bar */}
       <div className="clay-raised p-4 flex flex-wrap items-center gap-4 text-xs">

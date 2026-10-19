@@ -138,13 +138,6 @@ if (!hasAnyAiKey) {
     'No AI provider key is set (AGENTROUTER_API_KEY, GEMINI_API_KEY or OPENAI_API_KEY). ' +
       'Lead scoring, outreach generation and proposal generation will return HTTP 503.'
   );
-} else if (!agentRouterApiKey && geminiApiKey) {
-  // The current aiConfig.ts talks to AgentRouter only. Flag the mismatch
-  // explicitly so it is not mistaken for a working configuration.
-  warnings.push(
-    'GEMINI_API_KEY is set but the AI layer currently reads AGENTROUTER_API_KEY, ' +
-      'so AI calls will fail. The Gemini provider is wired up in the next phase.'
-  );
 }
 
 if (geminiApiKey && !geminiApiKey.startsWith('AIza')) {
@@ -153,6 +146,15 @@ if (geminiApiKey && !geminiApiKey.startsWith('AIza')) {
       'this key will be rejected by the Gemini API.'
   );
 }
+
+/** The provider the AI layer will actually use, for the boot summary. */
+const activeAiProvider = agentRouterApiKey
+  ? 'AgentRouter'
+  : geminiApiKey
+    ? 'Google Gemini'
+    : openAiApiKey
+      ? 'OpenAI'
+      : 'none';
 
 // ─── Optional: email delivery ─────────────────────────────────────────────────
 
@@ -239,7 +241,7 @@ export function reportEnvironment(): void {
 
   console.log(
     `[env] OK — Supabase configured (${supabaseUrl}), ` +
-      `AI ${hasAnyAiKey ? 'key present' : 'NOT configured'}, ` +
+      `AI provider ${activeAiProvider}, ` +
       `email ${hasEmailProvider ? 'configured' : 'NOT configured'}.`
   );
 }

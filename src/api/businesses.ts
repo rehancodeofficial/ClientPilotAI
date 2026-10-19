@@ -4,7 +4,7 @@
  */
 
 import { apiPost, apiGet } from './client';
-import type { Lead, ProgressStep } from '@/types';
+import type { DetectionStatus, DigitalAudit, Lead, ProgressStep } from '@/types';
 
 export interface DiscoverParams {
   location?: string;
@@ -85,8 +85,68 @@ interface DbOutreachMessage {
 }
 
 interface DbBusinessAudit {
+  id?: string;
+  lead_id?: string;
+  workspace_id?: string;
+  website_exists?: string | null;
+  https_enabled?: string | null;
+  mobile_indicator?: string | null;
+  booking_detected?: string | null;
+  ordering_detected?: string | null;
+  contact_form_detected?: string | null;
+  social_presence_detected?: string | null;
   digital_maturity_level?: number | null;
   audit_score?: number | null;
+  audit_data?: DigitalAudit['auditData'] | null;
+  evidence?: DigitalAudit['evidence'] | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+/** Empty sub-scores for an audit row stored before `audit_data` was populated. */
+const EMPTY_AUDIT_DATA: DigitalAudit['auditData'] = {
+  websiteScore: 0,
+  discoverabilityScore: 0,
+  engagementScore: 0,
+  conversionScore: 0,
+  informationScore: 0,
+  detectedServices: [],
+  websiteAudit: null,
+  websiteHealthScore: null,
+  websiteGrade: null,
+};
+
+/**
+ * Maps a stored `business_audits` row onto the `DigitalAudit` the drawer renders.
+ *
+ * The lead list has always embedded `business_audits`, but nothing converted the
+ * row, so `lead.audit` was permanently undefined and the Audit tab reported "no
+ * audit data yet" even for leads that had been audited.
+ */
+function mapAudit(db: DbBusinessAudit | undefined, leadId: string): DigitalAudit | undefined {
+  if (!db) return undefined;
+
+  const detection = (value: string | null | undefined): DetectionStatus =>
+    value === 'detected' || value === 'not_detected' ? value : 'unknown';
+
+  return {
+    id: db.id,
+    leadId: db.lead_id || leadId,
+    workspaceId: db.workspace_id || '',
+    websiteExists: detection(db.website_exists),
+    httpsEnabled: detection(db.https_enabled),
+    mobileIndicator: detection(db.mobile_indicator),
+    bookingDetected: detection(db.booking_detected),
+    orderingDetected: detection(db.ordering_detected),
+    contactFormDetected: detection(db.contact_form_detected),
+    socialPresenceDetected: detection(db.social_presence_detected),
+    digitalMaturityLevel: (Math.min(4, Math.max(0, db.digital_maturity_level ?? 0)) as DigitalAudit['digitalMaturityLevel']),
+    auditScore: db.audit_score ?? 0,
+    auditData: db.audit_data ?? EMPTY_AUDIT_DATA,
+    evidence: db.evidence ?? [],
+    createdAt: db.created_at ?? undefined,
+    updatedAt: db.updated_at ?? undefined,
+  };
 }
 
 interface DbOpportunityAnalysis {
@@ -202,6 +262,7 @@ export function mapDbLeadToLead(db: DbLead): Lead {
     proposalGeneratedAt: db.proposal_generated_at ?? undefined,
     lastEnrichmentRunAt: db.last_enrichment_run_at ?? undefined,
     lastError: db.last_error ?? null,
+    audit: mapAudit(audit, db.id),
   };
 }
 

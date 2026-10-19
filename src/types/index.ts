@@ -233,6 +233,85 @@ export interface EvidenceItem {
   isAiInference: boolean;
 }
 
+// ─── Website technical audit ──────────────────────────────────────────────────
+
+export type WebsiteGrade = 'A+' | 'A' | 'B' | 'C' | 'D' | 'F';
+
+export type WebsiteAuditCategoryId =
+  | 'performance'
+  | 'seo'
+  | 'security'
+  | 'mobile'
+  | 'accessibility'
+  | 'content'
+  | 'conversion';
+
+export type WebsiteIssueSeverity = 'critical' | 'high' | 'medium' | 'low';
+
+export interface WebsiteAuditIssue {
+  id: string;
+  category: WebsiteAuditCategoryId;
+  severity: WebsiteIssueSeverity;
+  title: string;
+  detail: string;
+  recommendation: string;
+  /** Points this issue deducted from its category. */
+  points: number;
+}
+
+export interface WebsiteAuditCategoryScore {
+  category: WebsiteAuditCategoryId;
+  label: string;
+  score: number;
+  weight: number;
+  grade: WebsiteGrade;
+  checksPassed: number;
+  checksTotal: number;
+}
+
+export interface WebsiteAuditMetrics {
+  ttfbMs: number | null;
+  loadMs: number | null;
+  htmlBytes: number | null;
+  wordCount: number;
+  imageCount: number;
+  imagesWithAlt: number;
+  imagesLazyLoaded: number;
+  scriptCount: number;
+  blockingScriptCount: number;
+  stylesheetCount: number;
+  inlineStyleBytes: number;
+  internalLinks: number;
+  externalLinks: number;
+  headingCounts: { h1: number; h2: number; h3: number };
+  formCount: number;
+  socialLinks: string[];
+}
+
+/**
+ * The full technical report produced by the backend website audit engine.
+ * Every field is an observation, never a model inference.
+ */
+export interface WebsiteAuditReport {
+  url: string;
+  finalUrl: string | null;
+  reachable: boolean;
+  httpStatus: number | null;
+  failureReason: string | null;
+  score: number;
+  grade: WebsiteGrade;
+  verdict: string;
+  categories: WebsiteAuditCategoryScore[];
+  issues: WebsiteAuditIssue[];
+  quickWins: WebsiteAuditIssue[];
+  strengths: string[];
+  metrics: WebsiteAuditMetrics;
+  checks: Record<string, boolean | number | string | null>;
+  technologies: string[];
+  checkedAt: string;
+  durationMs: number;
+}
+
 export interface DigitalAudit {
   id?: string;
   leadId: string;
@@ -258,7 +337,13 @@ export interface DigitalAudit {
       hasResponsiveMeta?: boolean;
       hasContactForm?: boolean;
       socialLinksCount?: number;
+      crawlStatus?: string;
     };
+    /** Full technical website report; null when there is no reachable website. */
+    websiteAudit?: WebsiteAuditReport | null;
+    /** The website's own health score, independent of listing signals. */
+    websiteHealthScore?: number | null;
+    websiteGrade?: WebsiteGrade | null;
   };
   evidence: EvidenceItem[];
   createdAt?: string;
