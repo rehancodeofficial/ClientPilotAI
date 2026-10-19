@@ -100,17 +100,18 @@ function NavGroup({
               to={to}
               end={end}
               className={cn(
-                'flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-bold text-[13px] transition-all relative overflow-hidden',
+                'flex items-center font-bold text-[13px] transition-all relative overflow-hidden',
+                collapsed ? 'justify-center w-11 h-11 mx-auto rounded-xl px-0' : 'gap-3 px-3.5 py-2.5 rounded-xl',
                 isActive
                   ? 'clay-raised bg-(--primary) text-[#101010] shadow-sm'
                   : 'text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
               )}
               title={collapsed ? itemLabel : undefined}
             >
-              {isActive && (
+              {isActive && !collapsed && (
                 <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#101010]" />
               )}
-              <Icon className={cn('h-4.25 w-4.25 shrink-0', isActive ? 'text-[#101010] ml-1' : '')} />
+              <Icon className={cn('h-4.25 w-4.25 shrink-0', isActive ? 'text-[#101010]' : '', !collapsed && isActive ? 'ml-1' : '')} />
               <AnimatePresence>
                 {!collapsed && (
                   <motion.span
@@ -158,41 +159,64 @@ export function Sidebar() {
       transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
     >
       <motion.aside
-        className="clay-floating h-full flex flex-col overflow-hidden relative z-20"
+        className="clay-sidebar h-full flex flex-col overflow-hidden relative z-20 rounded-3xl"
       >
-        {/* Logo / Brand */}
-        <div className="h-16 flex items-center px-5 shrink-0 border-b border-(--border-subtle)">
+        {/* Logo / Brand & Shrink Toggle */}
+        <div className={cn(
+          "h-16 flex items-center shrink-0 border-b border-(--border-subtle) transition-all",
+          collapsed ? "justify-center px-2" : "justify-between px-4"
+        )}>
           <div className="flex items-center gap-2.5 min-w-0">
-            <img
-              src="/logo.png"
-              alt="ClientPilot AI"
-              className="h-8 w-8 rounded-md shrink-0 object-cover"
-            />
-            <AnimatePresence>
-              {!collapsed && (
-                <motion.div
-                  initial={{ opacity: 0, x: -6 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -6 }}
-                  transition={{ duration: 0.15 }}
-                  className="min-w-0"
-                >
-                  <p className="text-[15px] font-bold text-(--text-primary) leading-none whitespace-nowrap">
-                    ClientPilot<span className="text-(--primary) ml-1 font-black">AI</span>
-                  </p>
-                  <p className="text-[10px] text-(--text-secondary) leading-none mt-1 whitespace-nowrap font-mono tracking-widest uppercase">
-                    Intelligence Platform
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <button
+              onClick={() => collapsed && toggle()}
+              className={cn("flex items-center gap-2.5 focus:outline-none text-left bg-transparent border-none p-0", collapsed && "cursor-pointer")}
+              title={collapsed ? "Click to expand sidebar" : undefined}
+            >
+              <img
+                src="/logo.png"
+                alt="ClientPilot AI"
+                className="h-8 w-8 rounded-md shrink-0 object-cover"
+              />
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -6 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -6 }}
+                    transition={{ duration: 0.15 }}
+                    className="min-w-0"
+                  >
+                    <p className="text-[15px] font-bold text-(--text-primary) leading-none whitespace-nowrap">
+                      ClientPilot<span className="text-(--primary) ml-1 font-black">AI</span>
+                    </p>
+                    <p className="text-[10px] text-(--text-secondary) leading-none mt-1 whitespace-nowrap font-mono tracking-widest uppercase">
+                      Intelligence Platform
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </button>
           </div>
+
+          {!collapsed && (
+            <button
+              onClick={toggle}
+              className="p-1.5 rounded-lg clay-inset hover:bg-(--surface-hover) text-(--text-secondary) hover:text-(--text-primary) transition-all cursor-pointer shrink-0"
+              title="Collapse sidebar"
+              aria-label="Collapse sidebar"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         {/* Person Profile Header at top of sidebar */}
         <div
           onClick={() => navigate('/app/profile')}
-          className="mx-3 mt-3 mb-1 p-2 rounded-2xl clay-inset cursor-pointer hover:bg-(--surface-hover) transition-all flex items-center gap-2.5 group"
+          className={cn(
+            "mt-3 mb-1 rounded-2xl clay-inset cursor-pointer hover:bg-(--surface-hover) transition-all flex items-center group",
+            collapsed ? "mx-auto w-11 h-11 justify-center p-0" : "mx-3 p-2 gap-2.5"
+          )}
           title="Profile & Account Settings"
         >
           <div className="relative shrink-0">
@@ -254,6 +278,28 @@ export function Sidebar() {
           <NavGroup label={workspaceGroup.label} items={workspaceGroup.items} collapsed={collapsed} location={location} />
           <NavGroup label={systemGroup.label} items={systemGroup.items} collapsed={collapsed} location={location} />
         </nav>
+
+        {/* Bottom Expand / Collapse Toggle Button */}
+        <div className="p-2 border-t border-(--border-subtle) mt-auto shrink-0">
+          <button
+            onClick={toggle}
+            className={cn(
+              "w-full flex items-center rounded-xl py-2 text-xs font-semibold text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--surface-hover) transition-all cursor-pointer",
+              collapsed ? "justify-center" : "justify-between px-3"
+            )}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <>
+                <span className="text-[11px] font-medium tracking-wide">Collapse sidebar</span>
+                <ChevronLeft className="h-4 w-4" />
+              </>
+            )}
+          </button>
+        </div>
       </motion.aside>
     </motion.div>
   )
