@@ -6,7 +6,15 @@ const DEFAULT_OVERPASS_URLS = [
   'https://overpass.kumi.systems/api/interpreter',
   'https://overpass.private.coffee/api/interpreter',
 ];
-const DEFAULT_USER_AGENT = 'ClientPilotAI/1.0 (https://clientpilotai.internal; info@clientpilotai.com)';
+const DEFAULT_APP_URL = 'https://clientpilotai.rehanhussain.dev';
+/**
+ * Nominatim's usage policy requires a User-Agent that identifies the
+ * application and gives a way to contact its operator. The previous value
+ * pointed at "clientpilotai.internal", which does not resolve — the shape of
+ * identifier operators block rather than rate-limit. Override both with
+ * OSM_USER_AGENT / OSM_APP_URL in the environment.
+ */
+const DEFAULT_USER_AGENT = `ClientPilotAI/1.0 (+${DEFAULT_APP_URL}; info@clientpilotai.com)`;
 const DEFAULT_TIMEOUT_MS = 30_000;
 const MAX_RADIUS_METERS = 50_000;
 
@@ -15,6 +23,7 @@ const OVERPASS_URLS = process.env.OVERPASS_URL
   ? [process.env.OVERPASS_URL, ...DEFAULT_OVERPASS_URLS.filter(url => url !== process.env.OVERPASS_URL)]
   : DEFAULT_OVERPASS_URLS;
 const USER_AGENT = process.env.OSM_USER_AGENT || DEFAULT_USER_AGENT;
+const APP_REFERER = process.env.OSM_APP_URL || DEFAULT_APP_URL;
 const REQUEST_TIMEOUT_MS = Number(process.env.OSM_REQUEST_TIMEOUT_MS || DEFAULT_TIMEOUT_MS);
 
 /**
@@ -27,6 +36,29 @@ const REQUEST_TIMEOUT_MS = Number(process.env.OSM_REQUEST_TIMEOUT_MS || DEFAULT_
 const MIRROR_TIMEOUT_MS = Number(process.env.OSM_MIRROR_TIMEOUT_MS || 15_000);
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * Serialises Nominatim requests at no more than one per second.
+ *
+ * Nominatim's usage policy caps clients at 1 request/second and enforces it per
+ * source IP. Discovery fires a geocode followed by one search per category
+ * term, back to back — fine from a developer machine, but on shared hosting the
+ * IP's budget is already partly spent by other tenants, so the burst comes back
+ * 403/429 and the fallback produces nothing exactly when Overpass is down.
+ */
+const NOMINATIM_MIN_INTERVAL_MS = Number(process.env.NOMINATIM_MIN_INTERVAL_MS || 1100);
+let nominatimChain: Promise<unknown> = Promise.resolve();
+
+const throttleNominatim = <T>(task: () => Promise<T>): Promise<T> => {
+  const result = nominatimChain.then(async () => {
+    const value = await task();
+    await delay(NOMINATIM_MIN_INTERVAL_MS);
+    return value;
+  });
+  // Keep the chain alive even when a request rejects.
+  nominatimChain = result.catch(() => undefined);
+  return result;
+};
 
 // Simple in-memory cache with 1-hour TTL
 interface CacheEntry<T> {
@@ -226,7 +258,7 @@ const normalizeCategories = (categories?: string[]): string[] =>
 
 const requestHeaders = () => ({
   'User-Agent': USER_AGENT,
-  'Referer': 'https://clientpilotai.internal/',
+  'Referer': APP_REFERER,
   'Accept': 'application/json',
 });
 
@@ -244,11 +276,13 @@ export const geocodeLocation = async (location: string): Promise<GeocodeResult> 
   if (!query) throw new OSMGeocodingError('Location is required for geocoding');
 
   try {
-    const response = await axios.get<NominatimPlace[]>(NOMINATIM_URL, {
-      params: { q: query, format: 'jsonv2', limit: 1, addressdetails: 1 },
-      headers: requestHeaders(),
-      timeout: REQUEST_TIMEOUT_MS,
-    });
+    const response = await throttleNominatim(() =>
+      axios.get<NominatimPlace[]>(NOMINATIM_URL, {
+        params: { q: query, format: 'jsonv2', limit: 1, addressdetails: 1 },
+        headers: requestHeaders(),
+        timeout: REQUEST_TIMEOUT_MS,
+      })
+    );
 
     if (!Array.isArray(response.data)) {
       throw new OSMGeocodingError('Nominatim returned an invalid geocoding response', 502);
@@ -545,31 +579,45 @@ export const searchNearbyBusinesses = async (
   }
 
   // Graceful fallback to Nominatim when Overpass mirrors are unavailable or rate-limited
+  const fallbackNotes: string[] = [];
   try {
     console.warn('[OSM Overpass] Overpass mirrors exhausted; attempting fallback to Nominatim search...');
-    const fallbackResult = await searchNearbyBusinessesViaNominatim(params);
+    const fallbackResult = await searchNearbyBusinessesViaNominatim(params, fallbackNotes);
     if (fallbackResult.businesses.length > 0) {
       console.log(`[OSM Nominatim] Fallback recovered ${fallbackResult.businesses.length} businesses.`);
       setInCache(cacheKey, fallbackResult);
       return fallbackResult;
     }
-    console.warn('[OSM Nominatim] Fallback ran but matched no businesses in this area.');
+    console.warn(
+      `[OSM Nominatim] Fallback matched nothing. ${fallbackNotes.join(' | ') || 'no diagnostics recorded'}`
+    );
   } catch (fallbackError) {
-    console.warn('[OSM Overpass] Nominatim fallback also failed:', fallbackError);
+    const reason = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+    console.warn('[OSM Overpass] Nominatim fallback also failed:', reason);
+    fallbackNotes.push(reason);
   }
 
-  if (lastError instanceof OSMOverpassError) throw lastError;
+  // Only a query-syntax failure is worth surfacing verbatim; the soft "mirror
+  // returned 0 businesses" rejection must not reach the user as the headline.
+  if (lastError instanceof OSMOverpassError && lastError.statusCode === 400) throw lastError;
 
   console.error('[OSM Overpass] All Overpass mirrors and retries failed:\n' + mirrorFailureLogs.join('\n'));
+  // The fallback's reason is included deliberately: without it a blocked IP, a
+  // rate limit and a genuinely empty area are indistinguishable from the
+  // browser, which is what made the production failure hard to diagnose.
+  const detail = fallbackNotes.length > 0 ? ` Backup search: ${fallbackNotes.join('; ')}.` : '';
   throw new OSMOverpassError(
     'OpenStreetMap\'s search servers are all busy right now, so no businesses could be fetched. ' +
-      'This is an outage on their side, not a problem with your account — please try again in a few minutes.',
+      'This is an outage on their side, not a problem with your account — please try again in a few minutes.' +
+      detail,
     503
   );
 };
 
 export const searchNearbyBusinessesViaNominatim = async (
   params: NearbyBusinessSearchParams,
+  /** Optional sink for per-term outcomes, used to explain an empty result. */
+  notes?: string[],
 ): Promise<NearbyBusinessSearchResult> => {
   const lat = toFiniteNumber(params.lat);
   const lng = toFiniteNumber(params.lng);
@@ -593,7 +641,7 @@ export const searchNearbyBusinessesViaNominatim = async (
 
   for (const term of queryTerms.slice(0, 3)) {
     try {
-      const response = await axios.get<Array<{
+      const response = await throttleNominatim(() => axios.get<Array<{
         place_id?: number;
         osm_type?: string;
         osm_id?: number;
@@ -617,7 +665,7 @@ export const searchNearbyBusinessesViaNominatim = async (
         // Nominatim is the last line of defence; 8s was short enough to time
         // out under the same load that takes Overpass down.
         timeout: 15_000,
-      });
+      }));
 
       if (Array.isArray(response.data)) {
         for (const place of response.data) {
@@ -658,11 +706,20 @@ export const searchNearbyBusinessesViaNominatim = async (
     } catch (error: unknown) {
       // Log and continue to the next term. Swallowing this silently made a
       // failing fallback indistinguishable from an area with no businesses.
-      console.warn(
-        `[OSM Nominatim] Term "${term}" failed: ${error instanceof Error ? error.message : String(error)}`
-      );
+      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+      const reason = status
+        ? `HTTP ${status}`
+        : error instanceof Error
+          ? error.message
+          : String(error);
+      console.warn(`[OSM Nominatim] Term "${term}" failed: ${reason}`);
+      notes?.push(`"${term}": ${reason}`);
     }
     if (businesses.length >= limit) break;
+  }
+
+  if (businesses.length === 0 && notes && notes.length === 0) {
+    notes.push(`no matches for [${queryTerms.slice(0, 3).join(', ')}] inside the search area`);
   }
 
   return { businesses, center: { lat, lng }, radiusMeters, categories };
