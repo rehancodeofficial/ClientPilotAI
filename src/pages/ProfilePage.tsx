@@ -1,22 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Card, CardHeader, CardTitle, CardContent, Button, Input, Label, Badge, Skeleton } from '@/components/ui'
-import { User, Shield, Key, Save, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { User, Shield, Key, Save, AlertTriangle, CheckCircle2, Upload, Trash2, Loader2, Camera } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { getProfile, updateProfile, type Profile } from '@/api/profile'
 import { supabase } from '@/lib/supabaseClient'
 
 /**
  * Account settings.
- *
- * Every control here writes somewhere real. The previous version resolved an
- * 800ms timer and reported "Profile updated successfully" without issuing a
- * request, offered a password form with no submit handler, and rendered the
- * notification preferences as plain divs with no state behind them. Controls
- * that have no backing service yet are now absent rather than decorative.
  */
 export function ProfilePage() {
   const userRole = useAppStore((s) => s.userRole)
   const setUserEmail = useAppStore((s) => s.setUserEmail)
+  const avatarUrl = useAppStore((s) => s.avatarUrl)
+  const setAvatarUrl = useAppStore((s) => s.setAvatarUrl)
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -31,6 +27,11 @@ export function ProfilePage() {
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [passwordMessage, setPasswordMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
 
+  const [avatarError, setAvatarError] = useState<string | null>(null)
+  const [avatarSuccess, setAvatarSuccess] = useState<string | null>(null)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
   useEffect(() => {
     let active = true
     setLoading(true)
@@ -40,6 +41,7 @@ export function ProfilePage() {
         setProfile(data)
         setName(data.full_name ?? '')
         if (data.email) setUserEmail(data.email)
+        if (data.avatar_url) setAvatarUrl(data.avatar_url)
         setLoadError(null)
       })
       .catch((err: unknown) => {
@@ -52,7 +54,7 @@ export function ProfilePage() {
     return () => {
       active = false
     }
-  }, [setUserEmail])
+  }, [setUserEmail, setAvatarUrl])
 
   const trimmedName = name.trim()
   const nameChanged = !!profile && trimmedName !== (profile.full_name ?? '')

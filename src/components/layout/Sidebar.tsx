@@ -104,7 +104,7 @@ function NavGroup({
               {isActive && (
                 <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#101010]" />
               )}
-              <Icon className={cn('h-[17px] w-[17px] shrink-0', isActive ? 'text-[#101010] ml-1' : '')} />
+              <Icon className={cn('h-4.25 w-4.25 shrink-0', isActive ? 'text-[#101010] ml-1' : '')} />
               <AnimatePresence>
                 {!collapsed && (
                   <motion.span
@@ -135,6 +135,7 @@ export function Sidebar() {
   const toggle = useAppStore((s) => s.toggleSidebar)
   const userRole = useAppStore((s) => s.userRole)
   const userEmail = useAppStore((s) => s.userEmail)
+  const avatarUrl = useAppStore((s) => s.avatarUrl)
   const location = useLocation()
 
   const accountName = userEmail ? userEmail.split('@')[0] : 'Member'
@@ -188,17 +189,23 @@ export function Sidebar() {
           title="Profile & Account Settings"
         >
           <div className="relative shrink-0">
-            <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80"
-              alt={accountName}
-              className="h-10 w-10 rounded-xl object-cover border-1.5 border-(--primary) shadow-sm"
-              onError={(e) => {
-                const t = e.currentTarget
-                t.style.display = 'none'
-                const fallback = t.nextElementSibling as HTMLElement
-                if (fallback) fallback.style.display = 'flex'
-              }}
-            />
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={accountName}
+                className="h-10 w-10 rounded-xl object-cover border-1.5 border-(--primary) shadow-sm"
+                onError={(e) => {
+                  const t = e.currentTarget
+                  t.style.display = 'none'
+                  const fallback = t.nextElementSibling as HTMLElement
+                  if (fallback) fallback.style.display = 'flex'
+                }}
+              />
+            ) : (
+              <div className="h-10 w-10 rounded-xl clay-raised flex items-center justify-center text-(--primary) font-black text-sm border border-(--primary)/30">
+                {initials}
+              </div>
+            )}
             <div
               style={{ display: 'none' }}
               className="h-10 w-10 rounded-xl clay-raised items-center justify-center text-(--primary) font-black text-sm border border-(--primary)/30"
