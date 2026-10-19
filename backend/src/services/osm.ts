@@ -17,6 +17,15 @@ const OVERPASS_URLS = process.env.OVERPASS_URL
 const USER_AGENT = process.env.OSM_USER_AGENT || DEFAULT_USER_AGENT;
 const REQUEST_TIMEOUT_MS = Number(process.env.OSM_REQUEST_TIMEOUT_MS || DEFAULT_TIMEOUT_MS);
 
+/**
+ * Per-mirror timeout for the Overpass race.
+ *
+ * Shorter than REQUEST_TIMEOUT_MS because the mirrors are queried in parallel:
+ * the whole round costs one timeout rather than one per mirror, and the
+ * Overpass query itself declares [out:json][timeout:25].
+ */
+const MIRROR_TIMEOUT_MS = Number(process.env.OSM_MIRROR_TIMEOUT_MS || 15_000);
+
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Simple in-memory cache with 1-hour TTL
@@ -130,6 +139,44 @@ const CATEGORY_FILTERS: Record<string, OSMTagFilter[]> = {
   jewellery: [{ key: 'shop', value: 'jewelry' }, { key: 'shop', value: 'jewellery' }],
   real_estate: [{ key: 'office', value: 'estate_agent' }],
   catering: [{ key: 'shop', value: 'caterer' }, { key: 'amenity', value: 'restaurant' }],
+};
+
+/**
+ * Free-text search terms for the Nominatim fallback, per app category.
+ *
+ * Nominatim matches words, not OSM tag slugs: searching "salon" in Karachi
+ * returns nothing while "hairdresser" returns a full page, and "auto_service"
+ * returns one result where "car repair" returns ten. The fallback used to pass
+ * the raw category slug straight through, so for most categories it silently
+ * produced zero businesses — exactly when Overpass was down and it was the only
+ * thing standing between the user and an empty search.
+ */
+const NOMINATIM_SEARCH_TERMS: Record<string, string[]> = {
+  restaurant: ['restaurant', 'fast food'],
+  retail: ['shop', 'store'],
+  salon: ['hairdresser', 'beauty salon'],
+  clinic: ['clinic', 'doctor'],
+  auto_service: ['car repair', 'car wash'],
+  bakery: ['bakery'],
+  pharmacy: ['pharmacy', 'chemist'],
+  tailor: ['tailor'],
+  cafe: ['cafe', 'coffee shop'],
+  gym: ['gym', 'fitness centre'],
+  electronics: ['electronics shop', 'mobile phone shop'],
+  jewellery: ['jewellery', 'jeweller'],
+  real_estate: ['estate agent', 'real estate'],
+  catering: ['caterer', 'catering'],
+};
+
+/** Expands app categories into terms Nominatim can match. */
+const nominatimTermsFor = (categories: string[]): string[] => {
+  if (categories.length === 0) {
+    return ['restaurant', 'shop', 'cafe', 'clinic', 'bakery'];
+  }
+  const terms = categories.flatMap(
+    (category) => NOMINATIM_SEARCH_TERMS[category.trim().toLowerCase()] ?? [category.replace(/_/g, ' ')]
+  );
+  return [...new Set(terms)];
 };
 
 const DEFAULT_BUSINESS_FILTERS: OSMTagFilter[] = [
@@ -368,10 +415,49 @@ export const searchNearbyBusinesses = async (
   const query = buildOverpassQuery(lat, lng, radiusMeters, categories, limit);
   const postData = `data=${encodeURIComponent(query)}`;
 
+  /**
+   * Queries every Overpass mirror at once and takes the first usable answer.
+   *
+   * The mirrors used to be tried one after another with a 30s timeout each, so
+   * a single overloaded mirror delayed the next one and the worst case ran to
+   * roughly three minutes before the fallback was even attempted — longer than
+   * most proxies will hold a request open. Racing them means the search
+   * succeeds whenever *any* mirror is healthy, in the time that mirror takes.
+   */
+  const askMirror = async (endpoint: string): Promise<NormalizedBusiness[]> => {
+    const response = await axios.post<{ elements?: OverpassElement[] }>(endpoint, postData, {
+      headers: {
+        ...requestHeaders(),
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      timeout: MIRROR_TIMEOUT_MS,
+    });
+
+    if (!response.data || !Array.isArray(response.data.elements)) {
+      throw new OSMOverpassError(`Mirror ${endpoint} returned no element list`, 502);
+    }
+
+    const seen = new Set<string>();
+    return response.data.elements
+      .map(normalizeBusiness)
+      .filter((business): business is NormalizedBusiness => Boolean(business))
+      .filter(business => {
+        if (seen.has(business.osmId)) return false;
+        seen.add(business.osmId);
+        return true;
+      })
+      .slice(0, limit);
+  };
+
   const RETRY_ROUNDS = 2;
   const BACKOFF_DELAYS = [1000, 3000];
   let lastError: unknown;
   const mirrorFailureLogs: string[] = [];
+  // True when at least one mirror sent an HTTP response this round, even an
+  // error one. A second round helps against "busy" replies (429/502/504); it
+  // only doubles the wait when every mirror was unreachable, so in that case
+  // the fallback is reached immediately instead.
+  let anyMirrorResponded = false;
 
   for (let round = 0; round < RETRY_ROUNDS; round++) {
     if (round > 0) {
@@ -380,43 +466,27 @@ export const searchNearbyBusinesses = async (
       await delay(waitMs);
     }
 
-    for (const endpoint of OVERPASS_URLS) {
+    const attempts = OVERPASS_URLS.map(async (endpoint) => {
       try {
-        const response = await axios.post<{ elements?: OverpassElement[] }>(endpoint, postData, {
-          headers: {
-            ...requestHeaders(),
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          timeout: REQUEST_TIMEOUT_MS, // 30s
-        });
-
-        if (response.data && Array.isArray(response.data.elements)) {
-          const seen = new Set<string>();
-          const businesses = response.data.elements
-            .map(normalizeBusiness)
-            .filter((business): business is NormalizedBusiness => Boolean(business))
-            .filter(business => {
-              if (seen.has(business.osmId)) return false;
-              seen.add(business.osmId);
-              return true;
-            })
-            .slice(0, limit);
-
-          if (businesses.length > 0) {
-            const result: NearbyBusinessSearchResult = { businesses, center: { lat, lng }, radiusMeters, categories };
-            setInCache(cacheKey, result);
-            return result;
-          }
+        const businesses = await askMirror(endpoint);
+        // An empty result is a legitimate answer, but it must not beat a mirror
+        // that is still working on a real one, so treat it as a soft failure
+        // and let the round fall through to the slower mirrors.
+        if (businesses.length === 0) {
+          anyMirrorResponded = true;
+          throw new OSMOverpassError(`Mirror ${endpoint} returned 0 businesses`, 404);
         }
+        return { endpoint, businesses };
       } catch (error) {
-        lastError = error;
-
         let statusText = 'network error / timeout';
         let responseBodyPreview = 'no response';
 
         if (axios.isAxiosError(error)) {
           const status = error.response?.status;
-          if (status) statusText = `HTTP ${status}`;
+          if (status) {
+            statusText = `HTTP ${status}`;
+            anyMirrorResponded = true;
+          }
           if (error.response?.data) {
             const rawBody = typeof error.response.data === 'string'
               ? error.response.data
@@ -424,7 +494,8 @@ export const searchNearbyBusinesses = async (
             responseBodyPreview = rawBody.slice(0, 300).replace(/\s+/g, ' ');
           }
 
-          // If client error (400), syntax error - stop retrying
+          // A 400 is a query syntax error: no mirror will accept it, and
+          // retrying wastes the user's time.
           if (status === 400) {
             console.error(`[OSM Overpass] Mirror ${endpoint} returned 400 syntax error: ${responseBodyPreview}`);
             throw new OSMOverpassError(`Invalid Overpass query format: ${responseBodyPreview}`, 400);
@@ -437,6 +508,38 @@ export const searchNearbyBusinesses = async (
         const logMsg = `Mirror [${endpoint}] failed (Round ${round + 1}): ${statusText} - Response body: "${responseBodyPreview}"`;
         console.warn(`[OSM Overpass] ${logMsg}`);
         mirrorFailureLogs.push(logMsg);
+        lastError = error;
+        throw error;
+      }
+    });
+
+    try {
+      const winner = await Promise.any(attempts);
+      console.log(
+        `[OSM Overpass] ${winner.businesses.length} businesses from ${winner.endpoint} (round ${round + 1}).`
+      );
+      const result: NearbyBusinessSearchResult = {
+        businesses: winner.businesses,
+        center: { lat, lng },
+        radiusMeters,
+        categories,
+      };
+      setInCache(cacheKey, result);
+      return result;
+    } catch (aggregate: unknown) {
+      // Promise.any rejects only when every mirror failed. A query syntax error
+      // is final, so surface it instead of retrying the whole round.
+      const errors = aggregate instanceof AggregateError ? aggregate.errors : [aggregate];
+      const syntaxError = errors.find(
+        (err): err is OSMOverpassError => err instanceof OSMOverpassError && err.statusCode === 400
+      );
+      if (syntaxError) throw syntaxError;
+
+      if (!anyMirrorResponded) {
+        console.warn(
+          '[OSM Overpass] No mirror answered at all; skipping further rounds and going straight to the fallback.'
+        );
+        break;
       }
     }
   }
@@ -446,9 +549,11 @@ export const searchNearbyBusinesses = async (
     console.warn('[OSM Overpass] Overpass mirrors exhausted; attempting fallback to Nominatim search...');
     const fallbackResult = await searchNearbyBusinessesViaNominatim(params);
     if (fallbackResult.businesses.length > 0) {
+      console.log(`[OSM Nominatim] Fallback recovered ${fallbackResult.businesses.length} businesses.`);
       setInCache(cacheKey, fallbackResult);
       return fallbackResult;
     }
+    console.warn('[OSM Nominatim] Fallback ran but matched no businesses in this area.');
   } catch (fallbackError) {
     console.warn('[OSM Overpass] Nominatim fallback also failed:', fallbackError);
   }
@@ -457,7 +562,8 @@ export const searchNearbyBusinesses = async (
 
   console.error('[OSM Overpass] All Overpass mirrors and retries failed:\n' + mirrorFailureLogs.join('\n'));
   throw new OSMOverpassError(
-    'Lead search service is temporarily busy, please try again in a minute',
+    'OpenStreetMap\'s search servers are all busy right now, so no businesses could be fetched. ' +
+      'This is an outage on their side, not a problem with your account — please try again in a few minutes.',
     503
   );
 };
@@ -481,7 +587,7 @@ export const searchNearbyBusinessesViaNominatim = async (
   const minLat = lat - latDelta;
   const viewbox = `${minLng.toFixed(5)},${maxLat.toFixed(5)},${maxLng.toFixed(5)},${minLat.toFixed(5)}`;
 
-  const queryTerms = categories.length > 0 ? categories : ['restaurant', 'cafe', 'shop', 'clinic', 'bakery', 'business'];
+  const queryTerms = nominatimTermsFor(categories);
   const seen = new Set<string>();
   const businesses: NormalizedBusiness[] = [];
 
@@ -508,7 +614,9 @@ export const searchNearbyBusinessesViaNominatim = async (
           limit: Math.min(limit, 30),
         },
         headers: requestHeaders(),
-        timeout: 8_000,
+        // Nominatim is the last line of defence; 8s was short enough to time
+        // out under the same load that takes Overpass down.
+        timeout: 15_000,
       });
 
       if (Array.isArray(response.data)) {
@@ -547,8 +655,12 @@ export const searchNearbyBusinessesViaNominatim = async (
           if (businesses.length >= limit) break;
         }
       }
-    } catch {
-      // Continue to next query term
+    } catch (error: unknown) {
+      // Log and continue to the next term. Swallowing this silently made a
+      // failing fallback indistinguishable from an area with no businesses.
+      console.warn(
+        `[OSM Nominatim] Term "${term}" failed: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
     if (businesses.length >= limit) break;
   }
