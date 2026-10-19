@@ -24,7 +24,7 @@ function LegalHero({ icon: Icon, badge, title, subtitle, date }: {
     <section className="relative py-20 sm:py-28 border-b border-black/10 overflow-hidden bg-[#F5F7F5]">
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#4cc02b]/8 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-[#4cc02b]/5 rounded-full blur-2xl pointer-events-none" />
-      <div className="relative z-10 max-w-[900px] mx-auto px-4 sm:px-6">
+      <div className="relative z-10 max-w-225 mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -128,7 +128,7 @@ export function PrivacyPage() {
         date="Effective Date: October 1, 2026 · Last Updated: October 1, 2026"
       />
       <section className="py-16 sm:py-24">
-        <div className="max-w-[900px] mx-auto px-4 sm:px-6 space-y-4">
+        <div className="max-w-225 mx-auto px-4 sm:px-6 space-y-4">
           <AccordionSection title="1. Information We Collect">
             <p className="font-medium text-[#292929]">We may collect the following categories of information when you use ClientPilot AI:</p>
             <div className="space-y-4 pt-1">
@@ -266,7 +266,7 @@ export function TermsPage() {
         date="Effective Date: October 1, 2026 · Last Updated: October 1, 2026"
       />
       <section className="py-16 sm:py-24">
-        <div className="max-w-[900px] mx-auto px-4 sm:px-6 space-y-4">
+        <div className="max-w-225 mx-auto px-4 sm:px-6 space-y-4">
 
           <AccordionSection title="1. Acceptance of Terms">
             <p>These Terms of Service constitute a legally binding agreement between you and ClientPilot AI governing your access to and use of the platform, website, APIs, and related services.</p>
@@ -358,7 +358,7 @@ export function CookiePolicyPage() {
         date="Effective Date: October 1, 2026 · Last Updated: October 1, 2026"
       />
       <section className="py-16 sm:py-24">
-        <div className="max-w-[900px] mx-auto px-4 sm:px-6 space-y-4">
+        <div className="max-w-225 mx-auto px-4 sm:px-6 space-y-4">
 
           <AccordionSection title="1. What Are Cookies?">
             <p>Cookies are small text files placed on your device when you visit a website. They help websites function correctly, remember preferences, and provide information about user interactions.</p>
@@ -437,7 +437,7 @@ export function AcceptableUsePage() {
         date="Effective Date: October 1, 2026 · Last Updated: October 1, 2026"
       />
       <section className="py-16 sm:py-24">
-        <div className="max-w-[900px] mx-auto px-4 sm:px-6 space-y-4">
+        <div className="max-w-225 mx-auto px-4 sm:px-6 space-y-4">
 
           <AccordionSection title="1. Purpose">
             <p>This Acceptable Use Policy sets out the rules governing use of the ClientPilot AI platform, API, and related services. By using our platform, you agree to comply with this policy in addition to our Terms of Service. Violations may result in immediate suspension or termination of your account.</p>

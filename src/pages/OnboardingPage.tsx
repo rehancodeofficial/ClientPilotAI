@@ -62,7 +62,7 @@ export function OnboardingPage() {
           </div>
 
           {/* Card Container */}
-          <div className="p-8 rounded-[12px] bg-white border border-black/10 text-left space-y-6 shadow-sm">
+          <div className="p-8 rounded-xl bg-white border border-black/10 text-left space-y-6 shadow-sm">
             
             {/* Step 1: Agency Info */}
             {step === 1 && (
@@ -81,7 +81,7 @@ export function OnboardingPage() {
                       value={agencyName}
                       onChange={(e) => setAgencyName(e.target.value)}
                       placeholder="Apex Digital Studio"
-                      className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                      className="w-full px-3.5 py-2 rounded-md bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                     />
                   </div>
 
@@ -92,7 +92,7 @@ export function OnboardingPage() {
                       value={website}
                       onChange={(e) => setWebsite(e.target.value)}
                       placeholder="https://apexdigital.com"
-                      className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                      className="w-full px-3.5 py-2 rounded-md bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                     />
                   </div>
 
@@ -103,7 +103,7 @@ export function OnboardingPage() {
                         type="text"
                         value={country}
                         onChange={(e) => setCountry(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                        className="w-full px-3.5 py-2 rounded-md bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                       />
                     </div>
                     <div>
@@ -111,7 +111,7 @@ export function OnboardingPage() {
                       <select
                         value={teamSize}
                         onChange={(e) => setTeamSize(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                        className="w-full px-3.5 py-2 rounded-md bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                       >
                         <option value="1">Solo / Freelancer</option>
                         <option value="2-10">2–10 members</option>
@@ -143,7 +143,7 @@ export function OnboardingPage() {
                         key={srv}
                         type="button"
                         onClick={() => toggleService(srv)}
-                        className={`p-3 rounded-[6px] text-left text-xs font-normal border transition-all flex items-center justify-between ${
+                        className={`p-3 rounded-md text-left text-xs font-normal border transition-all flex items-center justify-between ${
                           sel
                             ? 'bg-[#dbdbd2] border-black/20 text-[#292929]'
                             : 'bg-[#F5F7F5] border-black/5 text-[#6f6f6e] hover:border-black/20'
@@ -173,7 +173,7 @@ export function OnboardingPage() {
                       type="text"
                       value={targetIndustries}
                       onChange={(e) => setTargetIndustries(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                      className="w-full px-3.5 py-2 rounded-md bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                     />
                   </div>
 
@@ -183,7 +183,7 @@ export function OnboardingPage() {
                       type="text"
                       value={targetLocations}
                       onChange={(e) => setTargetLocations(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                      className="w-full px-3.5 py-2 rounded-md bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                     />
                   </div>
                 </div>
@@ -206,7 +206,7 @@ export function OnboardingPage() {
                     'Discover website technical opportunities',
                     'Streamline developer handoff workflow'
                   ].map((goal, idx) => (
-                    <div key={idx} className="p-3 rounded-[6px] bg-[#F5F7F5] border border-black/5 flex items-center gap-3 text-xs text-[#292929]">
+                    <div key={idx} className="p-3 rounded-md bg-[#F5F7F5] border border-black/5 flex items-center gap-3 text-xs text-[#292929]">
                       <Wand2 className="w-3.5 h-3.5 text-[#353535] shrink-0" />
                       <span>{goal}</span>
                     </div>
@@ -243,7 +243,7 @@ export function OnboardingPage() {
               <button
                 type="button"
                 onClick={handleNext}
-                className="inline-flex items-center gap-2 px-6 h-[40px] rounded-[200px] text-xs font-normal text-white bg-[#141414] hover:bg-[#292929] transition-all"
+                className="inline-flex items-center gap-2 px-6 h-10 rounded-[200px] text-xs font-normal text-white bg-[#141414] hover:bg-[#292929] transition-all"
               >
                 <span>{step === 5 ? 'Start Finding Opportunities' : 'Continue'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />

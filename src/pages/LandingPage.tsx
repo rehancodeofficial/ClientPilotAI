@@ -103,7 +103,7 @@ function WorkflowCircleCard({
       animate={inView ? 'visible' : 'hidden'}
       whileHover={{ scale: 1.03, y: -3 }}
       transition={{ type: 'spring', stiffness: 280, damping: 22 }}
-      className={`relative rounded-2xl bg-white/95 backdrop-blur-sm border border-black/8 p-3.5 sm:p-5 flex flex-col justify-center items-center text-center group cursor-default shadow-2xs hover:shadow-md hover:border-lime-pulse/40 transition-all duration-300 overflow-hidden min-h-[175px] sm:min-h-[200px] sm:aspect-square ${className}`}
+      className={`relative rounded-2xl bg-white/95 backdrop-blur-sm border border-black/8 p-3.5 sm:p-5 flex flex-col justify-center items-center text-center group cursor-default shadow-2xs hover:shadow-md hover:border-lime-pulse/40 transition-all duration-300 overflow-hidden min-h-43.75 sm:min-h-50 sm:aspect-square ${className}`}
     >
       {/* Subtle greenish hover tint glow */}
       <div className="absolute inset-0 bg-linear-to-b from-lime-pulse/4 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />

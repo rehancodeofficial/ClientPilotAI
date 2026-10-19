@@ -23,14 +23,14 @@ export function ForgotPasswordPage() {
 
       <main className="py-16 sm:py-24">
         <div className="max-w-md mx-auto px-4 w-full">
-          <div className="p-8 rounded-[12px] bg-white border border-black/10 text-left space-y-6 shadow-sm">
+          <div className="p-8 rounded-xl bg-white border border-black/10 text-left space-y-6 shadow-sm">
             <div className="space-y-2 text-center">
               <h1 className="text-2xl font-normal text-[#292929] font-heading">Reset your password.</h1>
               <p className="text-xs text-[#6f6f6e]">Enter your account email to receive a password reset link.</p>
             </div>
 
             {status === 'success' ? (
-              <div className="p-4 rounded-[6px] bg-[#dbdbd2] text-[#292929] text-xs space-y-2">
+              <div className="p-4 rounded-md bg-[#dbdbd2] text-[#292929] text-xs space-y-2">
                 <div className="flex items-center gap-2 font-normal"><CheckCircle2 className="w-4 h-4 text-[#4cc02b]" /> Email Sent</div>
                 <p>If an account exists for {email}, a password reset link has been dispatched to your inbox.</p>
               </div>
@@ -44,14 +44,14 @@ export function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="alex@agency.com"
-                    className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                    className="w-full px-3.5 py-2 rounded-md bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={status === 'loading'}
-                  className="w-full h-[44px] rounded-[200px] bg-[#141414] hover:bg-[#292929] text-white font-normal text-sm transition-all flex items-center justify-center gap-2"
+                  className="w-full h-11 rounded-[200px] bg-[#141414] hover:bg-[#292929] text-white font-normal text-sm transition-all flex items-center justify-center gap-2"
                 >
                   {status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Send Reset Link</span>}
                 </button>
@@ -102,21 +102,21 @@ export function ResetPasswordPage() {
 
       <main className="py-16 sm:py-24">
         <div className="max-w-md mx-auto px-4 w-full">
-          <div className="p-8 rounded-[12px] bg-white border border-black/10 text-left space-y-6 shadow-sm">
+          <div className="p-8 rounded-xl bg-white border border-black/10 text-left space-y-6 shadow-sm">
             <div className="space-y-2 text-center">
               <h1 className="text-2xl font-normal text-[#292929] font-heading">Set new password</h1>
               <p className="text-xs text-[#6f6f6e]">Choose a secure password for your ClientPilot workspace.</p>
             </div>
 
             {errorMsg && (
-              <div className="p-3.5 rounded-[6px] bg-red-50 text-red-700 border border-red-200 text-xs flex items-center gap-2">
+              <div className="p-3.5 rounded-md bg-red-50 text-red-700 border border-red-200 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
             {status === 'success' ? (
-              <div className="p-4 rounded-[6px] bg-[#dbdbd2] text-[#292929] text-xs space-y-3">
+              <div className="p-4 rounded-md bg-[#dbdbd2] text-[#292929] text-xs space-y-3">
                 <div className="flex items-center gap-2 font-normal"><CheckCircle2 className="w-4 h-4 text-[#4cc02b]" /> Password Reset Complete</div>
                 <p>Your password has been updated successfully.</p>
                 <button
@@ -135,7 +135,7 @@ export function ResetPasswordPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                    className="w-full px-3.5 py-2 rounded-md bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                   />
                 </div>
 
@@ -146,14 +146,14 @@ export function ResetPasswordPage() {
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-[6px] bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
+                    className="w-full px-3.5 py-2 rounded-md bg-[#F5F7F5] border border-black/10 text-sm text-[#292929] focus:outline-none focus:border-black"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={status === 'loading'}
-                  className="w-full h-[44px] rounded-[200px] bg-[#141414] hover:bg-[#292929] text-white font-normal text-sm transition-all flex items-center justify-center gap-2"
+                  className="w-full h-11 rounded-[200px] bg-[#141414] hover:bg-[#292929] text-white font-normal text-sm transition-all flex items-center justify-center gap-2"
                 >
                   {status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Reset Password</span>}
                 </button>
@@ -187,7 +187,7 @@ export function VerifyEmailPage() {
 
       <main className="py-16 sm:py-24">
         <div className="max-w-md mx-auto px-4 w-full">
-          <div className="p-8 rounded-[12px] bg-white border border-black/10 text-center space-y-6 shadow-sm">
+          <div className="p-8 rounded-xl bg-white border border-black/10 text-center space-y-6 shadow-sm">
             <div className="w-10 h-10 rounded-full bg-[#c0c0c0] flex items-center justify-center text-[#353535] mx-auto">
               <Mail className="w-5 h-5" />
             </div>
@@ -197,7 +197,7 @@ export function VerifyEmailPage() {
             </div>
 
             {resent && (
-              <div className="p-3.5 rounded-[6px] bg-[#dbdbd2] text-[#292929] text-xs">
+              <div className="p-3.5 rounded-md bg-[#dbdbd2] text-[#292929] text-xs">
                 Verification email resent. Please check your spam folder if you don't see it.
               </div>
             )}
@@ -205,7 +205,7 @@ export function VerifyEmailPage() {
             <div className="space-y-2.5 pt-2">
               <button
                 onClick={() => navigate('/app')}
-                className="w-full h-[44px] rounded-[200px] bg-[#141414] hover:bg-[#292929] text-white font-normal text-sm"
+                className="w-full h-11 rounded-[200px] bg-[#141414] hover:bg-[#292929] text-white font-normal text-sm"
               >
                 Continue After Verification
               </button>
@@ -213,7 +213,7 @@ export function VerifyEmailPage() {
               <button
                 onClick={handleResend}
                 disabled={resending}
-                className="w-full h-[44px] rounded-[200px] bg-[#dbdbd2] text-[#292929] text-xs font-normal hover:bg-[#d0d0c8]"
+                className="w-full h-11 rounded-[200px] bg-[#dbdbd2] text-[#292929] text-xs font-normal hover:bg-[#d0d0c8]"
               >
                 {resending ? 'Sending...' : 'Resend Verification Email'}
               </button>

@@ -14,10 +14,10 @@ export function NotFoundPage() {
           <h1 className="text-3xl font-normal text-[#292929] font-heading">This page doesn't exist.</h1>
           <p className="text-sm text-[#6f6f6e]">The page you're looking for may have moved or no longer exists.</p>
           <div className="flex justify-center gap-3 pt-2">
-            <Link to="/" className="inline-flex items-center gap-2 px-6 h-[40px] rounded-[200px] text-xs font-normal text-white bg-[#141414] hover:bg-[#292929] transition-all">
+            <Link to="/" className="inline-flex items-center gap-2 px-6 h-10 rounded-[200px] text-xs font-normal text-white bg-[#141414] hover:bg-[#292929] transition-all">
               Go Home
             </Link>
-            <button onClick={() => window.history.back()} className="inline-flex items-center gap-2 px-6 h-[40px] rounded-[200px] text-xs font-normal text-[#292929] bg-[#dbdbd2] hover:bg-[#d0d0c8] transition-all">
+            <button onClick={() => window.history.back()} className="inline-flex items-center gap-2 px-6 h-10 rounded-[200px] text-xs font-normal text-[#292929] bg-[#dbdbd2] hover:bg-[#d0d0c8] transition-all">
               Back
             </button>
           </div>
@@ -40,11 +40,11 @@ export function ErrorPage() {
           <h1 className="text-3xl font-normal text-[#292929] font-heading">Something went wrong.</h1>
           <p className="text-sm text-[#6f6f6e]">We couldn't complete that request. Please try again.</p>
           <div className="flex justify-center gap-3 pt-2">
-            <button onClick={() => window.location.reload()} className="inline-flex items-center gap-2 px-6 h-[40px] rounded-[200px] text-xs font-normal text-white bg-[#141414] hover:bg-[#292929] transition-all">
+            <button onClick={() => window.location.reload()} className="inline-flex items-center gap-2 px-6 h-10 rounded-[200px] text-xs font-normal text-white bg-[#141414] hover:bg-[#292929] transition-all">
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Try Again</span>
             </button>
-            <Link to="/" className="inline-flex items-center gap-2 px-6 h-[40px] rounded-[200px] text-xs font-normal text-[#292929] bg-[#dbdbd2] hover:bg-[#d0d0c8] transition-all">
+            <Link to="/" className="inline-flex items-center gap-2 px-6 h-10 rounded-[200px] text-xs font-normal text-[#292929] bg-[#dbdbd2] hover:bg-[#d0d0c8] transition-all">
               Go Home
             </Link>
           </div>
