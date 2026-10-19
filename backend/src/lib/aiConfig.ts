@@ -28,7 +28,13 @@ export const OPENAI_BASE_URL = 'https://api.openai.com/v1';
 /** Kept for backwards compatibility with earlier imports. */
 export const DEFAULT_BASE_URL = AGENTROUTER_BASE_URL;
 
-/** Gemini models that must win when the provider exposes them. */
+/**
+ * Gemini models preferred when routing through AgentRouter.
+ *
+ * Not used for the direct Gemini provider: Google retires model ids (2.5-flash
+ * is already closed to new keys and answers HTTP 404), so the direct list lives
+ * in MODEL_PREFERENCE_BY_PROVIDER and is walked as a fallback chain.
+ */
 export const GEMINI_MODELS: readonly string[] = [
   'gemini-2.5-flash',
   'gemini-2.0-flash',
@@ -38,7 +44,14 @@ export const GEMINI_MODELS: readonly string[] = [
 /** Chat models to try, in descending order of preference, per provider. */
 const MODEL_PREFERENCE_BY_PROVIDER: Record<Exclude<AiProvider, 'none'>, readonly string[]> = {
   agentrouter: [...GEMINI_MODELS, 'deepseek-v4-flash', 'gpt-6-astra', 'gpt-4o-mini'],
-  gemini: [...GEMINI_MODELS, 'gemini-2.5-pro', 'gemini-1.5-flash'],
+  gemini: [
+    'gemini-3.8-flash',
+    'gemini-3.7-flash',
+    'gemini-3.5-flash',
+    'gemini-flash-latest',
+    'gemini-flash-lite-latest',
+    'gemini-3.1-flash-lite',
+  ],
   openai: ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini'],
 };
 
@@ -47,7 +60,7 @@ export const MODEL_PREFERENCE: readonly string[] = MODEL_PREFERENCE_BY_PROVIDER.
 
 const DEFAULT_MODEL_BY_PROVIDER: Record<Exclude<AiProvider, 'none'>, string> = {
   agentrouter: 'deepseek-v4-flash',
-  gemini: 'gemini-2.5-flash',
+  gemini: 'gemini-flash-latest',
   openai: 'gpt-4o-mini',
 };
 
@@ -143,6 +156,41 @@ export const getResolvedModel = (): string => resolvedModel;
 
 /** True once the provider has been asked which models this key can access. */
 export const isModelResolved = (): boolean => resolutionDone;
+
+/**
+ * The models to try for one request, in order: the resolved model first, then
+ * the rest of the provider's preference list.
+ *
+ * Google both retires model ids (HTTP 404 — "no longer available to new users")
+ * and sheds load on free-tier keys (HTTP 503 — "experiencing high demand"), so a
+ * single hard-coded model makes AI features fail for reasons that have nothing
+ * to do with this application. Walking the chain keeps scoring and drafting
+ * working through both.
+ */
+/**
+ * Model ids the provider has answered 404 for in this process.
+ *
+ * Google keeps retired ids in its /models listing but refuses them at call
+ * time, so availability cannot be trusted from the listing alone. Recording
+ * them here keeps the fallback chain from spending a round trip on a model
+ * already known to be gone.
+ */
+const retiredModels = new Set<string>();
+
+/** Records a model the provider refused with HTTP 404. */
+export const markModelRetired = (model: string): void => {
+  if (model) retiredModels.add(model);
+};
+
+export const getModelFallbacks = (): string[] => {
+  const provider = getProvider();
+  if (provider === 'none') return [getResolvedModel()];
+  const chain = [getResolvedModel(), ...MODEL_PREFERENCE_BY_PROVIDER[provider]];
+  const usable = [...new Set(chain.filter((model) => model.length > 0 && !retiredModels.has(model)))];
+  // Never return an empty chain: if every id has been marked retired, try the
+  // configured one again rather than failing without a request.
+  return usable.length > 0 ? usable : [getResolvedModel()];
+};
 
 /** Creates a fresh OpenAI SDK client pointed at the active provider. */
 export const createAiClient = (apiKey: string = getApiKey()): OpenAI => {

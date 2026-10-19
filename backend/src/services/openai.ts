@@ -15,7 +15,9 @@ import {
   createAiClient,
   getApiKey,
   getBaseUrl,
+  getModelFallbacks,
   getProviderLabel,
+  markModelRetired,
   getResolvedModel,
   hasApiKey,
 } from '../lib/aiConfig';
@@ -138,6 +140,8 @@ async function callAiProvider<T>(
     { role: 'user' as const, content: userPrompt },
   ];
 
+  const fallbacks = getModelFallbacks();
+
   console.log(
     `[AI:${label}] → Sending request to ${getProviderLabel()} (${getBaseUrl()}, model: ${model})`
   );
@@ -145,20 +149,48 @@ async function callAiProvider<T>(
   try {
     const client = createAiClient(getApiKey());
 
+    /** Sends one request, retrying without JSON mode if the model rejects it. */
+    const send = async (candidate: string) => {
+      try {
+        return await client.chat.completions.create({
+          model: candidate,
+          messages,
+          temperature: 0.3,
+          response_format: { type: 'json_object' },
+        });
+      } catch (firstError: unknown) {
+        // Some models reject JSON mode; retry once without it.
+        if (!isUnsupportedResponseFormat(describeApiError(firstError))) throw firstError;
+        console.warn(`[AI:${label}] ⚠️  Model rejected response_format; retrying without JSON mode.`);
+        return client.chat.completions.create({ model: candidate, messages, temperature: 0.3 });
+      }
+    };
+
+    // Walk the fallback chain: a retired model answers 404 and an overloaded one
+    // answers 503, neither of which says anything about the request itself.
     let response;
-    try {
-      response = await client.chat.completions.create({
-        model,
-        messages,
-        temperature: 0.3,
-        response_format: { type: 'json_object' },
-      });
-    } catch (firstError: unknown) {
-      // Some models reject JSON mode; retry once without it.
-      if (!isUnsupportedResponseFormat(describeApiError(firstError))) throw firstError;
-      console.warn(`[AI:${label}] ⚠️  Model rejected response_format; retrying without JSON mode.`);
-      response = await client.chat.completions.create({ model, messages, temperature: 0.3 });
+    let usedModel = model;
+    let lastTransportError: unknown = null;
+
+    for (const candidate of fallbacks) {
+      try {
+        response = await send(candidate);
+        usedModel = candidate;
+        if (candidate !== model) {
+          console.warn(`[AI:${label}] ↪︎ "${model}" unavailable; served by "${candidate}".`);
+        }
+        break;
+      } catch (err: unknown) {
+        const { status } = describeApiError(err);
+        if (status !== 404 && status !== 503 && status !== 429) throw err;
+        // A 404 means the id is retired, not busy: do not try it again later.
+        if (status === 404) markModelRetired(candidate);
+        lastTransportError = err;
+        console.warn(`[AI:${label}] ⚠️  "${candidate}" returned HTTP ${status}; trying the next model.`);
+      }
     }
+
+    if (!response) throw lastTransportError ?? new Error('No model in the fallback chain responded.');
 
     const latencyMs = Date.now() - startMs;
     const rawText = response.choices[0]?.message?.content || '';
@@ -173,7 +205,9 @@ async function callAiProvider<T>(
       };
     }
 
-    console.log(`[AI:${label}] ← Response received (${latencyMs}ms, ${rawText.length} chars). Parsing...`);
+    console.log(
+      `[AI:${label}] ← Response received from "${usedModel}" (${latencyMs}ms, ${rawText.length} chars). Parsing...`
+    );
 
     let parsed: unknown;
     try {
