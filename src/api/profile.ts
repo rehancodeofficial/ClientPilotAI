@@ -13,6 +13,9 @@ export interface Profile {
   role: 'admin' | 'user' | string;
   avatar_url: string | null;
   timezone: string | null;
+  phone?: string | null;
+  bio?: string | null;
+  job_title?: string | null;
   created_at: string;
 }
 
@@ -28,6 +31,7 @@ export interface WorkspaceMember {
 export interface Workspace {
   id: string;
   name: string;
+  plan?: 'free' | 'starter' | 'agency' | 'pro' | 'enterprise' | string;
   owner_id: string | null;
   created_at: string;
 }
@@ -37,9 +41,9 @@ export async function getProfile(): Promise<Profile> {
   return profile;
 }
 
-/** Updates the caller's own profile. Email and role are not updatable. */
+/** Updates the caller's own profile. */
 export async function updateProfile(
-  updates: Partial<Pick<Profile, 'full_name' | 'timezone' | 'avatar_url'>>
+  updates: Partial<Pick<Profile, 'full_name' | 'timezone' | 'avatar_url' | 'phone' | 'bio' | 'job_title'>>
 ): Promise<Profile> {
   const { profile } = await apiPatch<{ profile: Profile }>('/profile', updates);
   return profile;
@@ -49,7 +53,12 @@ export async function getWorkspace(): Promise<{ workspace: Workspace; isOwner: b
   return apiGet<{ workspace: Workspace; isOwner: boolean }>('/workspace');
 }
 
+export async function updateWorkspace(updates: { name?: string; plan?: string }): Promise<{ workspace: Workspace }> {
+  return apiPatch<{ workspace: Workspace }>('/workspace', updates);
+}
+
 export async function getWorkspaceMembers(): Promise<WorkspaceMember[]> {
   const { members } = await apiGet<{ members: WorkspaceMember[] }>('/workspace/members');
   return members;
 }
+

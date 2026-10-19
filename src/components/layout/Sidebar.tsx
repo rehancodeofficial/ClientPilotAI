@@ -12,10 +12,17 @@ import { cn } from '@/lib/utils'
 // Navigation Groups — Overview (Dashboard on top) / Intelligence / Workspace / System
 // ============================================================
 
-const overviewGroup = {
+const overviewGroupUser = {
   label: 'OVERVIEW',
   items: [
     { to: '/app', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  ],
+}
+
+const overviewGroupAdmin = {
+  label: 'OVERVIEW',
+  items: [
+    { to: '/app/admin', label: 'Admin Portal', icon: ShieldCheck, end: false },
   ],
 }
 
@@ -49,7 +56,6 @@ const systemGroupUser = {
 const systemGroupAdmin = {
   label: 'SYSTEM',
   items: [
-    { to: '/app/admin', label: 'Admin Panel', icon: ShieldCheck, end: false },
     { to: '/app/settings', label: 'Workspace Settings', icon: Settings, end: false },
     { to: '/app/profile', label: 'Profile Settings', icon: UserCog, end: false },
   ],
@@ -143,6 +149,7 @@ export function Sidebar() {
     .slice(0, 2)
     .toUpperCase() || 'WA'
 
+  const overviewGroup = userRole === 'admin' ? overviewGroupAdmin : overviewGroupUser
   const systemGroup = userRole === 'admin' ? systemGroupAdmin : systemGroupUser
 
   return (
@@ -247,36 +254,6 @@ export function Sidebar() {
           <NavGroup label={workspaceGroup.label} items={workspaceGroup.items} collapsed={collapsed} location={location} />
           <NavGroup label={systemGroup.label} items={systemGroup.items} collapsed={collapsed} location={location} />
         </nav>
-
-        {/* Intelligence badge */}
-        <AnimatePresence>
-          {!collapsed && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="mx-4 mb-4 px-4 py-3 clay-inset"
-            >
-              <div className="flex items-center gap-1.5 mb-1">
-                <Wand2 className="h-3 w-3 text-(--primary)" />
-                <p className="text-[10px] font-bold text-(--text-secondary) uppercase tracking-widest">Powered by</p>
-              </div>
-              <p className="text-[12px] font-bold text-(--text-primary) truncate">Gemini 2.5 Flash</p>
-              <p className="text-[10px] text-(--text-secondary) mt-0.5">Business Intelligence Engine</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Collapse toggle */}
-        <div className="p-4 pt-0">
-          <button
-            onClick={toggle}
-            className="w-full flex items-center justify-center h-10 clay-raised text-(--text-secondary) hover:text-(--primary)"
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
-          </button>
-        </div>
       </motion.aside>
     </motion.div>
   )

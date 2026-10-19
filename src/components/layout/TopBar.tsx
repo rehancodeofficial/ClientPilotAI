@@ -79,7 +79,7 @@ export function TopBar() {
   return (
     <>
       <header 
-        className="h-18.5 shrink-0 flex items-center justify-between px-6 z-10 clay-floating rounded-none border-b border-(--border)"
+        className="h-18.5 shrink-0 flex items-center justify-between px-6 z-10 clay-floating rounded-none border-b border-(--border-subtle)"
       >
         {/* Left: dynamic workspace name */}
         <div className="flex items-center gap-3">

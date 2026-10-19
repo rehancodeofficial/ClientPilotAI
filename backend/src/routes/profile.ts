@@ -37,6 +37,9 @@ const UpdateProfileSchema = z
     full_name: z.string().trim().min(1).max(120).optional(),
     timezone: z.string().trim().max(64).optional(),
     avatar_url: z.string().trim().max(4 * 1024 * 1024).optional().or(z.literal('')),
+    phone: z.string().trim().max(32).optional(),
+    bio: z.string().trim().max(500).optional(),
+    job_title: z.string().trim().max(100).optional(),
   })
   .strict();
 
@@ -163,7 +166,7 @@ workspaceRouter.get('/', async (req, res) => {
 
     const { data, error } = await supabaseAdmin
       .from('workspaces')
-      .select('id, name, owner_id, created_at')
+      .select('id, name, owner_id, plan, created_at')
       .eq('id', profile.workspace_id)
       .maybeSingle();
 
@@ -171,6 +174,46 @@ workspaceRouter.get('/', async (req, res) => {
     res.json({ workspace: data, isOwner: data?.owner_id === user.sub });
   } catch (err: unknown) {
     respondWithError(res, err, 'GET /api/workspace');
+  }
+});
+
+workspaceRouter.patch('/', async (req, res) => {
+  const user = req.user!;
+  try {
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('workspace_id, role')
+      .eq('id', user.sub)
+      .maybeSingle();
+
+    if (!profile?.workspace_id) {
+      return res.status(404).json({ error: 'No workspace found', code: 'NO_WORKSPACE' });
+    }
+
+    const { name, plan } = req.body;
+    const updates: Record<string, any> = {};
+    if (typeof name === 'string' && name.trim()) {
+      updates.name = name.trim();
+    }
+    if (typeof plan === 'string' && ['free', 'starter', 'agency', 'pro', 'enterprise'].includes(plan)) {
+      updates.plan = plan;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'No valid workspace fields to update' });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('workspaces')
+      .update(updates)
+      .eq('id', profile.workspace_id)
+      .select('id, name, owner_id, plan, created_at')
+      .maybeSingle();
+
+    if (error) throw error;
+    res.json({ workspace: data });
+  } catch (err: unknown) {
+    respondWithError(res, err, 'PATCH /api/workspace');
   }
 });
 
