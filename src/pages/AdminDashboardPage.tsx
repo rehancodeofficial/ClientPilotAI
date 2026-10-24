@@ -134,7 +134,7 @@ export function AdminDashboardPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full text-(--text-primary)">
       {/* Platform Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 clay-raised rounded-2xl relative overflow-hidden border border-(--border)">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 clay-raised rounded-xl relative overflow-hidden border border-(--border)">
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-(--accent-soft) text-(--accent) border border-(--accent)/30">

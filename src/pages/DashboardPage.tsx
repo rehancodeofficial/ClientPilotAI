@@ -259,7 +259,7 @@ export function DashboardPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full text-(--text-primary)">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 clay-raised rounded-2xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 clay-raised rounded-xl">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-(--primary-soft) text-(--primary)">
@@ -640,7 +640,7 @@ export function DashboardPage() {
       </div>
 
       {/* Plans & Workspace Subscription Section */}
-      <div className="clay-floating p-6 sm:p-8 rounded-2xl space-y-6">
+      <div className="clay-raised p-6 sm:p-8 rounded-xl space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-(--border-subtle) pb-5">
           <div>
             <div className="flex items-center gap-2 mb-1">
