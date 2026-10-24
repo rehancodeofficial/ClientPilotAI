@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { supabaseAdmin } from '../lib/supabase';
-import { discoverBusinessesByLocation, searchNearbyBusinesses, OSMGeocodingError, OSMOverpassError } from '../services/osm';
+import { discoverBusinessesByLocation, searchNearbyBusinesses, reverseGeocodeCountry, OSMGeocodingError, OSMOverpassError } from '../services/osm';
 import { enqueueAudits } from '../services/auditQueue';
 import { scoreLead, generateOutreach, generateProposal } from '../services/openai';
 import { getResolvedModel } from '../lib/aiConfig';
@@ -204,14 +204,73 @@ router.post('/discover', async (req, res) => {
       });
     }
 
+    /**
+     * The country the search ran in, resolved once for the whole radius.
+     *
+     * A geocoded search gets it for free from Nominatim; a map-click search
+     * has only coordinates, so it is looked up. Either way it is cheap next to
+     * the business query, and without it the website resolver cannot tell a
+     * `.co.uk` business from a `.com.pk` one.
+     */
+    const searchCountryCode =
+      ('countryCode' in discovery.geocodedLocation
+        ? (discovery.geocodedLocation as { countryCode?: string }).countryCode
+        : undefined) || (await reverseGeocodeCountry(discovery.center.lat, discovery.center.lng));
+
+    /**
+     * Leads already stored for the places this search returned.
+     *
+     * Needed because discovery upserts, and the background pipeline writes
+     * back to the same rows: a resolved website, a scraped email, the social
+     * links kept beside the OSM tags. Without reading the existing row first,
+     * searching the same area twice overwrote all of that with the bare OSM
+     * payload — the second search silently undid the enrichment of the first.
+     */
+    const discoveredOsmIds = discovery.businesses.map((business) => business.osmId);
+    const existingByOsmId = new Map<string, Record<string, unknown>>();
+
+    for (let offset = 0; offset < discoveredOsmIds.length; offset += 100) {
+      const { data: existingRows } = await supabaseAdmin
+        .from('leads')
+        .select('osm_id, phone, contact_phone, contact_email, contact_source, contact_confidence, website_url, website, has_website, raw_osm_tags, last_enrichment_run_at')
+        .eq('workspace_id', profile.workspace_id)
+        .in('osm_id', discoveredOsmIds.slice(offset, offset + 100));
+
+      for (const row of existingRows || []) {
+        if (typeof row.osm_id === 'string') existingByOsmId.set(row.osm_id, row);
+      }
+    }
+
     const newLeads = [];
     for (const business of discovery.businesses) {
+      const existing = existingByOsmId.get(business.osmId);
       const category = inferLeadCategory(categories, business.category, business.type);
-      const hasWebsite = !!business.website;
       const address = business.address || [business.area, business.city].filter(Boolean).join(', ') || discovery.geocodedLocation.displayName;
       const city = business.city || business.area || (location ? location.split(',')[0]?.trim() : '') || discovery.geocodedLocation.displayName;
-      
-      const leadData = {
+
+      // OSM wins over a stored value only when it actually has one.
+      const websiteUrl =
+        business.website || (existing?.website_url as string | null) || (existing?.website as string | null) || null;
+      const phone = business.phone || (existing?.phone as string | null) || null;
+      const hasWebsite = !!websiteUrl;
+
+      // Keep whatever the pipeline added (socials, website provenance) while
+      // refreshing the OSM keys from this search.
+      const previousTags = (existing?.raw_osm_tags as Record<string, unknown>) || {};
+      const preservedTags = Object.fromEntries(
+        Object.entries(previousTags).filter(([key]) => key.startsWith('clientpilot:'))
+      );
+
+      // The country of the search, so the background pipeline knows which
+      // country TLDs to consider when resolving this business's website.
+      // OSM businesses rarely carry addr:country, and the whole radius shares
+      // one country anyway.
+      const countryCode =
+        (typeof business.rawTags['addr:country'] === 'string'
+          ? business.rawTags['addr:country']
+          : null) || searchCountryCode;
+
+      const leadData: Record<string, unknown> = {
         workspace_id: profile.workspace_id,
         business_name: business.name,
         category,
@@ -219,18 +278,28 @@ router.post('/discover', async (req, res) => {
         city,
         lat: business.latitude,
         lng: business.longitude,
-        phone: business.phone || null,
+        phone,
         has_website: hasWebsite,
-        website_url: business.website || null,
+        website_url: websiteUrl,
         osm_id: business.osmId,
         source: 'osm',
         raw_osm_tags: {
           ...business.rawTags,
+          ...preservedTags,
+          ...(countryCode ? { 'clientpilot:country': countryCode.toLowerCase() } : {}),
           osm_type: business.osmType,
           osm_category: business.category,
           osm_business_type: business.type,
         }
       };
+
+      // An email tagged in OSM is as good as one scraped later; a value the
+      // user entered by hand outranks both.
+      if (business.email && existing?.contact_source !== 'manual') {
+        leadData.contact_email = business.email;
+        leadData.contact_source = 'osm_tag';
+        leadData.contact_confidence = 1;
+      }
 
       const { data: inserted, error: upsertError } = await supabaseAdmin
         .from('leads')
@@ -249,7 +318,7 @@ router.post('/discover', async (req, res) => {
       } else if (inserted) {
         newLeads.push(inserted);
         // Async AI scoring — does not block response
-        scoreLeadAsync(inserted.id, leadData.business_name, category, leadData.address, hasWebsite).catch(console.error);
+        scoreLeadAsync(inserted.id, business.name, category, address, hasWebsite).catch(console.error);
       }
     }
 
@@ -681,7 +750,13 @@ router.post('/:id/prepare', async (req, res) => {
       console.log(`[Prepare:${id}] → Starting contact enrichment (website: ${lead.website_url ?? 'none'})...`);
       try {
         const rawOsmTags = (lead.raw_osm_tags as Record<string, unknown>) || {};
-        const enrichment = await enrichLeadContact(lead.website_url, rawOsmTags);
+        const enrichment = await enrichLeadContact({
+          name: lead.business_name,
+          websiteUrl: lead.website_url || lead.website,
+          rawOsmTags,
+          countryCode:
+            typeof rawOsmTags['addr:country'] === 'string' ? (rawOsmTags['addr:country'] as string) : null,
+        });
 
         const existingSource = lead.contact_source as string | null;
         const manuallyVerified = existingSource === 'manual';
@@ -696,14 +771,36 @@ router.post('/:id/prepare', async (req, res) => {
             updates.contact_confidence = 0;
           }
         }
-        if (enrichment.phone && !lead.contact_phone) {
-          updates.contact_phone = enrichment.phone;
+        if (enrichment.phone) {
+          if (!lead.contact_phone) updates.contact_phone = enrichment.phone;
+          if (!lead.phone) updates.phone = enrichment.phone;
         }
-        if (enrichment.website && !lead.website) {
+        // Enrichment can discover a website the lead never had, via Wikidata
+        // or a verified name-based domain. Both columns and the flag are kept
+        // in step so every view agrees on whether this business has a site.
+        if (enrichment.website) {
           updates.website = enrichment.website;
+          if (!lead.website_url) updates.website_url = enrichment.website;
+          updates.has_website = true;
+        }
+        if (Object.keys(enrichment.socialLinks).length > 0 || enrichment.websiteSource) {
+          updates.raw_osm_tags = {
+            ...rawOsmTags,
+            ...(Object.keys(enrichment.socialLinks).length > 0
+              ? { 'clientpilot:social': enrichment.socialLinks }
+              : {}),
+            ...(enrichment.websiteSource
+              ? { 'clientpilot:website_source': enrichment.websiteSource }
+              : {}),
+            'clientpilot:website_reachable': enrichment.websiteReachable,
+          };
         }
         updates.last_enrichment_run_at = now;
-        console.log(`[Prepare:${id}] ✅ Enrichment done. Email: ${enrichment.email ?? 'not found'} | Source: ${enrichment.source}`);
+        console.log(
+          `[Prepare:${id}] ✅ Enrichment done. Website: ${enrichment.website ?? 'none'}` +
+            `${enrichment.websiteSource ? ` (${enrichment.websiteSource})` : ''}` +
+            ` | Email: ${enrichment.email ?? 'not found'} | Source: ${enrichment.source}`
+        );
       } catch (enrichErr) {
         lastError = enrichErr instanceof Error ? enrichErr.message : 'Enrichment failed';
         console.error(`[Prepare:${id}] ❌ Enrichment error:`, enrichErr);

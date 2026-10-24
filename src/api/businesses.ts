@@ -59,6 +59,7 @@ export interface DbLead {
   proposal_generated_at?: string | null;
   last_enrichment_run_at?: string | null;
   last_error?: string | null;
+  raw_osm_tags?: Record<string, unknown> | null;
   lead_scores?: DbLeadScore[] | DbLeadScore | null;
   outreach_messages?: DbOutreachMessage[] | DbOutreachMessage | null;
   business_audits?: DbBusinessAudit[] | DbBusinessAudit | null;
@@ -176,6 +177,34 @@ function deriveWebsiteStatus(db: DbLead, audit?: DbBusinessAudit): Lead['website
 }
 
 /**
+ * Reads the enrichment details the backend keeps beside the OSM tags.
+ *
+ * `leads` has no column for social profiles or for how a website was
+ * established, so the background pipeline namespaces them into `raw_osm_tags`
+ * under `clientpilot:`. Reading them here keeps that detail out of the
+ * components.
+ */
+function websiteSourceOf(db: DbLead): Lead['websiteSource'] {
+  const value = db.raw_osm_tags?.['clientpilot:website_source'];
+  return value === 'osm_tag' || value === 'wikidata' || value === 'domain_match' ? value : undefined;
+}
+
+function websiteReachableOf(db: DbLead): boolean | undefined {
+  const value = db.raw_osm_tags?.['clientpilot:website_reachable'];
+  return typeof value === 'boolean' ? value : undefined;
+}
+
+function socialLinksOf(db: DbLead): Lead['socialLinks'] {
+  const value = db.raw_osm_tags?.['clientpilot:social'];
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+
+  const entries = Object.entries(value as Record<string, unknown>).filter(
+    (entry): entry is [string, string] => typeof entry[1] === 'string' && entry[1].length > 0
+  );
+  return entries.length > 0 ? (Object.fromEntries(entries) as Lead['socialLinks']) : undefined;
+}
+
+/**
  * Converts an API lead row into the camelCase `Lead` the UI consumes.
  *
  * This is the single conversion point between database and UI shapes. An
@@ -252,6 +281,9 @@ export function mapDbLeadToLead(db: DbLead): Lead {
     website: db.website ?? undefined,
     contactSource: (db.contact_source as Lead['contactSource']) ?? undefined,
     contactConfidence: db.contact_confidence ?? undefined,
+    websiteSource: websiteSourceOf(db),
+    websiteReachable: websiteReachableOf(db),
+    socialLinks: socialLinksOf(db),
     outreachSubject: db.outreach_subject ?? undefined,
     outreachBody: db.outreach_body ?? undefined,
     outreachStatus: (db.outreach_status as Lead['outreachStatus']) ?? undefined,

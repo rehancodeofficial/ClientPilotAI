@@ -6,12 +6,13 @@ import {
   Filter, ArrowUpDown, Search, Wand2, Map as MapIcon, List, X,
   Utensils, ShoppingBag, Scissors, Activity, Wrench, Pill, Coffee, Monitor, Star, Home, Store,
   SlidersHorizontal, ChevronDown, Sparkles, Building2, Layers, AlertCircle, ArrowRight, Eye, RefreshCw,
-  Crosshair, Compass, Laptop, Briefcase, Dumbbell, ShieldCheck, RotateCcw
+  Crosshair, Compass, Laptop, Briefcase, Dumbbell, ShieldCheck, RotateCcw, Mail
 } from 'lucide-react'
 import {
   Button, Badge, Card, Input, Label,
 } from '@/components/ui'
 import { discoverLeads } from '@/lib/apiClient'
+import { fetchLeads } from '@/api/businesses'
 import { useAppStore } from '@/store/useAppStore'
 import type { BusinessCategory, Lead, ProgressStep } from '@/types'
 import { cn, getCategoryLabel } from '@/lib/utils'
@@ -254,10 +255,52 @@ function ScoreBadge({ score }: { score: number }) {
   )
 }
 
+/**
+ * Escapes text interpolated into the Leaflet popup, which Leaflet takes as raw
+ * HTML. Business names and addresses come from OpenStreetMap, so they are
+ * arbitrary user-contributed strings and must not be trusted as markup.
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
+function escapeHtmlAttr(value: string): string {
+  return escapeHtml(value).replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+
+/** The bare domain of a URL, for showing a website compactly on a card. */
+function domainOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return url.replace(/^https?:\/\//i, '').replace(/^www\./, '').split('/')[0]
+  }
+}
+
 // ── Lead Card Component ───────────────────────────────────────
-function LeadCard({ lead, index, onClick }: { lead: Lead; index: number; onClick: () => void }) {
-  const isNoWebsite = lead.websiteStatus === 'none' || !lead.websiteUrl
+function LeadCard({
+  lead,
+  index,
+  onClick,
+  isEnriching,
+}: {
+  lead: Lead
+  index: number
+  onClick: () => void
+  isEnriching?: boolean
+}) {
+  const websiteUrl = lead.websiteUrl || lead.website
+  const isNoWebsite = lead.websiteStatus === 'none' || !websiteUrl
   const isOutdated = lead.websiteStatus === 'outdated'
+  const email = lead.contactEmail
+  const phone = lead.phone || lead.contactPhone
+  // Until the backend has looked, "no website" is not yet a finding — saying
+  // so outright is what made the page claim businesses had no site when it
+  // simply had not checked.
+  const stillChecking = isEnriching && !lead.lastEnrichmentRunAt
 
   return (
     <motion.div
@@ -295,23 +338,61 @@ function LeadCard({ lead, index, onClick }: { lead: Lead; index: number; onClick
 
         {/* Digital Gap Signals */}
         <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-(--border-subtle) text-[11px]">
-          {isNoWebsite ? (
+          {stillChecking ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/5 text-(--text-secondary) font-semibold">
+              <Loader2 className="h-3 w-3 animate-spin text-(--primary)" /> Checking website &amp; contacts…
+            </span>
+          ) : isNoWebsite ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-500/10 text-red-500 font-bold border border-red-500/20">
               <Globe className="h-3 w-3" /> No Website (Instant Lead)
             </span>
           ) : isOutdated ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 font-semibold border border-amber-500/20">
-              <Clock className="h-3 w-3" /> Outdated Web Stack
-            </span>
+            <a
+              href={websiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(event) => event.stopPropagation()}
+              title={`Outdated website — ${websiteUrl}`}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 font-semibold border border-amber-500/20 hover:underline max-w-[220px]"
+            >
+              <Clock className="h-3 w-3 shrink-0" />
+              <span className="truncate">{domainOf(websiteUrl)}</span>
+              <span className="shrink-0 opacity-70">· outdated</span>
+            </a>
           ) : (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-(--primary-soft) text-(--primary) font-semibold">
-              <Globe className="h-3 w-3" /> Active Website
+            <a
+              href={websiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(event) => event.stopPropagation()}
+              title={
+                lead.websiteSource === 'domain_match'
+                  ? `Likely website, matched by name and verified: ${websiteUrl}`
+                  : websiteUrl
+              }
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-(--primary-soft) text-(--primary) font-semibold hover:underline max-w-[240px]"
+            >
+              <Globe className="h-3 w-3 shrink-0" />
+              <span className="truncate">{domainOf(websiteUrl)}</span>
+              {lead.websiteSource === 'domain_match' && (
+                <span className="shrink-0 opacity-70">· likely</span>
+              )}
+            </a>
+          )}
+
+          {phone && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/5 text-(--text-secondary) font-mono">
+              <Phone className="h-3 w-3 text-(--primary)" /> {phone}
             </span>
           )}
 
-          {lead.phone && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/5 text-(--text-secondary) font-mono">
-              <Phone className="h-3 w-3 text-(--primary)" /> {lead.phone}
+          {email && (
+            <span
+              title={email}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/5 text-(--text-secondary) font-mono max-w-[200px]"
+            >
+              <Mail className="h-3 w-3 text-(--primary) shrink-0" />
+              <span className="truncate">{email}</span>
             </span>
           )}
 
@@ -454,10 +535,19 @@ function RectangularMapPanel({
             <div style="font-size:10px;font-weight:800;color:#4AC329;text-transform:uppercase">${getCategoryLabel(lead.category)}</div>
             <strong style="font-size:13px;color:#101010;display:block;margin:2px 0">${lead.name}</strong>
             <div style="font-size:11px;color:#666">${lead.address || ''}</div>
-            <div style="margin-top:6px;display:flex;align-items:center;justify-content:space-between">
+            <div style="margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:8px">
               <span style="font-size:10px;font-weight:700;color:${lead.score >= 80 ? '#4AC329' : '#f59e0b'}">Score: ${lead.score}/100</span>
-              <span style="font-size:10px;color:#888">${lead.websiteStatus === 'none' ? 'No website' : 'Has website'}</span>
+              ${
+                lead.websiteUrl || lead.website
+                  ? `<a href="${escapeHtmlAttr(lead.websiteUrl || lead.website || '')}" target="_blank" rel="noopener noreferrer" style="font-size:10px;color:#4AC329;font-weight:700;text-decoration:none;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(domainOf(lead.websiteUrl || lead.website || ''))}</a>`
+                  : '<span style="font-size:10px;color:#888">No website</span>'
+              }
             </div>
+            ${
+              lead.contactEmail
+                ? `<div style="font-size:10px;color:#666;margin-top:3px;font-family:monospace">${escapeHtml(lead.contactEmail)}</div>`
+                : ''
+            }
           </div>`
         )
       m.on('click', () => onLeadClick(lead.id))
@@ -525,6 +615,16 @@ export function LeadDiscoveryPage() {
   const [steps, setSteps] = useState<ProgressStep[]>([])
   const [hasSearched, setHasSearched] = useState(false)
   const [discoveryError, setDiscoveryError] = useState<string | null>(null)
+  /**
+   * Which leads are still being enriched, and the token that restarts the
+   * watcher. Discovery responds as soon as the businesses are stored, while
+   * the backend keeps working on each one: resolving its website, reading it
+   * for an email and a phone number, then auditing it. Those details used to
+   * appear only if the user left the page and came back, so a freshly
+   * discovered lead looked permanently contactless.
+   */
+  const [enrichingLeadIds, setEnrichingLeadIds] = useState<string[]>([])
+  const [enrichmentRound, setEnrichmentRound] = useState(0)
 
   // Current Country configuration
   const currentCountry = useMemo(() => {
@@ -647,7 +747,16 @@ export function LeadDiscoveryPage() {
         (updatedSteps) => setSteps(updatedSteps)
       )
 
-      setDiscoveryResults(result.leads || [])
+      const leads = result.leads || []
+      setDiscoveryResults(leads)
+
+      // Watch the leads the backend is still working on. Rows that came back
+      // with no real id were never stored, so nothing will arrive for them.
+      const pending = leads
+        .filter((lead) => lead.id && !lead.id.startsWith('osm-') && !lead.lastEnrichmentRunAt)
+        .map((lead) => lead.id)
+      setEnrichingLeadIds(pending)
+      setEnrichmentRound((round) => round + 1)
     } catch (err: unknown) {
       console.error('[Discover Leads Error]:', err)
       const message = err instanceof Error ? err.message : 'Discovery scan encountered an issue. Please adjust filters.'
@@ -656,6 +765,83 @@ export function LeadDiscoveryPage() {
       setIsRunning(false)
     }
   }
+
+  /**
+   * Pulls in website and contact details as the backend finds them.
+   *
+   * The intervals widen because the work is queued a few leads at a time: the
+   * first results land within seconds, a hundred leads take a couple of
+   * minutes. Polling stops as soon as every lead has been processed, so a
+   * small search settles after one or two requests.
+   */
+  useEffect(() => {
+    if (enrichingLeadIds.length === 0) return
+
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout>
+    const schedule = [4_000, 8_000, 15_000, 25_000, 40_000, 60_000]
+    let attempt = 0
+
+    const poll = async () => {
+      try {
+        const fresh = await fetchLeads()
+        if (cancelled) return
+
+        const byId = new Map(fresh.map((lead) => [lead.id, lead]))
+        const stillPending: string[] = []
+        const { updateLead } = useAppStore.getState()
+
+        for (const id of enrichingLeadIds) {
+          const latest = byId.get(id)
+          if (!latest) continue
+
+          updateLead(id, {
+            phone: latest.phone,
+            websiteStatus: latest.websiteStatus,
+            websiteUrl: latest.websiteUrl,
+            website: latest.website,
+            websiteSource: latest.websiteSource,
+            websiteReachable: latest.websiteReachable,
+            contactEmail: latest.contactEmail,
+            contactPhone: latest.contactPhone,
+            contactSource: latest.contactSource,
+            contactConfidence: latest.contactConfidence,
+            socialLinks: latest.socialLinks,
+            lastEnrichmentRunAt: latest.lastEnrichmentRunAt,
+            score: latest.score,
+            scoreBreakdown: latest.scoreBreakdown,
+            aiAnalysis: latest.aiAnalysis,
+            audit: latest.audit,
+          })
+
+          if (!latest.lastEnrichmentRunAt) stillPending.push(id)
+        }
+
+        if (cancelled) return
+        if (stillPending.length === 0 || attempt >= schedule.length) {
+          setEnrichingLeadIds([])
+          return
+        }
+        timer = setTimeout(poll, schedule[attempt++])
+      } catch (err: unknown) {
+        // A failed refresh is not worth surfacing: the stored lead is intact
+        // and the next attempt, or a page revisit, picks the details up.
+        console.warn('[Discovery] Could not refresh enriched lead details:', err)
+        if (!cancelled && attempt < schedule.length) {
+          timer = setTimeout(poll, schedule[attempt++])
+        }
+      }
+    }
+
+    timer = setTimeout(poll, schedule[attempt++])
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+    // `enrichmentRound` restarts the watcher for each new search, including one
+    // that happens to return the same leads as the last.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enrichmentRound])
 
   // Filter & Sort Results
   const filtered = useMemo(() => {
@@ -1064,6 +1250,7 @@ export function LeadDiscoveryPage() {
                         key={lead.id}
                         lead={lead}
                         index={idx}
+                        isEnriching={enrichingLeadIds.includes(lead.id)}
                         onClick={() => handleLeadClick(lead.id)}
                       />
                     ))}

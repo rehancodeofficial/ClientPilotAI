@@ -490,15 +490,36 @@ function OverviewTab({ lead }: { lead: Lead }) {
                 </div>
               </div>
               {(lead.websiteUrl || lead.website) ? (
-                <a
-                  href={lead.websiteUrl || lead.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[11px] font-bold text-(--primary) hover:underline flex items-center gap-1 mt-1 truncate"
-                >
-                  <span className="truncate">{lead.websiteUrl || lead.website}</span>
-                  <ExternalLink className="h-3 w-3 shrink-0" />
-                </a>
+                <div className="mt-1 space-y-1">
+                  <a
+                    href={lead.websiteUrl || lead.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-bold text-(--primary) hover:underline flex items-center gap-1 truncate"
+                  >
+                    <span className="truncate">{lead.websiteUrl || lead.website}</span>
+                    <ExternalLink className="h-3 w-3 shrink-0" />
+                  </a>
+                  {/*
+                    Where the URL came from. A name-matched domain was fetched
+                    and confirmed to mention the business, but it is still a
+                    match rather than a record, and the user is about to pitch
+                    on the strength of it — so the difference is shown.
+                  */}
+                  {lead.websiteSource === 'domain_match' && (
+                    <span className="text-[10px] text-amber-600 dark:text-amber-500 font-semibold block">
+                      Likely match — found by business name, verify before pitching
+                    </span>
+                  )}
+                  {lead.websiteSource === 'wikidata' && (
+                    <span className="text-[10px] text-zinc-400 block">Official website on record</span>
+                  )}
+                  {lead.websiteReachable === false && (
+                    <span className="text-[10px] text-red-500 font-semibold block">
+                      Site did not respond when checked
+                    </span>
+                  )}
+                </div>
               ) : (
                 <span className="text-[11px] text-red-500 font-semibold">Ready for Website Pitch</span>
               )}
@@ -534,6 +555,30 @@ function OverviewTab({ lead }: { lead: Lead }) {
               )}
             </div>
           </div>
+
+          {/*
+            Social profiles found on the business's own site. Kept separate
+            from "Online Presence" on purpose: a Facebook page is a way to
+            reach this business, not a website, and conflating the two would
+            hide exactly the leads worth pitching a site to.
+          */}
+          {lead.socialLinks && Object.keys(lead.socialLinks).length > 0 && (
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] uppercase font-bold text-zinc-400">Social Reach</span>
+              {Object.entries(lead.socialLinks).map(([platform, url]) => (
+                <a
+                  key={platform}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:text-(--primary) capitalize"
+                >
+                  {platform}
+                  <ExternalLink className="h-2.5 w-2.5" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

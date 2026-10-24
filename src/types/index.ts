@@ -89,6 +89,21 @@ export interface Lead {
   website?: string;
   contactSource?: 'osm_tag' | 'website_homepage' | 'website_contact_page' | 'none' | 'manual';
   contactConfidence?: number;
+  /**
+   * How the website was established. `osm_tag` was mapped by a human,
+   * `wikidata` comes from an official-website claim, and `domain_match` is a
+   * name-based domain the backend fetched and verified — a strong guess rather
+   * than a record, which the UI labels as such.
+   */
+  websiteSource?: 'osm_tag' | 'wikidata' | 'domain_match';
+  /** False when the site did not answer, so its details could not be read. */
+  websiteReachable?: boolean;
+  socialLinks?: {
+    facebook?: string;
+    instagram?: string;
+    linkedin?: string;
+    twitter?: string;
+  };
 
   // --- AI outreach draft fields ---
   outreachSubject?: string;

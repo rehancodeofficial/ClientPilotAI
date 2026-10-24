@@ -1,10 +1,20 @@
 import axios, { AxiosError } from 'axios';
 
 const DEFAULT_NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
+/**
+ * Overpass mirrors, raced against each other on every search.
+ *
+ * The list is deliberately long. Overpass is donated capacity: the main
+ * instance answers "502 — all query workers are busy" for hours at a time, and
+ * when it does, discovery falls through to the Nominatim backup, which carries
+ * no `website`/`phone`/`email` tags at all. Every extra healthy mirror is one
+ * more chance to keep the search on the path that *does* return contact data.
+ */
 const DEFAULT_OVERPASS_URLS = [
   'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
   'https://overpass.private.coffee/api/interpreter',
+  'https://overpass.osm.ch/api/interpreter',
 ];
 const DEFAULT_APP_URL = 'https://clientpilotai.rehanhussain.dev';
 /**
@@ -29,11 +39,23 @@ const REQUEST_TIMEOUT_MS = Number(process.env.OSM_REQUEST_TIMEOUT_MS || DEFAULT_
 /**
  * Per-mirror timeout for the Overpass race.
  *
- * Shorter than REQUEST_TIMEOUT_MS because the mirrors are queried in parallel:
- * the whole round costs one timeout rather than one per mirror, and the
- * Overpass query itself declares [out:json][timeout:25].
+ * The mirrors are queried in parallel, so the whole round costs one timeout
+ * rather than one per mirror. It matches the [timeout:25] the query itself
+ * declares: cutting the socket at 15s abandoned mirrors that were still
+ * legitimately working on the answer and pushed discovery onto the Nominatim
+ * backup, which returns no contact tags.
  */
-const MIRROR_TIMEOUT_MS = Number(process.env.OSM_MIRROR_TIMEOUT_MS || 15_000);
+const MIRROR_TIMEOUT_MS = Number(process.env.OSM_MIRROR_TIMEOUT_MS || 40_000);
+
+/**
+ * Races of the mirror pool per search.
+ *
+ * One, because MIRROR_TIMEOUT_MS is now long enough to wait out a queued
+ * mirror rather than abandoning it. A second round used to re-ask mirrors that
+ * had just answered "busy", which rarely changes within a few seconds and
+ * doubled the time before the Nominatim backup was even tried.
+ */
+const RETRY_ROUNDS = Math.max(1, Number(process.env.OSM_RETRY_ROUNDS || 1));
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -100,6 +122,15 @@ export interface GeocodeResult extends Coordinates {
   osmType?: string;
   osmId?: number;
   boundingBox?: string[];
+  /**
+   * ISO country code of the searched location.
+   *
+   * Carried through discovery because the website resolver needs it to know
+   * which country TLDs to try. OSM businesses almost never carry an
+   * `addr:country` tag, so without this a London search only ever considered
+   * `.com` and never `.co.uk` — the TLD most of its businesses actually use.
+   */
+  countryCode?: string;
 }
 
 export interface NormalizedBusiness {
@@ -114,6 +145,7 @@ export interface NormalizedBusiness {
   city: string;
   area?: string;
   phone?: string;
+  email?: string;
   website?: string;
   rawTags: Record<string, string>;
 }
@@ -152,6 +184,7 @@ type NominatimPlace = {
   lon?: string;
   display_name?: string;
   boundingbox?: string[];
+  address?: Record<string, string>;
 };
 
 type OSMTagFilter = { key: string; value?: string; regex?: string };
@@ -305,10 +338,38 @@ export const geocodeLocation = async (location: string): Promise<GeocodeResult> 
       osmType: place.osm_type,
       osmId: place.osm_id,
       boundingBox: place.boundingbox,
+      countryCode: place.address?.country_code?.toLowerCase(),
     };
   } catch (error) {
     if (error instanceof OSMGeocodingError) throw error;
     throw new OSMGeocodingError(`Geocoding failed: ${axiosMessage(error)}`, 502);
+  }
+};
+
+/**
+ * ISO country code for a coordinate, or null.
+ *
+ * Used for leads that carry no `addr:country` tag and were stored before
+ * discovery began recording the searched country — the website resolver needs
+ * a country to know which TLDs are worth trying. Goes through the same 1/s
+ * throttle as every other Nominatim call.
+ */
+export const reverseGeocodeCountry = async (lat: number, lng: number): Promise<string | null> => {
+  const url = NOMINATIM_URL.replace(/\/search\/?$/, '/reverse');
+  try {
+    const response = await throttleNominatim(() =>
+      axios.get<{ address?: Record<string, string> }>(url, {
+        // zoom=3 asks for country-level detail only, which is cheaper to answer.
+        params: { lat, lon: lng, format: 'jsonv2', zoom: 3, addressdetails: 1 },
+        headers: requestHeaders(),
+        timeout: REQUEST_TIMEOUT_MS,
+      })
+    );
+    const code = response.data?.address?.country_code;
+    return typeof code === 'string' && code.length === 2 ? code.toLowerCase() : null;
+  } catch (error) {
+    console.warn(`[OSM Nominatim] Reverse geocode failed for ${lat},${lng}: ${axiosMessage(error)}`);
+    return null;
   }
 };
 
@@ -355,11 +416,20 @@ const filtersForCategories = (categories: string[]): OSMTagFilter[] => {
   });
 };
 
+/**
+ * Builds the Overpass query for one search.
+ *
+ * Uses `nwr` (node-way-relation) rather than repeating each tag filter once per
+ * element type. The old form emitted three statements per filter, so a
+ * multi-filter category produced a query with 18+ `around:` scans — expensive
+ * enough on a loaded mirror to be dropped or time out, which is precisely how
+ * searches ended up on the tagless Nominatim backup. `nwr` asks for the same
+ * three types in a single scan.
+ */
 const buildOverpassQuery = (lat: number, lng: number, radiusMeters: number, categories: string[], limit = 50): string => {
   const filters = filtersForCategories(categories);
-  const elementTypes: OsmElementType[] = ['node', 'way', 'relation'];
-  const selectors = filters.flatMap(filter =>
-    elementTypes.map(type => `  ${type}${tagFilterToOverpass(filter)}(around:${radiusMeters},${lat},${lng});`)
+  const selectors = filters.map(
+    filter => `  nwr${tagFilterToOverpass(filter)}(around:${radiusMeters},${lat},${lng});`
   );
 
   return `
@@ -367,7 +437,7 @@ const buildOverpassQuery = (lat: number, lng: number, radiusMeters: number, cate
 (
 ${selectors.join('\n')}
 );
-out center ${limit};
+out tags center ${limit};
 `.trim();
 };
 
@@ -422,7 +492,10 @@ const normalizeBusiness = (element: OverpassElement): NormalizedBusiness | null 
     city: pickFirst(tags, ['addr:city', 'addr:town', 'addr:village', 'addr:suburb', 'addr:district']) || '',
     area: pickFirst(tags, ['addr:suburb', 'addr:neighbourhood', 'addr:district']),
     phone: pickFirst(tags, ['phone', 'contact:phone', 'mobile', 'contact:mobile']),
-    website: normalizeWebsite(pickFirst(tags, ['website', 'contact:website', 'url'])),
+    email: pickFirst(tags, ['email', 'contact:email', 'email:official']),
+    website: normalizeWebsite(
+      pickFirst(tags, ['website', 'contact:website', 'url', 'website:official', 'brand:website', 'operator:website'])
+    ),
     rawTags: tags,
   };
 };
@@ -483,7 +556,6 @@ export const searchNearbyBusinesses = async (
       .slice(0, limit);
   };
 
-  const RETRY_ROUNDS = 2;
   const BACKOFF_DELAYS = [1000, 3000];
   let lastError: unknown;
   const mirrorFailureLogs: string[] = [];
@@ -652,6 +724,8 @@ export const searchNearbyBusinessesViaNominatim = async (
         category?: string;
         type?: string;
         address?: Record<string, string>;
+        extratags?: Record<string, string> | null;
+        namedetails?: Record<string, string> | null;
       }>>(NOMINATIM_URL, {
         params: {
           q: term,
@@ -659,6 +733,13 @@ export const searchNearbyBusinessesViaNominatim = async (
           bounded: 1,
           format: 'jsonv2',
           addressdetails: 1,
+          // `extratags` is what carries website/phone/email on this endpoint.
+          // Without it Nominatim returns a name and a point and nothing else,
+          // so every lead discovered while Overpass was busy looked like a
+          // business with no website and no way to contact it — which is how
+          // the fallback came to produce leads nobody could act on.
+          extratags: 1,
+          namedetails: 1,
           limit: Math.min(limit, 30),
         },
         headers: requestHeaders(),
@@ -683,6 +764,21 @@ export const searchNearbyBusinessesViaNominatim = async (
           const area = addr.suburb || addr.neighbourhood || addr.quarter;
           const address = [street, area, city].filter(Boolean).join(', ') || place.display_name || '';
 
+          // Merge extratags into the tag bag so the rest of the pipeline —
+          // enrichment, auditing, Wikidata lookup — sees the same shape it
+          // gets from Overpass, rather than a special-cased poorer one.
+          const extraTags = place.extratags || {};
+          const tags: Record<string, string> = {
+            name: pName,
+            ...(place.category ? { [place.category]: place.type || '' } : {}),
+            ...(addr.country_code ? { 'addr:country': addr.country_code.toUpperCase() } : {}),
+            ...Object.fromEntries(
+              Object.entries(extraTags).filter(
+                ([, value]) => typeof value === 'string' && value.trim().length > 0
+              )
+            ),
+          };
+
           businesses.push({
             osmId,
             osmType: (place.osm_type as 'node' | 'way' | 'relation') || 'node',
@@ -694,10 +790,12 @@ export const searchNearbyBusinessesViaNominatim = async (
             address,
             city,
             area,
-            rawTags: {
-              name: pName,
-              ...(place.category ? { [place.category]: place.type || '' } : {}),
-            },
+            phone: pickFirst(tags, ['phone', 'contact:phone', 'mobile', 'contact:mobile']),
+            email: pickFirst(tags, ['email', 'contact:email', 'email:official']),
+            website: normalizeWebsite(
+              pickFirst(tags, ['website', 'contact:website', 'url', 'website:official', 'brand:website'])
+            ),
+            rawTags: tags,
           });
 
           if (businesses.length >= limit) break;
