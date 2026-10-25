@@ -14,8 +14,9 @@ import {
 import { discoverLeads } from '@/lib/apiClient'
 import { fetchLeads } from '@/api/businesses'
 import { useAppStore } from '@/store/useAppStore'
-import type { BusinessCategory, Lead, ProgressStep } from '@/types'
 import { cn, getCategoryLabel } from '@/lib/utils'
+import type { BusinessCategory, Lead, ProgressStep } from '@/types'
+import { COUNTRY_PRESETS, type CountryPreset, type CityPreset } from '@/data/countries'
 
 // Fix Leaflet default marker icons (broken in Vite builds)
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
@@ -56,152 +57,7 @@ const searchCenterIcon = L.divIcon({
   "><div style="width:8px;height:8px;border-radius:50%;background:#4AC329"></div></div>`,
 })
 
-// ── Geographic Presets (Countries & Cities) ───────────────────
-interface CityPreset {
-  name: string
-  center: [number, number]
-  label: string
-}
 
-interface CountryPreset {
-  code: string
-  name: string
-  cities: CityPreset[]
-}
-
-const COUNTRY_PRESETS: CountryPreset[] = [
-  {
-    code: 'US',
-    name: 'United States',
-    cities: [
-      { name: 'New York, NY', center: [40.7128, -74.006], label: 'New York (Manhattan)' },
-      { name: 'Los Angeles, CA', center: [34.0522, -118.2437], label: 'Los Angeles (Downtown)' },
-      { name: 'Chicago, IL', center: [41.8781, -87.6298], label: 'Chicago (Loop)' },
-      { name: 'Miami, FL', center: [25.7617, -80.1918], label: 'Miami (Brickell)' },
-      { name: 'Austin, TX', center: [30.2672, -97.7431], label: 'Austin (Downtown)' },
-      { name: 'San Francisco, CA', center: [37.7749, -122.4194], label: 'San Francisco (SoMa)' },
-      { name: 'Seattle, WA', center: [47.6062, -122.3321], label: 'Seattle (Downtown)' },
-      { name: 'Houston, TX', center: [29.7604, -95.3698], label: 'Houston (Metro)' },
-    ],
-  },
-  {
-    code: 'UK',
-    name: 'United Kingdom',
-    cities: [
-      { name: 'London, UK', center: [51.5074, -0.1278], label: 'London (City & West End)' },
-      { name: 'Manchester, UK', center: [53.4808, -2.2426], label: 'Manchester (Central)' },
-      { name: 'Birmingham, UK', center: [52.4862, -1.8904], label: 'Birmingham (City Centre)' },
-      { name: 'Leeds, UK', center: [53.8008, -1.5491], label: 'Leeds (Central)' },
-      { name: 'Glasgow, UK', center: [55.8642, -4.2518], label: 'Glasgow (City Centre)' },
-    ],
-  },
-  {
-    code: 'CA',
-    name: 'Canada',
-    cities: [
-      { name: 'Toronto, ON', center: [43.6532, -79.3832], label: 'Toronto (Downtown)' },
-      { name: 'Vancouver, BC', center: [49.2827, -123.1207], label: 'Vancouver (Central)' },
-      { name: 'Montreal, QC', center: [45.5017, -73.5673], label: 'Montreal (Ville-Marie)' },
-      { name: 'Calgary, AB', center: [51.0447, -114.0719], label: 'Calgary (Downtown)' },
-    ],
-  },
-  {
-    code: 'PK',
-    name: 'Pakistan',
-    cities: [
-      { name: 'Karachi, Gulshan-e-Iqbal', center: [24.9215, 67.0979], label: 'Karachi (Gulshan-e-Iqbal)' },
-      { name: 'Karachi, Clifton & DHA', center: [24.8138, 67.0305], label: 'Karachi (Clifton & DHA)' },
-      { name: 'Lahore, Gulberg', center: [31.5204, 74.3587], label: 'Lahore (Gulberg / MM Alam)' },
-      { name: 'Lahore, DHA', center: [31.4707, 74.3986], label: 'Lahore (DHA Phase 5)' },
-      { name: 'Islamabad, Blue Area', center: [33.7215, 73.0722], label: 'Islamabad (Blue Area / F-7)' },
-      { name: 'Rawalpindi, Saddar', center: [33.5973, 73.0551], label: 'Rawalpindi (Saddar / Cantt)' },
-      { name: 'Faisalabad, Central', center: [31.4504, 73.135], label: 'Faisalabad (D Ground / Clock Tower)' },
-    ],
-  },
-  {
-    code: 'AE',
-    name: 'United Arab Emirates',
-    cities: [
-      { name: 'Dubai, Downtown', center: [25.2048, 55.2708], label: 'Dubai (Downtown & DIFC)' },
-      { name: 'Dubai, Marina', center: [25.0805, 55.1403], label: 'Dubai (Marina & JBR)' },
-      { name: 'Abu Dhabi, Central', center: [24.4539, 54.3773], label: 'Abu Dhabi (Corniche)' },
-      { name: 'Sharjah, City', center: [25.3463, 55.4209], label: 'Sharjah (City Centre)' },
-    ],
-  },
-  {
-    code: 'SA',
-    name: 'Saudi Arabia',
-    cities: [
-      { name: 'Riyadh, Olaya', center: [24.7136, 46.6753], label: 'Riyadh (Olaya / KAFD)' },
-      { name: 'Jeddah, Corniche', center: [21.5433, 39.1728], label: 'Jeddah (Corniche)' },
-      { name: 'Dammam, Central', center: [26.4207, 50.0888], label: 'Dammam (City Center)' },
-    ],
-  },
-  {
-    code: 'AU',
-    name: 'Australia',
-    cities: [
-      { name: 'Sydney, NSW', center: [-33.8688, 151.2093], label: 'Sydney (CBD)' },
-      { name: 'Melbourne, VIC', center: [-37.8136, 144.9631], label: 'Melbourne (CBD)' },
-      { name: 'Brisbane, QLD', center: [-27.4698, 153.0251], label: 'Brisbane (City)' },
-      { name: 'Perth, WA', center: [-31.9505, 115.8605], label: 'Perth (CBD)' },
-    ],
-  },
-  {
-    code: 'DE',
-    name: 'Germany',
-    cities: [
-      { name: 'Berlin, Germany', center: [52.52, 13.405], label: 'Berlin (Mitte)' },
-      { name: 'Munich, Germany', center: [48.1351, 11.582], label: 'Munich (Altstadt)' },
-      { name: 'Frankfurt, Germany', center: [50.1109, 8.6821], label: 'Frankfurt (Innenstadt)' },
-      { name: 'Hamburg, Germany', center: [53.5511, 9.9937], label: 'Hamburg (Mitte)' },
-    ],
-  },
-  {
-    code: 'FR',
-    name: 'France',
-    cities: [
-      { name: 'Paris, France', center: [48.8566, 2.3522], label: 'Paris (Central)' },
-      { name: 'Lyon, France', center: [45.764, 4.8357], label: 'Lyon (Presqu’île)' },
-      { name: 'Marseille, France', center: [43.2965, 5.3698], label: 'Marseille (Vieux-Port)' },
-    ],
-  },
-  {
-    code: 'IT',
-    name: 'Italy',
-    cities: [
-      { name: 'Rome, Italy', center: [41.9028, 12.4964], label: 'Rome (Centro Storico)' },
-      { name: 'Milan, Italy', center: [45.4642, 9.19], label: 'Milan (Duomo / Brera)' },
-      { name: 'Florence, Italy', center: [43.7696, 11.2558], label: 'Florence (Center)' },
-    ],
-  },
-  {
-    code: 'ES',
-    name: 'Spain',
-    cities: [
-      { name: 'Madrid, Spain', center: [40.4168, -3.7038], label: 'Madrid (Centro)' },
-      { name: 'Barcelona, Spain', center: [41.3879, 2.1699], label: 'Barcelona (Eixample)' },
-      { name: 'Valencia, Spain', center: [39.4699, -0.3763], label: 'Valencia (Ciutat Vella)' },
-    ],
-  },
-  {
-    code: 'IN',
-    name: 'India',
-    cities: [
-      { name: 'Mumbai, MH', center: [19.076, 72.8777], label: 'Mumbai (BKC & South)' },
-      { name: 'Delhi, DL', center: [28.6139, 77.209], label: 'Delhi (Connaught Place)' },
-      { name: 'Bengaluru, KA', center: [12.9716, 77.5946], label: 'Bengaluru (Koramangala / Indiranagar)' },
-      { name: 'Hyderabad, TS', center: [17.385, 78.4867], label: 'Hyderabad (HITEC City)' },
-    ],
-  },
-  {
-    code: 'OTHER',
-    name: 'Other Region / Custom City',
-    cities: [
-      { name: 'Custom', center: [24.9215, 67.0979], label: 'Type Custom City / District' },
-    ],
-  },
-]
 
 // ── Niche Presets ─────────────────────────────────────────────
 interface NicheOption {
@@ -353,7 +209,7 @@ function LeadCard({
               rel="noopener noreferrer"
               onClick={(event) => event.stopPropagation()}
               title={`Outdated website — ${websiteUrl}`}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 font-semibold border border-amber-500/20 hover:underline max-w-[220px]"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 font-semibold border border-amber-500/20 hover:underline max-w-55"
             >
               <Clock className="h-3 w-3 shrink-0" />
               <span className="truncate">{domainOf(websiteUrl)}</span>
@@ -370,7 +226,7 @@ function LeadCard({
                   ? `Likely website, matched by name and verified: ${websiteUrl}`
                   : websiteUrl
               }
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-(--primary-soft) text-(--primary) font-semibold hover:underline max-w-[240px]"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-(--primary-soft) text-(--primary) font-semibold hover:underline max-w-60"
             >
               <Globe className="h-3 w-3 shrink-0" />
               <span className="truncate">{domainOf(websiteUrl)}</span>
@@ -389,7 +245,7 @@ function LeadCard({
           {email && (
             <span
               title={email}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/5 text-(--text-secondary) font-mono max-w-[200px]"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/5 text-(--text-secondary) font-mono max-w-50"
             >
               <Mail className="h-3 w-3 text-(--primary) shrink-0" />
               <span className="truncate">{email}</span>
@@ -911,7 +767,7 @@ export function LeadDiscoveryPage() {
             <select
               value={selectedCountryCode}
               onChange={(e) => handleCountryChange(e.target.value)}
-              className="h-9 px-3 text-xs font-semibold rounded-xl clay-inset bg-(--bg) text-(--text-primary) border-none focus:outline-none cursor-pointer"
+              className="h-9 px-3 text-xs font-semibold rounded-xl clay-inset bg-(--bg) text-(--text-primary) border-none focus:outline-none cursor-pointer max-w-56 truncate"
             >
               {COUNTRY_PRESETS.map((c) => (
                 <option key={c.code} value={c.code}>
